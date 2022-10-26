@@ -29,7 +29,7 @@ def profile(fnc):
 
 # Take a list of H and Ps as input
 # input_sequence = list(input("Enter the input sequence: "))
-input_sequence = "HPHHHPHHPHHHHHH"
+input_sequence = "HPHHHPHHPH"
 print(input_sequence)
 
 dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # right, down, left, up
