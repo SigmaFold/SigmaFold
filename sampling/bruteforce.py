@@ -3,6 +3,10 @@ Generates every possible combination of H and Ps within a matrix of size 2n wher
 """
 
 import cProfile, pstats, io
+import pprint
+
+import pandas as pd
+import tabulate
 
 
 def profile(fnc):
@@ -25,7 +29,7 @@ def profile(fnc):
 
 # Take a list of H and Ps as input
 # input_sequence = list(input("Enter the input sequence: "))
-input_sequence = "HPHHHPHHPH"
+input_sequence = "HPHHHPHHPHHHHHH"
 print(input_sequence)
 
 dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # right, down, left, up
@@ -54,7 +58,9 @@ print("Total Possible Paths ====  > ", len(paths))
 
 # map each element in each path to the corresponding element in the input sequence
 paths = [list(zip(path, input_sequence)) for path in paths]
-print("Valid paths are ====> ", paths)
+
+
+# print("Valid paths are ====> ", paths)
 
 
 # plot all points in path
@@ -74,56 +80,71 @@ def get_neighbours(x, y):
 # sum all neighbours where second element of tuple is H
 def get_energy(path):
     energy = 0
-    for point in path:
-        print(point)
+    for idx, point in enumerate(path):
         if point[1] == 'H':
             for neighbour in get_neighbours(point[0][0], point[0][1]):
                 index = path.index((neighbour, 'H')) if (neighbour, 'H') in path else -1
-                if index != -1:
+                if index != -1 and index not in range(idx - 1, idx + 2):
                     energy -= 1
 
-    return energy
+    return energy/2 # divide by 2 to avoid double counting
 
 
 # add energies to paths
 paths = [(get_energy(path), path) for path in paths]
-print("Paths with energies ====> ", paths)
+# print("Paths with energies ====> ", paths)
 
 # isolate all paths with minimum energy
 min_energy = min([path[0] for path in paths])
 print("Minimum energy is ====> ", min_energy)
 min_energy_paths = [path for path in paths if path[0] == min_energy]
-# print("Minimum energy paths are ====> ", min_energy_paths)
 
-# Plot all paths with minimum energy
-# Plot Hs and Ps in a different colour
-# Plot all paths with minimum energy in a different plot
+# join all paths into dataframe
+df = pd.DataFrame(paths, columns=['Energy', 'Path'])
+df = df.sort_values(by='Energy', ascending=True)
+# print(tabulate.tabulate(df, headers='keys', tablefmt='psql'))
+
+# TODO : SUPER TIME CONSUMING
+# iterate through all paths with min E in df and plot them
+df_min_e = df.loc[df['Energy'] == min_energy]
+# print(tabulate.tabulate(df_min_e, headers='keys', tablefmt='psql'))
+
+# size of df
+print("Size of df is ====> ", df_min_e.shape)
+
 
 import matplotlib.pyplot as plt
 
+# convert all paths to dataframes
 
-# plot in a different colour if H or P
+
 def plot_path(path):
-    # use np.where
+    df = pd.DataFrame(path)
+    # Annotate H and Ps in the plot
+    for i, row in df.iterrows():
+        if row[1] == 'H':
+            plt.annotate(row[1], (row[0][0], row[0][1]), color='red')
+            #plot points
+            plt.scatter(row[0][0], row[0][1], color='red')
+            #trace lines between points
+            if i > 0:
+                plt.plot([df.iloc[i-1][0][0], row[0][0]], [df.iloc[i-1][0][1], row[0][1]], color='dimgray')
+
+        else:
+            plt.annotate(row[1], (row[0][0], row[0][1]), color='blue')
+            #plot points
+            plt.scatter(row[0][0], row[0][1], color='blue')
+
+            #trace lines between points
+            if i > 0:
+                plt.plot([df.iloc[i-1][0][0], row[0][0]], [df.iloc[i-1][0][1], row[0][1]], color='dimgray')
+
+    df.columns = ['Point', 'Element']
 
 
+    plt.show()
 
 
-for path in min_energy_paths:
-    plot_path(path[1])
-
-
-#
-# # print(densities)
-# max_density = max(densities)
-#
-# import matplotlib.pyplot as plt
-#
-# # if density is greater or equal to 5 plot
-# for path in paths:
-#     if path[0] == max_density:
-#         x = [coordinate[0] for coordinate in path[1:]]
-#         y = [coordinate[1] for coordinate in path[1:]]
-#         plt.scatter(x, y)
-#         plt.plot(x, y)
-#         plt.show()
+# plot all paths with min energy
+for path in df_min_e['Path']:
+    plot_path(path)
