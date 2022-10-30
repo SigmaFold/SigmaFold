@@ -32,6 +32,7 @@ def magic(numList):
     return s
 
 def conv_to_lattice(int_chain):
+    """Function that replaces the numerical bases with the alphabetical names"""
     formatted_chain = []
     for sequence in int_chain:
         sequence = sequence.replace('0', 'P')
