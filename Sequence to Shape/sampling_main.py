@@ -76,6 +76,8 @@ def plot_sequences(sequence_list, stable_sequence_paths):
                 axs[i, j].set_xticks(ticks, minor=True)
                 axs[i, j].set_yticks(ticks, minor=True)
                 axs[i, j].grid(which='minor')
+                if j == 0:
+                    axs[i, j].set_title(sequence_list[i])
         else:
             axs[i].plot(*zip(*stable_sequence_paths[i][0]), c='grey')  # to display the bonds
             axs[i].scatter(*zip(*stable_sequence_paths[i][0]), c=sequence_split,
@@ -83,7 +85,9 @@ def plot_sequences(sequence_list, stable_sequence_paths):
             axs[i].set_xticks(ticks, minor=True)
             axs[i].set_yticks(ticks, minor=True)
             axs[i].grid(which='both')
+            axs[i].set_title(sequence_list[i])
 
+    fig.suptitle(f'Optimal sequences and their paths: Sequence length {sequence_length}')
     fig.legend(handles=legend_elements, loc='upper right')  # Placing the legend
     plt.setp(axs, xlim=[-sequence_length, sequence_length],
              ylim=[-sequence_length, sequence_length])  # Setting x axis and y axis ranges
@@ -91,5 +95,5 @@ def plot_sequences(sequence_list, stable_sequence_paths):
 
 
 if __name__ == '__main__':
-    opt_seq, opt_paths = get_optimal_sequence(7, 2)
+    opt_seq, opt_paths = get_optimal_sequence(2, 2)
     plot_sequences(opt_seq, opt_paths)
