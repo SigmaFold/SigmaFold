@@ -25,7 +25,8 @@ def get_optimal_sequence(length=1, model=2):
         # stable_sequence_path_list
 
     optimal_stability = min(
-        stability_list)  # Finds the lowest number of stable configurations (includes rotations and reflections) in stability_list
+        stability_list)  # Finds the lowest number of stable configurations (includes rotations and reflections) in
+    # stability_list
     # print(stability_list.count(optimal_stability))
 
     # Creates a list with the indices of all the sequences with the lowest number of stable configurations
@@ -37,7 +38,8 @@ def get_optimal_sequence(length=1, model=2):
             stable_sequence_path_list[index])  # rotated and reflected paths are removed
         optimal_sequences_filtered_paths.append(filtered_stable_path)
     print(
-        f'Among all sequences of length {length} units, there are {len(indices)} sequences with {len(filtered_stable_path)} stable configuration(s):')
+        f'Among all sequences of length {length} units, there are {len(indices)} sequences with '
+        f'{len(filtered_stable_path)} stable configuration(s):')
 
     for i in range(len(optimal_sequences)):
         print(i + 1, optimal_sequences[i])
@@ -75,7 +77,7 @@ def plot_sequences(sequence_list, stable_sequence_paths):
                                   marker='.')  # to display the H and P markers
                 axs[j, i].set_xticks(ticks, minor=True)
                 axs[j, i].set_yticks(ticks, minor=True)
-                axs[j, i].grid(which='minor')
+                axs[j, i].grid(which='both')
                 if j == 0:
                     axs[j, i].set_title(sequence_list[i])
         else:
