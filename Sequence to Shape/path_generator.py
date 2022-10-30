@@ -41,7 +41,7 @@ def get_neighbours(x, y):
     dirs = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, -1), (-1, 1),
             (1, -1)]  # right, down, left, up + all the diagonals
 
-    for dir in dirs:    # adds all the neighbours into a list
+    for dir in dirs:  # adds all the neighbours into a list
         new_x = x + dir[0]
         new_y = y + dir[1]
         neighbours.append((new_x, new_y))
@@ -63,14 +63,14 @@ def get_energy(path, sequence):
                     # the rules stated in rules.py
                     bond = f'{sequence[node_index]}-{sequence[neighbour_index]}'
                     energy += bond_rules[bond]
-    return energy / 2   # divided by 2 because the neighbours count twice
+    return energy / 2  # divided by 2 because the neighbours count twice
 
 
 def handle_sequence(sequence):
     stable_paths = []
     paths = []
     n = len(sequence)
-    generate_paths(0, 0, visited, [], paths, n, list(sequence)) # generates all the paths for the sequence
+    generate_paths(0, 0, visited, [], paths, n, list(sequence))  # generates all the paths for the sequence
     # print("Total Possible Paths ====  > ", len(paths))
 
     energy_list = []
@@ -80,11 +80,11 @@ def handle_sequence(sequence):
         energy_list.append(cur_energy)
 
     # Finds the minimum free energy and finds all the stable paths with that free energy level
-    current_energy_min = min(energy_list) # Finds minimum free energy from all paths
-    stability = energy_list.count(current_energy_min)   # Finds number of paths with min free energy
+    current_energy_min = min(energy_list)  # Finds minimum free energy from all paths
+    stability = energy_list.count(current_energy_min)  # Finds number of paths with min free energy
     for i in range(len(energy_list)):
         if energy_list[i] == current_energy_min:
-            stable_paths.append(paths[i])   # All paths with min free energy
+            stable_paths.append(paths[i])  # All paths with min free energy
 
     # Stability is the number of lowest energy configuration for a given sequence
     # The lower the stability indicator, the more stable the sequence is (*to be experimentally verified*)
