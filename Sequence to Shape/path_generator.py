@@ -99,9 +99,15 @@ def remove_duplicates(path_list):
 
     # we will be performing path list dot product with rotation_matrix/reflection matrix.
     # Hence, the rotation matrices have already been transposed
+
+    # Rotation matrices
     rotation_90_anticlockwise = np.array([[0, 1], [-1, 0]])
     rotation_180_anticlockwise = np.array([[-1, 0], [0, -1]])
     rotation_270_anticlockwise = np.array([[0, -1], [1, 0]])
+
+    # Reflection matrices
+    reflection_x = np.array([[1, 0], [0, -1]])
+    reflection_y = np.array([[-1, 0], [0, 1]])
 
     # Remove reflections
     for i in range(len(path_list)):
@@ -111,8 +117,11 @@ def remove_duplicates(path_list):
             rot_90 = np.dot(other_path_array, rotation_90_anticlockwise)  # 90 degree anticlockwise rot of other_path
             rot_180 = np.dot(other_path_array, rotation_180_anticlockwise)  # 180 degree anticlockwise rot of other_path
             rot_270 = np.dot(other_path_array, rotation_270_anticlockwise)  # 270 degree anticlockwise rot of other_path
+            ref_x = np.dot(other_path_array, reflection_x)
+            ref_y = np.dot(other_path_array, reflection_y)
             if ((np.all(rot_90 == path_array)) or (np.all(rot_180 == path_array)) or (
-            np.all(rot_270 == path_array))) and other_path in filtered_paths:
+                np.all(rot_270 == path_array)) or (np.all(ref_x == path_array)) or (
+                np.all(ref_y == path_array))) and other_path in filtered_paths:
                 filtered_paths.remove(other_path)
 
     return filtered_paths

@@ -20,7 +20,7 @@ def get_optimal_sequence(length=1, model=2):
             stable_sequence_paths)  # adds the paths of stable configuration of each sequence to
         # stable_sequence_path_list
 
-    optimal_stability = min(stability_list)  # Finds the lowest number of stable configurations in stability_list
+    optimal_stability = min(stability_list)  # Finds the lowest number of stable configurations (includes rotations and reflections) in stability_list
     print(stability_list.count(optimal_stability))
 
     # Creates a list with the indices of all the sequences with the lowest number of stable configurations
@@ -29,13 +29,13 @@ def get_optimal_sequence(length=1, model=2):
 
     for index in indices:
         optimal_sequences.append(sequences_list[index])
-        filtered_stable_path = remove_duplicates(stable_sequence_path_list[index])
+        filtered_stable_path = remove_duplicates(stable_sequence_path_list[index]) # rotated and reflected paths are removed
         optimal_sequences_filtered_paths.append(filtered_stable_path)
         # print(sequences_list[index])  # Sequences with lowest number of stable configurations
         # print(stable_sequence_path_list[
         #           index])  # Stable paths of the sequences with the lowest number of stable configurations
         print(f'The sequence of "{sequences_list[index]}" has {len(filtered_stable_path)} stable paths')
-    print(f'Each of them has {optimal_stability} stable configurations')
+    print(f'Each of them has {len(filtered_stable_path)} stable configuration(s)')
 
     for i in range(len(optimal_sequences)):
         print(optimal_sequences[i])
@@ -57,5 +57,5 @@ def get_optimal_sequence(length=1, model=2):
 
 
 if __name__ == '__main__':
-    stable_paths = get_optimal_sequence(4, 2)
-    plot_sequences(stable_paths)
+    stable_paths = get_optimal_sequence(7, 2)
+    # plot_sequences(stable_paths)
