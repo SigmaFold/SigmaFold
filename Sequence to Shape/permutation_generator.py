@@ -6,6 +6,7 @@ def perm_gen(length=1, base=2):
 
     initial_chain = [conv_base(n, base, length) for n in range(base**length)]
     formatted_chain = conv_to_lattice(initial_chain)
+    formatted_chain = list(dict.fromkeys(formatted_chain))
     # print(formatted_chain)
     return formatted_chain
 
