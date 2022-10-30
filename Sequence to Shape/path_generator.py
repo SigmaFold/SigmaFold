@@ -4,6 +4,7 @@ Generates every possible combination of H and Ps within a matrix of size 2n wher
 
 import matplotlib.pyplot as plt
 from rules import bond_rules
+import numpy as np
 
 origin = (0, 0)
 dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # right, down, left, up
@@ -91,16 +92,42 @@ def handle_sequence(sequence):
     # print(stability)
     return stability, stable_paths
 
-    # if density is greater or equal to 5 plot
-    # for path in paths:
-    #     print(path)
-    #     if path[0] == max_density:
-    #         x = [coordinate[0] for coordinate in path[1:][1]]
-    #         y = [coordinate[1] for coordinate in path[1:][1]]
-    #         print(x, y)
-    #         plt.scatter(x, y)
-    #         plt.plot(x, y)
-    #         plt.show()
+
+def remove_duplicates(path_list):
+    """Removes rotations and reflections from a list of paths"""
+    filtered_paths = path_list.copy()
+
+    # we will be performing path list dot product with rotation_matrix/reflection matrix.
+    # Hence, the rotation matrices have already been transposed
+    rotation_90_anticlockwise = np.array([[0, 1], [-1, 0]])
+    rotation_180_anticlockwise = np.array([[-1, 0], [0, -1]])
+    rotation_270_anticlockwise = np.array([[0, -1], [1, 0]])
+
+    # Remove reflections
+    for i in range(len(path_list)):
+        path_array = np.array(path_list[i])
+        for other_path in path_list[i + 1:]:
+            other_path_array = np.array(other_path)
+            rot_90 = np.dot(other_path_array, rotation_90_anticlockwise)  # 90 degree anticlockwise rot of other_path
+            rot_180 = np.dot(other_path_array, rotation_180_anticlockwise)  # 180 degree anticlockwise rot of other_path
+            rot_270 = np.dot(other_path_array, rotation_270_anticlockwise)  # 270 degree anticlockwise rot of other_path
+            if ((np.all(rot_90 == path_array)) or (np.all(rot_180 == path_array)) or (
+            np.all(rot_270 == path_array))) and other_path in filtered_paths:
+                filtered_paths.remove(other_path)
+
+    return filtered_paths
+
+
+# if density is greater or equal to 5 plot
+# for path in paths:
+#     print(path)
+#     if path[0] == max_density:
+#         x = [coordinate[0] for coordinate in path[1:][1]]
+#         y = [coordinate[1] for coordinate in path[1:][1]]
+#         print(x, y)
+#         plt.scatter(x, y)
+#         plt.plot(x, y)
+#         plt.show()
 
 
 if __name__ == '__main__':
