@@ -7,7 +7,6 @@ def perm_gen(length=1, base=2):
     initial_chain = [conv_base(n, base, length) for n in range(base**length)]
     formatted_chain = conv_to_lattice(initial_chain)
     formatted_chain = list(dict.fromkeys(formatted_chain))
-    # print(formatted_chain)
     return formatted_chain
 
 def conv_base(n,b, l):
@@ -17,7 +16,7 @@ def conv_base(n,b, l):
     digits = list()
 
     while n:
-        digits.append(n % b)
+        digits.insert(0, n % b)
         n = n // b
 
     # This it to convert to 8bit but should be changed later
@@ -43,4 +42,4 @@ def conv_to_lattice(int_chain):
 
 
 if __name__ == "__main__":
-    perm_gen(10,2)
+    perm_gen(2,2)
