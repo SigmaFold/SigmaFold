@@ -127,7 +127,7 @@ def plot_sequences(sequence_list, stable_sequence_paths):
         # Generating the plot
         if (len(stable_sequence_paths[0]) != 1) and (len(sequence_list) != 1):
             for j in range(0, len(stable_sequence_paths[0])):
-                axs[j, i].plot(*zip(*stable_sequence_paths[i][j]), c='grey')  # to display the bonds
+                # axs[j, i].plot(*zip(*stable_sequence_paths[i][j]), c='grey')  # to display the bonds
                 axs[j, i].scatter(*zip(*stable_sequence_paths[i][j]), c=sequence_split,
                                   marker='.')  # to display the H and P markers
                 axs[j, i].set_xticks(ticks, minor=True)
@@ -137,7 +137,7 @@ def plot_sequences(sequence_list, stable_sequence_paths):
                     axs[j, i].set_title(sequence_list[i])
 
         elif (len(stable_sequence_paths[0]) == 1) and (len(sequence_list) != 1):
-            axs[i].plot(*zip(*stable_sequence_paths[i][0]), c='grey')  # to display the bonds
+            # axs[i].plot(*zip(*stable_sequence_paths[i][0]), c='grey')  # to display the bonds
             axs[i].scatter(*zip(*stable_sequence_paths[i][0]), c=sequence_split,
                            marker='.')  # to display the H and P markers
             axs[i].set_xticks(ticks, minor=True)
@@ -147,7 +147,7 @@ def plot_sequences(sequence_list, stable_sequence_paths):
 
         elif (len(stable_sequence_paths[0]) != 1) and (len(sequence_list) == 1):
             for j in range(0, len(stable_sequence_paths[0])):
-                axs[j].plot(*zip(*stable_sequence_paths[0][j]), c='grey')  # to display the bonds
+                # axs[j].plot(*zip(*stable_sequence_paths[0][j]), c='grey')  # to display the bonds
                 axs[j].scatter(*zip(*stable_sequence_paths[0][j]), c=sequence_split,
                                marker='.')  # to display the H and P markers
                 axs[j].set_xticks(ticks, minor=True)
@@ -156,7 +156,7 @@ def plot_sequences(sequence_list, stable_sequence_paths):
                 axs[j].set_title(sequence_list[0])
 
         elif (len(stable_sequence_paths[0]) == 1) and (len(sequence_list) == 1):
-            axs[0].plot(*zip(*stable_sequence_paths[0][0]), c='grey')  # to display the bonds
+            # axs[0].plot(*zip(*stable_sequence_paths[0][0]), c='grey')  # to display the bonds
             axs[0].scatter(*zip(*stable_sequence_paths[0][0]), c=sequence_split,
                            marker='.')  # to display the H and P markers
             axs[0].set_xticks(ticks, minor=True)
@@ -174,7 +174,7 @@ def plot_sequences(sequence_list, stable_sequence_paths):
 if __name__ == '__main__':
     # Getting optimal sequences with least unique shapes
     start = time.time()
-    opt_seq, opt_paths = get_optimal_shape_sequence(9, 2)
+    opt_seq, opt_paths = get_optimal_shape_sequence(6, 2)
     plot_sequences(opt_seq, opt_paths)
     end = time.time()
     print(f'The time taken was: {end - start}')
