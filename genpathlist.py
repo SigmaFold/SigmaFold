@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[207]:
 
 
 
@@ -11,10 +11,10 @@ import math as math
 import random as random
 
 
-# In[2]:
+# In[208]:
 
 
-testing=[[1,1,1],[1,1,1],[1,1,1]]
+testing=[[1,1,1],[1,0,0],[1,1,1]]
 step=1;
 for i in range(len(testing)):
     for k in range(len(testing[1])):
@@ -23,10 +23,11 @@ for i in range(len(testing)):
             step=step+1
 
 
-# In[3]:
+# In[210]:
 
 
 #create placeholder and test matrix
+goalshape1=np.array([[1, 2, 3], [4, 0, 6], [7, 8, 9]])
 goalshape=np.array(testing)
 places=goalshape-1
 choices=["H","P"]
@@ -34,7 +35,7 @@ sequences=[]
 
 
 
-# In[4]:
+# In[211]:
 
 
 #create adjacency matrix
@@ -58,7 +59,7 @@ for i in range(len(goalshape[1])):
             
 
 
-# In[5]:
+# In[212]:
 
 
 pathlist=[]
@@ -69,20 +70,51 @@ for x in range(max(np.ndarray.flatten(places)+1)):
 
             if(len(path)>max(np.ndarray.flatten(places))):
                 pathlist.append(path)
+#This is for accounting for any zeros in the middle within the path
+addzeros=[]
+for i in range(len(np.ndarray.flatten(goalshape))):
+    if np.ndarray.flatten(goalshape)[i]==0:
+        addzeros.append(i)
+  #fix path list
+for k in range(len(addzeros)):
+    for j in range(len(pathlist)):
+        for i in range(len(pathlist[j])):
+            if addzeros[k]<pathlist[j][i] or addzeros[k]==pathlist[j][i]:
+                pathlist[j][i]=pathlist[j][i]+1 
 
 
-# In[6]:
+# In[213]:
+
+
+pathlist
+
+
+# In[214]:
+
+
+
+
+
+# In[217]:
 
 
 pathmat=[]
+
 for i in range(len(pathlist)):
+    count=0;
     specpath=[]
-    for j in range(max(pathlist[1])+1):
-        specpath.append([math.floor(pathlist[i][j]/len(goalshape[1])),pathlist[i][j]%len(goalshape[1]),int(j+1)])
+    current=pathlist[i]
+
+    for j in range(len(pathlist[1])):
+        if goalshape[math.floor(pathlist[i][j]/len(goalshape[1])),pathlist[i][j]%len(goalshape[1])]!=0:
+            specpath.append([math.floor(pathlist[i][j]/len(goalshape[1])),pathlist[i][j]%len(goalshape[1]),int(j+1)])
+        else:
+            count=count+1
+
     pathmat.append(specpath)
 
 
-# In[9]:
+# In[218]:
 
 
 def graphicchain(chain):
@@ -94,10 +126,10 @@ def graphicchain(chain):
     return(lattice)
 
 
-# In[13]:
+# In[219]:
 
 
-graphicchain(pathmat[3])
+graphicchain(pathmat[1])
 
 
 # In[ ]:
