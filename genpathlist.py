@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 
@@ -11,7 +11,7 @@ import math as math
 import random as random
 
 
-# In[ ]:
+# In[2]:
 
 
 testing=[[1,1,1],[1,1,1],[1,1,1]]
@@ -23,7 +23,7 @@ for i in range(len(testing)):
             step=step+1
 
 
-# In[ ]:
+# In[3]:
 
 
 #create placeholder and test matrix
@@ -34,7 +34,7 @@ sequences=[]
 
 
 
-# In[ ]:
+# In[4]:
 
 
 #create adjacency matrix
@@ -58,7 +58,7 @@ for i in range(len(goalshape[1])):
             
 
 
-# In[ ]:
+# In[5]:
 
 
 pathlist=[]
@@ -71,7 +71,7 @@ for x in range(max(np.ndarray.flatten(places)+1)):
                 pathlist.append(path)
 
 
-# In[ ]:
+# In[6]:
 
 
 pathmat=[]
@@ -80,4 +80,28 @@ for i in range(len(pathlist)):
     for j in range(max(pathlist[1])+1):
         specpath.append([math.floor(pathlist[i][j]/len(goalshape[1])),pathlist[i][j]%len(goalshape[1]),int(j+1)])
     pathmat.append(specpath)
+
+
+# In[9]:
+
+
+def graphicchain(chain):
+    boundary=np.floor(np.sqrt(len(chain))*2);
+    lattice=np.ndarray.tolist(np.zeros([int(boundary),int(boundary)]))
+    for i in range(len(chain)):
+        lattice[chain[i][0]][chain[i][1]]=chain[i][2]
+    lattice=np.array(lattice)
+    return(lattice)
+
+
+# In[13]:
+
+
+graphicchain(pathmat[3])
+
+
+# In[ ]:
+
+
+
 
