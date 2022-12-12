@@ -1,3 +1,7 @@
+import rl_ui
+
+# shape_matrix = rl_ui.user_matrix
+
 shape_matrix = [[1, 1, 1],
                 [1, 0, 1],
                 [1, 1, 1]]
