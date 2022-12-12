@@ -174,7 +174,7 @@ def plot_sequences(sequence_list, stable_sequence_paths):
 if __name__ == '__main__':
     # Getting optimal sequences with least unique shapes
     start = time.time()
-    opt_seq, opt_paths = get_optimal_shape_sequence(6, 2)
+    opt_seq, opt_paths = get_optimal_shape_sequence(3, 2)
     plot_sequences(opt_seq, opt_paths)
     end = time.time()
     print(f'The time taken was: {end - start}')
