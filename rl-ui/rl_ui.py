@@ -1,4 +1,13 @@
 import streamlit as st
+import genpathlist
+
+
+def submit_button(user_mat):
+    """Runs the functions in genpathlist.py to output a hamiltonian path"""
+    path_mat, grid_size = genpathlist.create_pathmat(user_mat)
+    output_mat = genpathlist.graphicchain(path_mat, grid_size)
+    st.write(output_mat)
+
 
 # Creating a sidebar that allows you to modify the shape of the grid by controlling number of columns and rows
 with st.sidebar:
@@ -29,3 +38,5 @@ for i, col in enumerate(check):
             user_matrix[i][j] = 1
         else:
             user_matrix[i][j] = 0
+
+submit_button(user_matrix)
