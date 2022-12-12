@@ -1,10 +1,13 @@
-""""
+"""
 Generates every possible combination of H and Ps within a matrix of size 2n where n is the size of the input sequence.
 """
 
-import matplotlib.pyplot as plt
-from rules import bond_rules
+from copy import deepcopy
+
 import numpy as np
+
+# import matplotlib.pyplot as plt
+from rules import bond_rules
 
 origin = (0, 0)
 dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # right, down, left, up
@@ -87,7 +90,7 @@ def handle_sequence(sequence):
         if energy_list[i] == current_energy_min:
             stable_paths.append(paths[i])  # All paths with min free energy
 
-    # Stability is the number of lowest energy configuration for a given sequence
+    # Stability is the number of the lowest energy configuration for a given sequence
     # The lower the stability indicator, the more stable the sequence is (*to be experimentally verified*)
     # print(stability)
     return stability, stable_paths
@@ -120,24 +123,61 @@ def remove_duplicates(path_list):
             ref_x = np.dot(other_path_array, reflection_x)
             ref_y = np.dot(other_path_array, reflection_y)
             if ((np.all(rot_90 == path_array)) or (np.all(rot_180 == path_array)) or (
-                np.all(rot_270 == path_array)) or (np.all(ref_x == path_array)) or (
-                np.all(ref_y == path_array))) and other_path in filtered_paths:
+                    np.all(rot_270 == path_array)) or (np.all(ref_x == path_array)) or (
+                        np.all(ref_y == path_array))) and other_path in filtered_paths:
                 filtered_paths.remove(other_path)
 
     return filtered_paths
 
 
-# if density is greater or equal to 5 plot
-# for path in paths:
-#     print(path)
-#     if path[0] == max_density:
-#         x = [coordinate[0] for coordinate in path[1:][1]]
-#         y = [coordinate[1] for coordinate in path[1:][1]]
-#         print(x, y)
-#         plt.scatter(x, y)
-#         plt.plot(x, y)
-#         plt.show()
+def find_graph(sequence, path):
+    """Create a graph that details the neighbours of each residue"""
+    # Initialize the graph dictionary
+    conn_graph = {}
+
+    # Check through every residue to see what residue it is, what the previous and next neighbours are, and which
+    # residues are neighbours
+    for res_num, residue in enumerate(path):
+        # Initializing directions and neighbours for each residue
+        new_dirs = deepcopy(dirs)
+        neighbours = []
+        # If it is the last residue, the previous residue has to be removed from the direction check
+        if res_num == len(path) - 1:
+            value = [sequence[res_num], 'x']  # the next residue is labeled as 'x'
+            x_prev = path[res_num - 1][0] - residue[0]
+            y_prev = path[res_num - 1][1] - residue[1]
+            new_dirs.remove((x_prev, y_prev))
+        # If it is the first residue, the next residue has to be removed from the direction check
+        elif res_num == 0:
+            value = [sequence[res_num], res_num + 1]
+            x_next = path[res_num + 1][0] - residue[0]
+            y_next = path[res_num + 1][1] - residue[1]
+            new_dirs.remove((x_next, y_next))
+        # If it is a middle residue, both the previous and next residue has to be removed from the direction check
+        else:
+            value = [sequence[res_num], res_num + 1]
+            x_next = path[res_num + 1][0] - residue[0]
+            y_next = path[res_num + 1][1] - residue[1]
+            x_prev = path[res_num - 1][0] - residue[0]
+            y_prev = path[res_num - 1][1] - residue[1]
+            new_dirs.remove((x_next, y_next))
+            new_dirs.remove((x_prev, y_prev))
+        # Check for residue in remaining directions and if present, add index to neighbour
+        for dir in new_dirs:
+            x = residue[0] + dir[0]
+            y = residue[1] + dir[1]
+            if (x, y) in path:
+                neighbours.append(path.index((x, y)))
+        neighbours.sort()  # sorts the neighbours
+        value += neighbours  # combines the neighbours to value
+        conn_graph[res_num] = value  # the residue key is given its value
+    return conn_graph
 
 
 if __name__ == '__main__':
-    energy = handle_sequence("HPPHPPHPHH")
+    sequence = "HPPHPPHPHH"
+    stability, paths = handle_sequence(sequence)
+    print(len(paths))
+    print(paths[0])
+    graph = find_graph(sequence, paths[0])
+    print(graph)
