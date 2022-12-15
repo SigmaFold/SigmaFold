@@ -15,7 +15,7 @@ import random as random
 
 
 #this is Nabeel's input basically this turns it into something that looks like goalshape1 
-testing=[[1,1,1,1],[1,1,1,1],[1,1,1,1],[1,1,1,1]]
+testing=[[1,1,1],[1,1,1],[1,1,1],[1,1,1]]
 step=1;
 for i in range(len(testing)):
     for k in range(len(testing[1])):
@@ -167,7 +167,7 @@ sequences=sequence
 # In[998]:
 
 
-sequences
+print(sequences[2])
 
 
 # In[ ]:
