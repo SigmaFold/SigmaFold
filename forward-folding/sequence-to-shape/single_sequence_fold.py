@@ -32,6 +32,7 @@ def profile(fnc):
 input_sequence = "HPHHHPHHPH"
 print(input_sequence)
 
+origin = (0, 0)
 dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # right, down, left, up
 visited = set()
 
@@ -42,6 +43,9 @@ n = len(input_sequence)
 
 def generate_paths(x, y, visited, path):
     if len(path) < n:
+        if origin not in path:
+            path.append(origin)
+            visited.add(origin)
         for dir in dirs:
             new_x = x + dir[0]
             new_y = y + dir[1]
