@@ -12,6 +12,8 @@ from path_generator import handle_sequence, remove_duplicates
 def get_optimal_path_sequence(length=1, model=2):
     """Permutes all the sequences of input length and model. Identifies the sequences that have the least number of
     stable configurations and returns the sequences and the stable paths"""
+
+
     stable_sequence_path_list = []
     sequences_list = perm_gen(length, model)  # list of all possible sequences with a certain length
     stability_list = []
