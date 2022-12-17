@@ -2,9 +2,6 @@
 # coding: utf-8
 
 # In[1688]:
-
-
-
 import networkx as nx #graph library 
 import numpy as np
 import math as math

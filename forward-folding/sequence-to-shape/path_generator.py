@@ -14,8 +14,8 @@ visited = set()  # locations that have been visited
 
 
 def generate_paths(x, y, visited, path, paths, n, sequence):
-    """Recursive function
-    """
+    """Recursive function that explores all possible paths in the lattice"""
+
     if len(path) < n:
         # ensures (0, 0) is teh starting point of the path
         if origin not in path:
@@ -125,18 +125,6 @@ def remove_duplicates(path_list):
                 filtered_paths.remove(other_path)
 
     return filtered_paths
-
-
-# if density is greater or equal to 5 plot
-# for path in paths:
-#     print(path)
-#     if path[0] == max_density:
-#         x = [coordinate[0] for coordinate in path[1:][1]]
-#         y = [coordinate[1] for coordinate in path[1:][1]]
-#         print(x, y)
-#         plt.scatter(x, y)
-#         plt.plot(x, y)
-#         plt.show()
 
 
 if __name__ == '__main__':

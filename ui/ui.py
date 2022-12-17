@@ -1,11 +1,11 @@
 import streamlit as st
-import genpathlist
+import logic
 
 
 def submit_button(user_mat):
     """Runs the functions in genpathlist.py to output a hamiltonian path"""
-    path_mat, grid_size = genpathlist.create_pathmat(user_mat)
-    output_mat = genpathlist.graphicchain(path_mat, grid_size)
+    path_mat, grid_size = logic.create_pathmat(user_mat)
+    output_mat = logic.graphicchain(path_mat, grid_size)
     st.write(output_mat)
 
 
