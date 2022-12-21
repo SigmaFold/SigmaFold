@@ -8,7 +8,7 @@ from collections import defaultdict
 # input_sequence = list(input("Enter the input sequence: "))
 def primitive_fold(sequence):
     input_sequence = sequence
-    print(input_sequence)
+    print("Input sequence =>", input_sequence)
 
     origin = (0, 0)
     dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # down, right, up, left

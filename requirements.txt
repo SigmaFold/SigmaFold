@@ -2,3 +2,10 @@ streamlit
 networkx
 numpy
 scipy
+pandas
+matplotlib
+tabulate # prints tables nice and sexy
+mmh3
+python-dotenv
+supabase
+
