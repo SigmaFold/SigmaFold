@@ -1,2 +1,4 @@
 streamlit
 networkx
+numpy
+scipy
