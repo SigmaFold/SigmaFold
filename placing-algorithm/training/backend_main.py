@@ -1,10 +1,9 @@
 # from sqlalchemy.sql import Values
-from generate_permutations import *
+from lib.generate_permutations import *
 from fold_seq import primitive_fold
 import pandas as pd  # t pédé ou quoi
 import numpy as np
 import mmh3
-from pprint import pprint
 import tabulate
 
 

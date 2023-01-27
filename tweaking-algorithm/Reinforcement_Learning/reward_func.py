@@ -9,7 +9,7 @@ def get_reward(sequence, target, log=0):
 	"""
 
 	# Fold the input sequence
-	_, opt_path = pf.primitive_fold(sequence)
+	_, opt_path = pf.native_fold(sequence)
 	degeneracy = len(opt_path)
 	prim_fold = opt_path[0][1]
 
