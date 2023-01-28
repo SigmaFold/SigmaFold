@@ -29,7 +29,7 @@ def profile(fnc):
 
 # Take a list of H and Ps as input
 # input_sequence = list(input("Enter the input sequence: "))
-input_sequence = "HPHHHPHHPH"
+input_sequence = "HPHHPHHPPH"
 print(input_sequence)
 
 origin = (0, 0)
@@ -61,7 +61,7 @@ generate_paths(0, 0, visited, [])
 print("Total Possible Paths ====  > ", len(paths))
 
 # map each element in each path to the corresponding element in the input sequence
-paths = [list(zip(path, input_sequence)) for path in paths]
+paths_ = [list(zip(path, input_sequence)) for path in paths]
 
 
 # print("Valid paths are ====> ", paths)
@@ -80,6 +80,15 @@ def get_neighbours(x, y):
         neighbours.append((new_x, new_y))
     return neighbours
 
+def get_neighbours_diagonals(x, y):
+    neighbours = []
+    # create list of directions with diagonals
+    dirs = [(0, 1), (1, 0), (0, -1), (-1, 0), (1,1), (-1,-1),(1,-1), (-1,1) ]  # right, down, left, up
+    for dir in dirs:
+        new_x = x + dir[0]
+        new_y = y + dir[1]
+        neighbours.append((new_x, new_y))
+    return neighbours
 
 # sum all neighbours where second element of tuple is H
 def get_energy(path):
@@ -93,29 +102,42 @@ def get_energy(path):
 
     return energy/2 # divide by 2 to avoid double counting
 
+def get_energy_diagonals(path):
+    energy = 0
+    for idx, point in enumerate(path):
+        if point[1] == 'H':
+            for neighbour in get_neighbours_diagonals(point[0][0], point[0][1]):
+                index = path.index((neighbour, 'H')) if (neighbour, 'H') in path else -1
+                if index != -1 and index not in range(idx - 1, idx + 2):
+                    energy -= 1
+
+    return energy/2
 
 # add energies to paths
-paths = [(get_energy(path), path) for path in paths]
-# print("Paths with energies ====> ", paths)
+paths = [(get_energy(path), path) for path in paths_]
 
 # isolate all paths with minimum energy
 min_energy = min([path[0] for path in paths])
 print("Minimum energy is ====> ", min_energy)
 min_energy_paths = [path for path in paths if path[0] == min_energy]
-
-# join all paths into dataframe
 df = pd.DataFrame(paths, columns=['Energy', 'Path'])
 df = df.sort_values(by='Energy', ascending=True)
-# print(tabulate.tabulate(df, headers='keys', tablefmt='psql'))
-
-# TODO : SUPER TIME CONSUMING
 # iterate through all paths with min E in df and plot them
 df_min_e = df.loc[df['Energy'] == min_energy]
-# print(tabulate.tabulate(df_min_e, headers='keys', tablefmt='psql'))
-
 # size of df
 print("Size of df is ====> ", df_min_e.shape)
 
+# Do same as previous but for diagonals
+paths_diagonals = [(get_energy_diagonals(path), path) for path in paths_]
+min_energy_diagonals = min([path[0] for path in paths_diagonals])
+print("Minimum energy is ====> ", min_energy_diagonals)
+min_energy_paths_diagonals = [path for path in paths_diagonals if path[0] == min_energy_diagonals]
+
+df_diagonals = pd.DataFrame(paths_diagonals, columns=['Energy', 'Path'])
+df_diagonals = df_diagonals.sort_values(by='Energy', ascending=True)
+
+df_min_e_diagonals = df_diagonals.loc[df_diagonals['Energy'] == min_energy_diagonals]
+print("Size of df is ====> ", df_min_e_diagonals.shape)
 
 import matplotlib.pyplot as plt
 
@@ -149,6 +171,18 @@ def plot_path(path):
     plt.show()
 
 
-# plot all paths with min energy
+# Plot the paths with minimum energy for both cases
 for path in df_min_e['Path']:
     plot_path(path)
+    # add title
+    plt.title('Minimum Energy Paths without diagonals')
+
+
+for path in df_min_e_diagonals['Path']:
+    plot_path(path)
+    # add title
+    plt.title('Minimum Energy Paths with diagonals')
+
+
+
+

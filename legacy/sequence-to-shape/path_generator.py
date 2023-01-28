@@ -54,7 +54,7 @@ def get_energy(path, sequence):
     energy = 0
     for node in path:
         node_index = path.index(node)
-        for dir in dirs:
+        for dir in dirs_full:
             cur_x = node[0] + dir[0]
             cur_y = node[1] + dir[1]
             if (cur_x, cur_y) in path:
@@ -66,6 +66,33 @@ def get_energy(path, sequence):
                     energy += bond_rules[bond]
     return energy / 2  # divided by 2 because the neighbours count twice
 
+
+
+
+def handle_sequence(sequence):
+    stable_paths = []
+    paths = []
+    n = len(sequence)
+    generate_paths(0, 0, visited, [], paths, n, list(sequence))  # generates all the paths for the sequence
+    # print("Total Possible Paths ====  > ", len(paths))
+
+    energy_list = []
+    # Gets the free energy for every path generated and appends it to energy_list
+    for path in paths:
+        cur_energy = (get_energy(path, sequence))
+        energy_list.append(cur_energy)
+
+    # Finds the minimum free energy and finds all the stable paths with that free energy level
+    current_energy_min = min(energy_list)  # Finds minimum free energy from all paths
+    stability = energy_list.count(current_energy_min)  # Finds number of paths with min free energy
+    for i in range(len(energy_list)):
+        if energy_list[i] == current_energy_min:
+            stable_paths.append(paths[i])  # All paths with min free energy
+
+    # Stability is the number of lowest energy configuration for a given sequence
+    # The lower the stability indicator, the more stable the sequence is (*to be experimentally verified*)
+    # print(stability)
+    return stability, stable_paths
 
 def handle_sequence(sequence):
     stable_paths = []
