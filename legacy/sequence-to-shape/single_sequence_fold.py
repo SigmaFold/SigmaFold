@@ -7,7 +7,8 @@ import pprint
 
 import pandas as pd
 import tabulate
-
+import numpy as np
+from math import ceil
 
 def profile(fnc):
     """A decorator that uses cProfile to profile a function"""
@@ -40,24 +41,47 @@ visited = set()
 paths = []
 n = len(input_sequence)
 
+def step_function(x):
+    """Returns 1 if x > 0, 0 otherwise"""
+    return 1 if x > 0 else 0
 
-def generate_paths(x, y, visited, path):
-    if len(path) < n:
-        if origin not in path:
-            path.append(origin)
-            visited.add(origin)
+
+def generate_paths(path, visited):
+        """Generate all possible paths of length n starting at (0, 0)"""
+        if len(path) == n:
+            paths.append(path)
+            return
+
         for dir in dirs:
-            new_x = x + dir[0]
-            new_y = y + dir[1]
-            if (new_x, new_y) not in visited:
+            new_x = path[-1][0] + dir[0]
+            new_y = path[-1][1] + dir[1]
+            cap_y = ceil((n/(abs(new_x)+1)) - 1) if abs(new_x) > 0 else cap_x
+
+            if  abs(new_y) > cap_y or abs(new_x) > cap_x:
+                continue
+            
+            elif (new_x, new_y) not in visited:
                 visited.add((new_x, new_y))
-                generate_paths(new_x, new_y, visited, path + [(new_x, new_y)])
+                generate_paths(path + [(new_x, new_y)], visited)
                 visited.remove((new_x, new_y))
-    else:
-        paths.append(path)
+
+ # new paths to be generated
+visited.add((0, 0))
+visited.add((1, 0))
+cap_x = ceil(n/2) -1 
+
+generate_paths([(0,0), (1,0)], visited)
 
 
-generate_paths(0, 0, visited, [])
+visited_input = np.zeros((2*n, 2*n), dtype=bool)
+visited_input[0, 0] = True
+visited_input[1, 0] = True
+
+
+
+
+
+# generate_paths_bis([(0, 0), (1, 0)], visited)
 print("Total Possible Paths ====  > ", len(paths))
 
 # map each element in each path to the corresponding element in the input sequence

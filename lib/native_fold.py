@@ -26,6 +26,9 @@ def profile(fnc):
         return retval
 
     return inner
+def step_function(x):
+    """Returns 1 if x > 0, 0 otherwise"""
+    return 1 if x > 0 else 0
 
 @profile
 def native_fold(n):
@@ -34,11 +37,9 @@ def native_fold(n):
     dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]  
     paths = [] # new paths to be generated
     cap_x = ceil(n/2) -1 
-    visited = np.zeros((n, n), dtype=bool)
-    visited[0, 0] = True
-    visited[1, 0] = True
 
-    def generate_paths(path):
+    #TODO: Optimise using numpy arrays for the visited set potentially
+    def generate_paths(path, visited):
         """Generate all possible paths of length n starting at (0, 0)"""
         if len(path) == n:
             paths.append(path)
@@ -52,53 +53,63 @@ def native_fold(n):
             if  abs(new_y) > cap_y or abs(new_x) > cap_x:
                 continue
             
-            elif not visited[new_y, new_x]:
-                visited[new_y, new_x] = True
-                generate_paths(path + [(new_x, new_y)])
-                visited[new_y, new_x] = False
+            elif (new_x, new_y) not in visited:
+                visited.add((new_x, new_y))
+                generate_paths(path + [(new_x, new_y)], visited)
+                visited.remove((new_x, new_y))
 
-
-    generate_paths([(0, 0), (0, 1)]) # start at (0, 1) to avoid double counting
+    generate_paths([(0, 0), (0, 1)], set([(0,1), (0,0)])) # start at (0, 1) to avoid double counting
     
-    # Plot the paths
-
-    # for path in paths:
-    #     x, y = zip(*path)
-    #     plt.scatter(x, y)
-    # plt.show()
-
-# If the input path is empty start from scratch
-    # if not old_paths:
-    #     # generate_paths(set([(0, 0), (0,1)]), [(0, 0), (0, 1)]) # start at (0, 1) to avoid double counting
-    #     old_paths = paths
-    # else:
-        # for idx, path in enumerate(old_paths):
-            # Reassign that path to the new paths generated
-            # print(path)
-          #   generate_paths(set(tuple(path)), path)
-            # del old_paths[idx]
-            # old_paths.extend(paths)
-            # paths = []
-    
-    # print("old paths:", old_paths)
-    # Json serialize the path and save the file to the data folder
-    # with open('data/paths.json', 'w') as outfile:
-        # rapidjson.dumps(old_paths)
-        
     return paths
 
+def get_neighbours(coord):
+    # iterate over dirs and return list of neighbours
+    dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+    neighbours = set()
+    for dir in dirs:
+        neighbours.add((coord[0] + dir[0], coord[1] + dir[1]))
+    return neighbours
+
+sequence ="PHPPHPPHP"
+
+@profile
 def compute_energy(paths, sequence):
     """ Match the sequence to each paths and compute the energy. Return all minimum energy structures. Stores paths in a heap.
         H-H bond = -1
         P-P bond = 0
     """
-    if len(paths) == 0:
-        return False 
-    if len(paths[0] != len(sequence)):
-        return False
 
     # Create a heap to store the paths
     heap = []
+    for path in paths:
+        H_coords = []
+        energy = 0
+        j = -1 # tracks the last time we saw an H along the chain
+        for i in range(n):
+            if sequence[i] == 'H':
+                # Compute the energy of interaction with any Hs before it
+                curr_x, curr_y = path[i]
+                if i == j+1: # that means that the last time we encountered an H, it was adjacent to the current H
+                    for coord in H_coords[:-1]: # skip last element
+                        distance = (curr_x - coord[0])**2 + (curr_y - coord[1])**2
+                        if distance == 1:
+                            energy -= 1
+                        
+                else:
+                    for coord in H_coords:
+                        distance = (curr_x - coord[0])**2 + (curr_y - coord[1])**2
+                        if distance == 1:
+                            energy -= 1
+                H_coords.append((curr_x, curr_y))
+                j = i
+                
+                       
+    
+        heapq.heappush(heap, (energy, path))
+
+    return heap
+
+
 
 def generateWalks(n):
     """Generates a graph of all possible walks of length n starting at (0,0). numbers te entire grid"""
@@ -113,9 +124,6 @@ def generateWalks(n):
                     # add edge between neighbours
     # add edge between (0,0) and (0,1)
     
-
-    
-    
     #nx.draw(G, with_labels=True)
     #plt.show()
     
@@ -128,13 +136,31 @@ def generateWalks(n):
 
 
 if __name__ == "__main__":
-    n = 16
     x = 0
     y = 0
     # G = generateWalks(n)
-    
+    sequence ="PHPPHPPH"
+    n = len(sequence)
     paths = native_fold(n)
-    print(len(paths))
+    heap = compute_energy(paths, sequence)
+    # pop from heap until energy changes
+    energy = heap[0][0]
+    print(n)
+    while heap[0][0] == energy:
+        path = heapq.heappop(heap)
+        # plot the path 
+        x = [coord[0] for coord in path[1]]
+        y = [coord[1] for coord in path[1]]
+        # print h and p on graph
+        for i in range(n):
+            if sequence[i] == 'H':
+                plt.text(x[i], y[i], 'H')
+            else:
+                plt.text(x[i], y[i], 'P')
+        plt.plot(x, y, 'ro')
+        plt.plot(x, y)
+        plt.show()
+
 
 
 
