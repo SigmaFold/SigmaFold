@@ -1,7 +1,7 @@
-import gymnasium as gym
+import gym
 import numpy as np
 import random as rnd
-from gymnasium import spaces
+from gym import spaces
 
 # List of random TODOs:
 # - Too much type casting
@@ -89,9 +89,9 @@ class PrimitiveInverseEnv(gym.Env):
 		decoded_seq_list = self._decode(self.sequence)
 
 		# Performing the action
-		# print(decoded_seq_list)
+		#print(decoded_seq_list)
 		decoded_seq_list[index] = amino_code
-		# print(decoded_seq_list)
+		#print(decoded_seq_list)
 		# Encoding the new sequence and storing it in the environment attributes
 		decoded_seq_int = int("".join(map(str, decoded_seq_list)))
 		self.sequence = self._encode(decoded_seq_int)
