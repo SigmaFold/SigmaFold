@@ -104,13 +104,13 @@ class PrimitiveInverseEnv(gym.Env):
 		reward = 1 if new_divergence < self.divergence else -1
 		self.divergence = new_divergence
 		terminated = True if new_divergence == 0 else False
-		print(reward)
+		# print(reward)
 		observation = self._get_obs()
 		# print('End step')
 		return observation, reward, terminated, {}
 
 	def render(self, mode=None):
-		print("MAJHKDHCBNHJBFDNHJK")
+		print(self._shadow_sequence)
 		return "hehehe"
 
 	def _get_obs(self):
@@ -171,6 +171,7 @@ class PrimitiveInverseEnv(gym.Env):
 	@staticmethod
 	def _render_action(i, ac):
 		print(f'Changing {i}th unit with a {ac}')
+		pass
 
 ### Debugging Tests
 def test_encoder():
