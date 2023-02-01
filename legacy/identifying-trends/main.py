@@ -1,12 +1,19 @@
+"""
+Nabeel's code to plot optimal sequences and stable paths and a given n - HOWEVER IT IS CURRENTLY BROKEN AS IT NEEDS REFACTORING TO IMPORT THE NEW LIB/ FOLDER STRUCTURE
+"""
 
 
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import sys, os
 
-from permutation_generator import perm_gen
 from path_generator import handle_sequence, remove_duplicates
+
+# Set current working directory to be 3 levels above the current file
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) # THIS WILL BREAK IF YOU MOVE FILES AROUND
+from lib.generate_permutations import perm_gen
 
 
 def get_optimal_path_sequence(length=1, model=2):

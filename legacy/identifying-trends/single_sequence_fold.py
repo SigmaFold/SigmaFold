@@ -1,5 +1,6 @@
 """"
-Generates every possible combination of H and Ps within a matrix of size 2n where n is the size of the input sequence.
+Super naive and outdated implementation of the folding logic. Only kept as there's quite a lot of random plotting functionality that may be useful. For updated folding logic e.g. get energy, see lib/native_fold.py.
+
 """
 
 import cProfile, pstats, io
@@ -9,23 +10,6 @@ import pandas as pd
 import tabulate
 import numpy as np
 from math import ceil
-
-def profile(fnc):
-    """A decorator that uses cProfile to profile a function"""
-
-    def inner(*args, **kwargs):
-        pr = cProfile.Profile()
-        pr.enable()
-        retval = fnc(*args, **kwargs)
-        pr.disable()
-        s = io.StringIO()
-        sortby = 'cumulative'
-        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-        ps.print_stats()
-        print(s.getvalue())
-        return retval
-
-    return inner
 
 
 # Take a list of H and Ps as input

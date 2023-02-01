@@ -1,35 +1,18 @@
-# The fold will take paths at a previous n and attempt to add the next element in the sequence to the end of the path. If the path is valid, it will be added to the list of paths. 
-# If the path is invalid, it will be discarded. 
-# This will continue until the sequence is exhausted. 
-# The energy of each path will be calculated and the path with the lowest energy will be returned.
+"""
+Provides a set a function to find and compute the energy of all possible paths with speedups where possible.
+"""
 import matplotlib.pyplot as plt
 import heapq
-import cProfile, pstats, io
 import networkx as nx
-from math import ceil, floor
+from math import ceil
 import numpy as np
-def profile(fnc):
-    
-    """A decorator that uses cProfile to profile a function"""
-    def inner(*args, **kwargs):
-        
-        pr = cProfile.Profile()
-        pr.enable()
-        retval = fnc(*args, **kwargs)
-        pr.disable()
-        s = io.StringIO()
-        sortby = 'cumulative'
-        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-        ps.print_stats()
-        print(s.getvalue())
-        return retval
+from tools import profile
 
-    return inner
 def step_function(x):
     """Returns 1 if x > 0, 0 otherwise"""
     return 1 if x > 0 else 0
 
-@profile
+# @profile
 def native_fold(n):
     """Takes the previous n's path as input and attempts to add the next element in the sequence to the end of the path"""
 
@@ -61,16 +44,6 @@ def native_fold(n):
     
     return paths
 
-def get_neighbours(coord):
-    # iterate over dirs and return list of neighbours
-    dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-    neighbours = set()
-    for dir in dirs:
-        neighbours.add((coord[0] + dir[0], coord[1] + dir[1]))
-    return neighbours
-
-sequence ="PHPPHPPHP"
-
 @profile
 def compute_energy(paths, sequence):
     """ Match the sequence to each paths and compute the energy. Return all minimum energy structures. Stores paths in a heap.
@@ -79,6 +52,7 @@ def compute_energy(paths, sequence):
     """
 
     # Create a heap to store the paths
+    #TODO: Optimise to to use the odd-even contact rule
     heap = []
     for path in paths:
         H_coords = []
@@ -90,7 +64,7 @@ def compute_energy(paths, sequence):
                 curr_x, curr_y = path[i]
                 if i == j+1: # that means that the last time we encountered an H, it was adjacent to the current H
                     for coord in H_coords[:-1]: # skip last element
-                        distance = (curr_x - coord[0])**2 + (curr_y - coord[1])**2
+                        distance = (curr_x - coord[0])**2 + (curr_y - coord[1])**2 # calculate distance between 2 Hs
                         if distance == 1:
                             energy -= 1
                         
@@ -99,6 +73,7 @@ def compute_energy(paths, sequence):
                         distance = (curr_x - coord[0])**2 + (curr_y - coord[1])**2
                         if distance == 1:
                             energy -= 1
+
                 H_coords.append((curr_x, curr_y))
                 j = i
                 
@@ -109,7 +84,7 @@ def compute_energy(paths, sequence):
     return heap
 
 
-
+# Not yet in use but could be useful.
 def generateWalks(n):
     """Generates a graph of all possible walks of length n starting at (0,0). numbers te entire grid"""
     G = nx.DiGraph()
@@ -127,10 +102,6 @@ def generateWalks(n):
     #plt.show()
     
     return G
-
-
-    
-
         
 
 
@@ -145,20 +116,20 @@ if __name__ == "__main__":
     # pop from heap until energy changes
     energy = heap[0][0]
     print(n)
-    while heap[0][0] == energy:
-        path = heapq.heappop(heap)
-        # plot the path 
-        x = [coord[0] for coord in path[1]]
-        y = [coord[1] for coord in path[1]]
-        # print h and p on graph
-        for i in range(n):
-            if sequence[i] == 'H':
-                plt.text(x[i], y[i], 'H')
-            else:
-                plt.text(x[i], y[i], 'P')
-        plt.plot(x, y, 'ro')
-        plt.plot(x, y)
-        plt.show()
+    # while heap[0][0] == energy:
+    #     path = heapq.heappop(heap)
+    #     # plot the path 
+    #     x = [coord[0] for coord in path[1]]
+    #     y = [coord[1] for coord in path[1]]
+    #     # print h and p on graph
+    #     for i in range(n):
+    #         if sequence[i] == 'H':
+    #             plt.text(x[i], y[i], 'H')
+    #         else:
+    #             plt.text(x[i], y[i], 'P')
+    #     plt.plot(x, y, 'ro')
+    #     plt.plot(x, y)
+    #     plt.show()
 
 
 

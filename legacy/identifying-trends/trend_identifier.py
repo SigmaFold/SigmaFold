@@ -1,3 +1,7 @@
+"""
+Nabeel's hardcoded stuff to plot some trends I think
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 

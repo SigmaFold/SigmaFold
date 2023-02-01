@@ -1,3 +1,7 @@
+"""
+Defines toolset to generate seaquence permutations - for now it is a naive implementation that is in need of optimisation.
+"""
+
 def perm_gen(length=1, base=2):
     """"Function that returns a list of all the possible permuations for a given sequence length and a given
     number of possible units. HP lattice by default"""

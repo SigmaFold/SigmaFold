@@ -1,10 +1,15 @@
+"""
+A first implentation of a reward function to be used oona n RL algorithm in the future.
+"""
+
 import re
 import primitive_fold as pf
 import numpy as np 
 import scipy as sc
 
 def get_reward(sequence, target, log=0):
-	"""Function that gets a sequence as a string and ouputs the corresponding score
+	"""
+	Function that gets a sequence as a string and ouputs the corresponding score
 	Log: 0 to hide everthing, 1 to show everything, 2 to only show final result
 	"""
 
