@@ -3,7 +3,6 @@
 # This will continue until the sequence is exhausted. 
 # The energy of each path will be calculated and the path with the lowest energy will be returned.
 import matplotlib.pyplot as plt
-import rapidjson
 import heapq
 import cProfile, pstats, io
 import networkx as nx
