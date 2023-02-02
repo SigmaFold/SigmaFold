@@ -97,7 +97,8 @@ pip install -r requirements.txt
 <!-- CONTACT -->
 ## Contact
 
-Nicolas: njd20@ic.ac.uk (repo owner), feel free to send me an email if you have any suggerstions or are interested in contributing!
+Nicolas: njd20@ic.ac.uk / https://www.linkedin.com/in/nicolasdhnr/, feel free to send me an email if you have any suggerstions or are interested in contributing!
+
 Other Contributors: Gloria, Alex, Joshua, Nabeel, Mateusz from the Imperial College London Department of Bioengineering.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
