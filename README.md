@@ -14,23 +14,14 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-<a href="https://ibb.co/52vQwjs">
-<img src="https://i.ibb.co/x3Gndgz/DALL-E-2022-11-28-02-35-54-protein-folding-logo-with-a-capybara-with-title-sigmafold.png" alt="DALL-E-2022-11-28-02-35-54-protein-folding-logo-with-a-capybara-with-title-sigmafold" border="0" width="300"></a>
 
 
-  <h1 align="center">Sigmafold</h1>
+  <h1 style= font-size: 150px align="center">Sigmafold</h1>
 
   <p align="center">
     Solving the inverse protein folding using Machine Learning techniques, step by step.
     <br />
-    <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/othneildrew/Best-README-Template">View Demo</a>
-    ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues">Request Feature</a>
+    <a href="https://www.notion.so/SigmaFold-ce3f051d258c4eba8e7edd5cf590055f"><strong>Explore the docs »</strong></a>
   </p>
 </div>
 
@@ -86,34 +77,21 @@ Recent and considerable discoveries regarding conformational analysis of protein
 ### Prerequisites
 
 This is an example of how to list things you need to use the software and how to install them.
-* Python
+* Python3
   ```sh
-  sudo apt install python
+  sudo apt install python3
    ```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- ROADMAP -->
-## Roadmap
-
-- [x] Make a Roadmap
-
-
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
 
 
 
 <!-- CONTACT -->
 ## Contact
 
-Nicolas, Gloria, Alex, Joshua, Nabeel, Mateusz
+Nicolas: njd20@ic.ac.uk (repo owner), feel free to send me an email if you have any suggerstions or are interested in contributing!
+Other Contributors: Gloria, Alex, Joshua, Nabeel, Mateusz from the Imperial College London Department of Bioengineering.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
