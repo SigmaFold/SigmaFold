@@ -1,5 +1,3 @@
-
-
 Todo list:
 - Build new env (file tweak_env already created) with following feature:
     1) better reward function
