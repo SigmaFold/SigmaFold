@@ -1,7 +1,8 @@
-import sys, os
+import sys
+import os
 
 # Set current working directory to be 3 levels above the current file
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) # THI
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))  # THI
 
 from lib.generate_permutations import *
 from lib.native_fold import *
@@ -11,6 +12,7 @@ import numpy as np
 import mmh3
 import tabulate
 from supabase.supabase_setup import SupabaseDB
+
 
 # from supabase import create_client, Client
 
@@ -97,12 +99,6 @@ def commit_to_supabase(seq_list, shape_list, mapping_list):
     db.supabase.table("Sequences").insert(seq_list).execute()
     db.supabase.table("Shapes").insert(shape_list).execute()
     db.supabase.table("Mappings").insert(mapping_list).execute()
-
-
-
-    
-    
-    
 
 
 if __name__ == '__main__':

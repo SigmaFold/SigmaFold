@@ -6,6 +6,8 @@ from math import ceil
 
 import networkx as nx
 import matplotlib.pyplot as plt
+
+
 # from tools import profile
 
 
@@ -42,7 +44,7 @@ def fold_n(n):
                 generate_paths(path + [(new_x, new_y)], visited)
                 visited.remove((new_x, new_y))
 
-    generate_paths([(0, 0), (0, 1)], set([(0, 1), (0, 0)]))  # start at (0, 1) to avoid double counting
+    generate_paths([(0, 0), (0, 1)], {(0, 1), (0, 0)})  # start at (0, 1) to avoid double counting
 
     return paths
 
