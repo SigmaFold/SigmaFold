@@ -126,7 +126,6 @@ def generateWalks(n):
 
 def native_fold(heap):
     """Returns all native folds and the degeneracy"""
-    print(heap)
     energy = heap[0][0]
     folds = []
     while heap and heap[0][0] == energy:
@@ -147,6 +146,7 @@ if __name__ == "__main__":
     print(n)
     while heap[0][0] == energy:
         path = heapq.heappop(heap)
+        print(path)
         # plot the path
         x = [coord[0] for coord in path[1]]
         y = [coord[1] for coord in path[1]]
