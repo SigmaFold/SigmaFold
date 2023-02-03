@@ -6,12 +6,10 @@ import time
 from itertools import permutations
 import sys, os
 # Set current working directory to be 3 levels above the current file
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) # THIS WILL BREAK IF YOU MOVE FILES AROUND
-
-from lib.tools import profile
+sys.path.append(os.path.dirname(os.path.abspath(__file__))) # THIS WILL BREAK IF YOU MOVE FILES AROUND
 
 
-@profile
+
 def perm_gen(length=1, base=2):
     """Function that returns a list of all the possible permutations for a given sequence length and a given
     number of possible units. HP lattice by default"""
@@ -65,7 +63,7 @@ def conv_to_lattice_degen(int_chain):
 
 if __name__ == "__main__":
     start = time.time()
-    print(perm_gen(20, 2))
+    # print(perm_gen(20, 2))
 
     end = time.time()
     print(f'Time taken: {end - start}')

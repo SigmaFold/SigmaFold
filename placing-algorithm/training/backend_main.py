@@ -60,13 +60,11 @@ def exploitLength(length):
         energy_heap = compute_energy(paths, sequence)
         print(f'Energy heap: {energy_heap}')
         folds, degeneracy = native_fold(energy_heap) # Get all the low-energy folds for a given sequence
-        if degeneracy > 100:  # Skip deg>100 cause that's useless anyway
+        if degeneracy > 30:  # Skip deg>100 cause that's useless anyway
             continue
         # For each possible folds of the current sequence
         for fold in folds:
-            matrix_repr = cartesian2matrix(
-                [real_fold[0] for real_fold in fold[1]])  # Generate matrix representation of fold
-            print(matrix_repr)
+            matrix_repr = cartesian2matrix(fold)
             # Array hashage
             matrix_repr.flags.writeable = False
             curr_shape_id = mmh3.hash64(str(matrix_repr), signed=False)[0]  # Hash the matrix representation
@@ -112,6 +110,7 @@ def exploitLength(length):
 
 def commit_to_supabase():
     pass
+    
 
 
 if __name__ == '__main__':
