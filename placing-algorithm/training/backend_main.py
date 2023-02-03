@@ -1,7 +1,12 @@
-# from sqlalchemy.sql import Values
+import sys, os
+
+# Set current working directory to be 3 levels above the current file
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) # THI
+
 from lib.generate_permutations import *
-from fold_seq import primitive_fold
-import pandas as pd  # t pédé ou quoi
+from lib.native_fold import *
+
+import pandas as pd
 import numpy as np
 import mmh3
 import tabulate
@@ -37,7 +42,7 @@ def cartesian2matrix(path):
 
 def exploitLength(length):
     # Initialise the Dataframes
-    seq_list = []  # Where we will store the dictonaries of data
+    seq_list = []  # Where we will store the dictionaries of data
     shape_list = []
 
     seq_dict = {"shape_id": [], "sequence_string": [], "degeneracy": []}
@@ -45,11 +50,16 @@ def exploitLength(length):
     seen_shapes = set()
     shape_df = pd.DataFrame(columns=["shape_id", "degeneracies", "min_degeneracy"])
 
-    comb_array = perm_gen(length)  # List with all the possible combinations for the given n
+    paths = fold_n(length)
+    print(f'Paths: {paths}')  # List of all the possible paths for a given n (2n-1 p
+    comb_array = perm_gen(length, 2)
+    print(f'Comb Array : {comb_array}')  # List with all the possible combinations for the given n
 
     # Iterate over all the possible combinations
     for sequence in comb_array:
-        _, folds, degeneracy = primitive_fold(sequence)  # Get all the low-energy folds for a given sequence
+        energy_heap = compute_energy(paths, sequence)
+        print(f'Energy heap: {energy_heap}')
+        folds, degeneracy = native_fold(energy_heap) # Get all the low-energy folds for a given sequence
         if degeneracy > 100:  # Skip deg>100 cause that's useless anyway
             continue
         # For each possible folds of the current sequence

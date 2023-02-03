@@ -12,8 +12,3 @@ tabulate # prints tables nice and sexy
 mmh3
 python-dotenv # handes .env files
 supabase # database
-
-# Profiler
-cProfile
-pstats
-io
