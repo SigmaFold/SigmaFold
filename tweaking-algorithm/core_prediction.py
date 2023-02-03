@@ -13,7 +13,7 @@ model = PPO.load(model_path, env=env)
 episodes = 5
 
 for ep in range(episodes):
-    obs = env.reset()
+    obs = env.reset() # change this
     done = False
     while not done:
         action, _states = model.predict(obs)

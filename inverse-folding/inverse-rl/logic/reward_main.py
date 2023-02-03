@@ -55,7 +55,9 @@ def get_reward(sequence, target, log=0):
 	if log > 0:
 		print(f'Final Reward: {reward}\n')
 
-	print(sc.signal.convolve(template, target))
+	a = sc.signal.convolve(template, target)
+	print(a)
+	print(np.mean(a))
 
 
 	return reward
@@ -77,10 +79,13 @@ def find_max_correlation(m1, m2):
 
 if __name__ == "__main__":
 
-	target = np.matrix("0 0 0 0 0; 0 0 0 0 0; 0 1 0 1 0; 0 1 1 1 0; 0 1 1 0 0")
+	# target = np.matrix("0 0 0 0 0; 0 1 1 1 1; 0 1 1 1 1; 0 0 0 0 0; 0 0 0 0 0")
+	# target = np.matrix("1 1 1 1 1; 1 0 0 0 0; 1 0 0 0 0; 1 1 1 1 1; 1 1 1 1 1")
+	target = np.matrix("0 0 0 0 0; 0 1 1 1 1; 0 0 0 0 0; 0 0 0 0 0; 0 0 0 0 0")
+	
 
-	sequence = "HPPHPPHH" 
-	get_reward(sequence, target, 1)
+	# sequence = "HPPHPPHH" 
+	# get_reward(sequence, target, 1)
 
 	sequence = "HHHHHHHH" 	
 	get_reward(sequence, target, 1)

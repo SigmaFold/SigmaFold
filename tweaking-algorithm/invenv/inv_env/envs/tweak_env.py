@@ -2,6 +2,8 @@ import gym
 import numpy as np
 import random as rnd
 from gym import spaces
+import aux_functions as aux
+import scipy as sc
 
 class TweakingInverse(gym.Env):
     """
@@ -16,7 +18,7 @@ class TweakingInverse(gym.Env):
     | Num | Observation           | Min                 | Max               |
     |-----|-----------------------|---------------------|-------------------|
     | 0   | Sequence (int)        | 0                   | Inf               |
-    | 1   | Target (ndarray)      | 0                   | Inf               |
+    | 1   | Target shape(ndarray) | 0                   | Inf               |
     | 2   | Deviation (int)       | 0                   | Inf               |
     | 3   | Degeneracy (int)      | 0                   | Inf               |
     """
@@ -40,17 +42,40 @@ class TweakingInverse(gym.Env):
         # Dynamic attributes
         self.sequence_int = int()
         self._sequence_list = list()
-        self.target_path = np.array()
+        self.target_shape = np.ndarray()
+
+        self.current_degeneracy = int()
+        self.current_deviation = int()
+
+        self._min_conv = np.mean(sc.signal.convolve(self.target_shape, self.target_shape))
 
         # Environment Attributes
         # idk
 
     def resest(self, options=None,seed=None):
+        self.target_shape = aux.generate_shape(self.seq_length)
         self.sequence, self._sequence_list = self._init_sequence()
-        self.target_path = self._init_path()
+        obs = self._get_obs()
+
+        return obs, {}
 
     def step(self, action):
-        pass
+        index, amino_code = self._parse_action(action)
+        
+        # updating everything
+        self._sequence_list[index] = amino_code
+        self.sequence_int = self._encode(self._sequence_list)
+    
+        sequence_str = ''.join(self._sequence_list).replace('1', 'H').replace('0', 'P')
+        reward, dev, deg = aux.get_reward(sequence_str)
+        
+        obs = self._get_obs()
+
+        done = (dev == self._min_conv) # TODO: add 5% threshold
+        
+        return obs, reward, done, {}
+
+
 
     def render(self):
         pass
@@ -99,3 +124,14 @@ class TweakingInverse(gym.Env):
             enumerate(split_num)])
 
         return result
+    
+    def _get_obs(self):
+        state = (self.sequence_int, self.target_shape, self.current_degeneracy,
+            self.current_deviation)
+        return np.array(state)
+
+    def _parse_action(self, action):
+        index = action // self.base_num
+        amino_code = action % self.base_num
+        self._render_action(index, amino_code)
+        return index, amino_code
