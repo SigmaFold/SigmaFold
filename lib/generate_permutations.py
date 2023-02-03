@@ -5,8 +5,9 @@ Defines toolset to generate sequence permutations - for now it is a naive implem
 import time
 from itertools import permutations
 import sys, os
+
 # Set current working directory to be 3 levels above the current file
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) # THIS WILL BREAK IF YOU MOVE FILES AROUND
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # THIS WILL BREAK IF YOU MOVE FILES AROUND
 
 from lib.tools import profile
 
@@ -57,9 +58,24 @@ def conv_to_lattice_degen(int_chain):
                     H_indices_odd.append(i)
 
         threshold = 0.9
-        if (1-threshold) * n < (len(H_indices_even) + len(H_indices_odd)) < threshold * n:
-            if len(H_indices_even) > 0 and len(H_indices_odd) > 0:
-                formatted_chain.append(''.join(formatted_seq))
+        even_length = len(H_indices_even)
+        odd_length = len(H_indices_odd)
+        if (1 - threshold) * n < (even_length + odd_length) < threshold * n:
+            if even_length > 0 and odd_length > 0:
+                if (even_length + odd_length == 2) and (abs(H_indices_even[0] - H_indices_odd[0]) > 1):
+                    formatted_chain.append(''.join(formatted_seq))
+                elif even_length + odd_length == 3:
+                    if even_length > odd_length:
+                        if abs(H_indices_even[0] - H_indices_odd[0]) > 1 or abs(
+                                H_indices_even[1] - H_indices_odd[0]) > 1:
+                            formatted_chain.append(''.join(formatted_seq))
+                    else:
+                        if abs(H_indices_even[0] - H_indices_odd[0]) > 1 or abs(
+                                H_indices_even[0] - H_indices_odd[1]) > 1:
+                            formatted_chain.append(''.join(formatted_seq))
+                else:
+                    formatted_chain.append(''.join(formatted_seq))
+
     return formatted_chain
 
 
