@@ -2,8 +2,12 @@ import gym
 import numpy as np
 import random as rnd
 from gym import spaces
-import aux_functions as aux
 import scipy as sc
+import sys, os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import inv_env.envs.aux_functions as aux 
 
 class TweakingInverse(gym.Env):
     """
@@ -42,7 +46,7 @@ class TweakingInverse(gym.Env):
         # Dynamic attributes
         self.sequence_int = int()
         self._sequence_list = list()
-        self.target_shape = np.ndarray()
+        self.target_shape = np.ndarray(shape=None)
 
         self.current_degeneracy = int()
         self.current_deviation = int()

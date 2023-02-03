@@ -1,4 +1,4 @@
-import sys
+import sys, os
 from PySide6.QtWidgets import (
     QMainWindow,
     QApplication,
@@ -14,9 +14,8 @@ from PySide6 import QtCore
 from PySide6.QtCore import QAbstractTableModel, Qt 
 # Custom imports
 import gym
-# import inv_env
+from inv_env import register
 
-import sys, os
 
 # Set current working directory to be 2 levels above the current file
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
