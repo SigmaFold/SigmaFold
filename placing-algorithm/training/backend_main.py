@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import mmh3
 import tabulate
-
+from supabase.supabase_setup import SupabaseDB
 
 # from supabase import create_client, Client
 
@@ -108,8 +108,19 @@ def exploitLength(length):
     return seq_list, shape_list
 
 
-def commit_to_supabase():
-    pass
+def commit_to_supabase(seq_list, shape_list, mapping_list):
+    """ Adds all the data to the database asynchronously"""
+    # Create a client
+    db = SupabaseDB()
+    # Add all the data to the database
+    db.supabase.table("Sequences").insert(seq_list).execute()
+    db.supabase.table("Shapes").insert(shape_list).execute()
+    db.supabase.table("Mappings").insert(mapping_list).execute()
+
+
+
+    
+    
     
 
 
