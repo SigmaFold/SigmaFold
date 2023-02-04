@@ -14,10 +14,50 @@ class TweakingInverse(gym.Env):
     Final class for the implementation of the learning environment for the 
     tweaking algorthm
 
+    ### Overview
+
+    The environment consists of two items:
+    1) The sequence, that can be acted upon by the agent at each step
+    2) The target shape, that cannot be changed by the agent
+
+    And the reward function.
+
+    ### The Sequence
+
+    The sequence has two forms:
+    1) sequence_int: representing the sequence as a base10 number. This makes
+        this integer non-readable by humans but it is a better input data for
+        neural networks
+    2) _sequence_list: representing the sequence as a list of bases (0,1...), so
+        that it can be understand by humans. It is useful because actions can
+        only be performed on this reprentation (the int version compacts 
+        everything in one single number)
+    To go from one form to the other, the environent relies on the encode() and
+    decode() methods.
+    
+    ### The target 
+
+    The target shape is represented as a ndarray with 0 (void) and 1 (actual
+    shape). This is the only representation of the shape.
+
+    ### Reward function
+
+    Has not yet been finished so will write something later.
+
     ### Action space
-    For each unit, X actions possible. Again use Euclidien encoding
+    
+    Action can only be integers ranging fro 0 to an upper bound we set. Hence we
+    have map this set of integers (so 0, 1, ... N) to the action space (assign a
+    H to the n-th unit). To do so we use Euclidian division mapping, which works
+    as follows:
+    1) Take the action integer and do an Euclidian division by the number of 
+        different bases (2 for HP, 4 for HPNX...)
+    2) The quotient is the index of the modified amino-acid
+    3) The rest is the new amino-acid (0 -> H, 1 -> P)
 
     ### Observation space
+
+    Array of 4 values:
 
     | Num | Observation           | Min                 | Max               |
     |-----|-----------------------|---------------------|-------------------|
