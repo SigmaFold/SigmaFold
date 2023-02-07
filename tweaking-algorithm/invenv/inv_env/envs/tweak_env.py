@@ -82,6 +82,7 @@ class TweakingInverse(gym.Env):
         self.seq_length = seq_length
         self.base_num = base_num
         self.amino_code_table = amino_code_table
+        self.upper_encoding_bound = seq_length * base_num
 
         # Dynamic attributes
         self.sequence_int = int()
@@ -92,14 +93,17 @@ class TweakingInverse(gym.Env):
         self.current_deviation = int()
 
         self._min_conv = np.mean(sc.signal.convolve(self.target_shape, self.target_shape))
-
+        
+        print("Environment initialised!")
+        
         # Environment Attributes
         # idk
 
-    def resest(self, options=None,seed=None):
+    def reset(self, options=None,seed=None):
         self.target_shape = aux.generate_shape(self.seq_length)
         self.sequence, self._sequence_list = self._init_sequence()
         obs = self._get_obs()
+        info = self._get_info()
 
         return obs, {}
 
@@ -119,8 +123,6 @@ class TweakingInverse(gym.Env):
         
         return obs, reward, done, {}
 
-
-
     def render(self):
         pass
 
@@ -139,6 +141,7 @@ class TweakingInverse(gym.Env):
         Method to convert a base10 number into a baseX number (ie, decoding)
         Ex:
             154 --> 010011010
+        There is 0-padding on the left.
         """
         digit_list = list()
 
@@ -172,7 +175,10 @@ class TweakingInverse(gym.Env):
     def _get_obs(self):
         state = (self.sequence_int, self.target_shape, self.current_degeneracy,
             self.current_deviation)
-        return np.array(state)
+        return state
+
+    def _get_info(self):
+        info = (self._sequence_list, )
 
     def _parse_action(self, action):
         index = action // self.base_num
