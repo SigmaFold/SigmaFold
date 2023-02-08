@@ -126,63 +126,65 @@ def primitive_fold(sequence):
     return min_energy, min_energy_paths
 
 def get_reward(sequence, target, log=0):
-	"""Function that gets a sequence as a string and ouputs the corresponding score
-	Log: 0 to hide everthing, 1 to show everything, 2 to only show final result
-	"""
+    """Function that gets a sequence as a string and ouputs the corresponding score
+    Log: 0 to hide everthing, 1 to show everything, 2 to only show final result
+    """
 
-	# Fold the input sequence
-	_, opt_path = primitive_fold(sequence)
-	degeneracy = len(opt_path)
-	prim_fold = opt_path[0][1]
+    # Fold the input sequence
+    _, opt_path = primitive_fold(sequence)
+    degeneracy = len(opt_path)
+    prim_fold = opt_path[0][1]
 
-	# print(prim_fold)	
+    # print(prim_fold)	
 
-	# Analyse target shape
-	n, m = np.shape(target)
+    # Analyse target shape
+    n, m = np.shape(target)
 
-	# Convert fold to matrix for further analysis
-	template = np.zeros((n,m))
-	yoffset = round(n/2)-1
-	xoffset = round(m/2)-1
+    # Convert fold to matrix for further analysis
+    template = np.zeros((n,m))
+    yoffset = round(n/2)-1
+    xoffset = round(m/2)-1
 
-	for base in prim_fold:
-		full_coord = base[0]
+    for base in prim_fold:
+        full_coord = base[0]
+        try:
+            template[full_coord[0]+yoffset, full_coord[1]+xoffset] = 1
+        except IndexError:
+            print('Incompatible shape')
 
-		template[full_coord[0]+yoffset, full_coord[1]+xoffset] = 1
+    template = template.astype(int)
 
-	template = template.astype(int)
+    if log == 1:
+        print("Template:")
+        print(template)
+        print()
+        print("Target:")
+        print(target)
+        print(f'\nDegeneracy is {degeneracy}')
 
-	if log == 1:
-		print("Template:")
-		print(template)
-		print()
-		print("Target:")
-		print(target)
-		print(f'\nDegeneracy is {degeneracy}')
+    # Clunky implementation of Kullback-Leiber divergence but why not
+    divergence = 0
+    A = np.sum(target)
+    B = np.sum(template)
+    for i in range(n):
+        for j in range(m):
+            divergence += target[i,j]*(np.log10((template[i,j]+10)/(target[i,j]+10)))
 
-	# Clunky implementation of Kullback-Leiber divergence but why not
-	divergence = 0
-	A = np.sum(target)
-	B = np.sum(template)
-	for i in range(n):
-		for j in range(m):
-			divergence += target[i,j]*(np.log10((template[i,j]+10)/(target[i,j]+10)))
+    # Reward: low degeneracy and low divergence are rewarded
+    reward = 1/degeneracy*1/divergence
 
-	# Reward: low degeneracy and low divergence are rewarded
-	reward = 1/degeneracy*1/divergence
+    if log == 1:
+        print(f'Divergence from target shape: {divergence}\n')
 
-	if log == 1:
-		print(f'Divergence from target shape: {divergence}\n')
+    if log > 0:
+        print(f'Final Reward: {reward}\n')
 
-	if log > 0:
-		print(f'Final Reward: {reward}\n')
-
-	a = sc.signal.convolve(template, target)
-	print(a)
-	print(np.mean(a))
+    dev = sc.signal.convolve(template, target)
+    print(dev)
+    print(np.mean(dev))
 
     
-	return reward, deviation, degen
+    return reward, template, dev, degeneracy
 
 if __name__ == '__main__':
     print(generate_shape())

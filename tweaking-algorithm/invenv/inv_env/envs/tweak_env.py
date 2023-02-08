@@ -6,8 +6,16 @@ import scipy as sc
 import sys, os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(
+    os.path.dirname(
+    os.path.dirname(
+    os.path.dirname(
+    os.path.dirname(
+    os.path.dirname(
+    os.path.abspath(__file__)))))))
 
 import inv_env.envs.aux_functions as aux 
+# import lib.native_fold as nf
 
 class TweakingInverse(gym.Env):
     """
@@ -85,13 +93,15 @@ class TweakingInverse(gym.Env):
         self.upper_encoding_bound = seq_length * base_num
 
         # Dynamic attributes
-        self.sequence_int = int()
+        self.sequence_int = 8
         self._sequence_list = list()
-        self.target_shape = np.ndarray(shape=None)
+        self.target_shape = np.ndarray(shape=None) # TODO: improve init shape
+        self.fold = np.ndarray(shape=None)
 
         self.current_degeneracy = int()
         self.current_deviation = int()
 
+        # TODO: what to do with that? was good idea tho!
         self._min_conv = np.mean(sc.signal.convolve(self.target_shape, self.target_shape))
         
         print("Environment initialised!")
@@ -101,11 +111,11 @@ class TweakingInverse(gym.Env):
 
     def reset(self, options=None,seed=None):
         self.target_shape = aux.generate_shape(self.seq_length)
-        self.sequence, self._sequence_list = self._init_sequence()
+        self.sequence_int, self._sequence_list = self._init_sequence()
         obs = self._get_obs()
-        info = self._get_info()
+        # info = self._get_info()
 
-        return obs, {}
+        return obs, {'seq_list': self._sequence_list}
 
     def step(self, action):
         index, amino_code = self._parse_action(action)
@@ -114,14 +124,14 @@ class TweakingInverse(gym.Env):
         self._sequence_list[index] = amino_code
         self.sequence_int = self._encode(self._sequence_list)
     
-        sequence_str = ''.join(self._sequence_list).replace('1', 'H').replace('0', 'P')
-        reward, dev, deg = aux.get_reward(sequence_str)
+        sequence_str = self.seq_list2str(self._sequence_list)
+        reward, fold, deviation, degen = aux.get_reward(sequence_str, self.target_shape)
         
         obs = self._get_obs()
 
-        done = (dev == self._min_conv) # TODO: add 5% threshold
+        done = (deviation == self._min_conv) # TODO: add 5% threshold
         
-        return obs, reward, done, {}
+        return obs, reward, done, {'fold': fold, 'seq_list': self._sequence_list}
 
     def render(self):
         pass
@@ -131,7 +141,8 @@ class TweakingInverse(gym.Env):
         Method used when initialising the state of the environment. Returns an
         encoded integer and decoded list
         """
-        encoded_sequence = rnd.randint(0, self.upper_encoding_bound)
+        # TODO: max range is now 2^length... is it correct?
+        encoded_sequence = rnd.randint(0, self.base_num**self.upper_encoding_bound)
         decoded_list = self._decode(encoded_sequence)
 
         return encoded_sequence, decoded_list
@@ -156,14 +167,16 @@ class TweakingInverse(gym.Env):
 
         return digit_list
 
-    def _encode(self, number) -> int:
+    def _encode(self, number: list[int]) -> int:
         """
         Method to convert a baseX number into a base10 number (ie, encoding)
         Ex:
                010011010 --> 154
         HP model (base2) --> Neural Network compatible value
         """
-        split_num = list(str(number))
+        print(number)
+
+        split_num = number
         b = self.base_num
         i = len(split_num) - 1 # TODO: is there really a -1 ?
 
@@ -183,5 +196,10 @@ class TweakingInverse(gym.Env):
     def _parse_action(self, action):
         index = action // self.base_num
         amino_code = action % self.base_num
-        self._render_action(index, amino_code)
+        
         return index, amino_code
+    
+    @staticmethod
+    def seq_list2str(list):
+        new_str = ''.join([str(x) for x in list]).replace('1', 'H').replace('0', 'P')
+        return new_str
