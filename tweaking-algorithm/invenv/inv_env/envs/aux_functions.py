@@ -2,6 +2,8 @@ import numpy as np
 import random as rnd
 import scipy as sc
 
+
+
 def generate_shape(seq_len=int(10)):
 
     # maximum dimension
@@ -65,10 +67,11 @@ def primitive_fold(sequence):
     # generate every possible path of length n going through coordinates x,y
     paths = []
     n = len(input_sequence)
-
+    print("At least here")
 
     def generate_paths(x, y, visited, path):
         if len(path) < n:
+            print("hello")
             if origin not in path:
                 path.append(origin)
                 visited.add(origin)
@@ -84,6 +87,7 @@ def primitive_fold(sequence):
 
 
     generate_paths(0, 0, visited, [])
+    print("Step 2")
     # print("Total Possible Paths ====  > ", len(paths))
 
     # map each element in each path to the corresponding element in the input sequence
@@ -129,13 +133,11 @@ def get_reward(sequence, target, log=0):
     """Function that gets a sequence as a string and ouputs the corresponding score
     Log: 0 to hide everthing, 1 to show everything, 2 to only show final result
     """
-
+    print("Function called")
     # Fold the input sequence
     _, opt_path = primitive_fold(sequence)
     degeneracy = len(opt_path)
     prim_fold = opt_path[0][1]
-
-    # print(prim_fold)	
 
     # Analyse target shape
     n, m = np.shape(target)
@@ -144,6 +146,8 @@ def get_reward(sequence, target, log=0):
     template = np.zeros((n,m))
     yoffset = round(n/2)-1
     xoffset = round(m/2)-1
+    
+    print("Step 2")
 
     for base in prim_fold:
         full_coord = base[0]

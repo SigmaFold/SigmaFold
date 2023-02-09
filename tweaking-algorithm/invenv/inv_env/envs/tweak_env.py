@@ -14,6 +14,7 @@ sys.path.append(
     os.path.dirname(
     os.path.abspath(__file__)))))))
 
+import lib.native_fold as nf
 import inv_env.envs.aux_functions as aux 
 # import lib.native_fold as nf
 
@@ -91,6 +92,7 @@ class TweakingInverse(gym.Env):
         self.base_num = base_num
         self.amino_code_table = amino_code_table
         self.upper_encoding_bound = seq_length * base_num
+        self.paths = nf.fold_n(self.seq_length)
 
         # Dynamic attributes
         self.sequence_int = 8
@@ -103,9 +105,7 @@ class TweakingInverse(gym.Env):
 
         # TODO: what to do with that? was good idea tho!
         self._min_conv = np.mean(sc.signal.convolve(self.target_shape, self.target_shape))
-        
-        print("Environment initialised!")
-        
+            
         # Environment Attributes
         # idk
 
@@ -123,18 +123,24 @@ class TweakingInverse(gym.Env):
         # updating everything
         self._sequence_list[index] = amino_code
         self.sequence_int = self._encode(self._sequence_list)
-    
         sequence_str = self.seq_list2str(self._sequence_list)
-        reward, fold, deviation, degen = aux.get_reward(sequence_str, self.target_shape)
         
+        # reward function
+        heap = nf.compute_energy(
+            self.paths,
+            self.seq_list2str(self._sequence_list))
+        folds, degen = nf.native_fold(heap)
+        reward = self.compute_reward([folds], degen)
+
+        # done = (deviation == self._min_conv) # TODO: add 5% threshold
+        done = False
         obs = self._get_obs()
+        fold = self.fold_list2matrix(folds[0][1], self.target_shape)
 
-        done = (deviation == self._min_conv) # TODO: add 5% threshold
-        
         return obs, reward, done, {'fold': fold, 'seq_list': self._sequence_list}
-
+    
     def render(self):
-        pass
+        return None
 
     def _init_sequence(self):
         """
@@ -142,7 +148,7 @@ class TweakingInverse(gym.Env):
         encoded integer and decoded list
         """
         # TODO: max range is now 2^length... is it correct?
-        encoded_sequence = rnd.randint(0, self.base_num**self.upper_encoding_bound)
+        encoded_sequence = rnd.randint(0, self.base_num**self.seq_length)
         decoded_list = self._decode(encoded_sequence)
 
         return encoded_sequence, decoded_list
@@ -203,3 +209,24 @@ class TweakingInverse(gym.Env):
     def seq_list2str(list):
         new_str = ''.join([str(x) for x in list]).replace('1', 'H').replace('0', 'P')
         return new_str
+    
+    def compute_reward(self, folds: list, degen: int) -> int:
+        return 1
+    
+    @staticmethod
+    def fold_list2matrix(fold, target):
+        n, m = np.shape(target)
+        # Convert fold to matrix for further analysis
+        template = np.zeros((n,m))
+        yoffset = round(n/2)-1
+        xoffset = round(m/2)-1
+        
+        for base in fold:
+            full_coord = base
+            try:
+                template[full_coord[0]+yoffset, full_coord[1]+xoffset] = 1
+            except IndexError:
+                print('Incompatible shape')
+
+        template = template.astype(int)
+        return template

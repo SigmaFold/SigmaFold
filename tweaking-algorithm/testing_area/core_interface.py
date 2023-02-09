@@ -1,20 +1,17 @@
 import sys, os
 from PySide6.QtWidgets import (
-    QMainWindow,
     QApplication,
     QLabel,
     QGridLayout,
     QFrame,
     QPushButton,
     QWidget,
-    QTableView,
     QDoubleSpinBox,
     )
 from PySide6 import QtCore
-from PySide6.QtCore import QAbstractTableModel, Qt 
-# Custom imports
+
 import gym
-from inv_env import register
+from inv_env import register # required
 import matplotlib.pylab as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -60,11 +57,12 @@ class mainAncestor(QWidget):
         
         # Shape viewer
         self.shape_img = matrixCanvas(self, width=5, height=5, dpi=100)
-        self.shape_img.axes.imshow([[0,1,2,3,4], [10,1,20,3,40]],
+        self.shape_img.axes.imshow([[]],
                             interpolation='nearest', cmap=plt.cm.ocean)
 
         self.target_img = matrixCanvas(self, width=5, height=5, dpi=100)
-        self.target_img.axes.plot([0,1,2,3,4], [10,1,20,3,40])
+        self.target_img.axes.imshow([[]],
+                            interpolation='nearest', cmap=plt.cm.ocean)
         
         # Populate mwindow
         # row, col, row_span, col_span
@@ -83,14 +81,12 @@ class mainAncestor(QWidget):
         self.new_batch_info = {'seq_list': []}
         self.current_batch_info = {'seq_list': []}
 
-
         # Final step
         self.setLayout(self.layout)
     
     ### BUTTONS ACTIONS
     def _do_action(self):
         action_id = int(self.action_input.value())
-        print(action_id)
         resp = self._env.step(action_id)
         self._update_ui(resp)
 
@@ -117,6 +113,7 @@ class mainAncestor(QWidget):
 
         # Update folded sequence:
         self.shape_img.axes.clear()
+        print(info['fold'])
         self.shape_img.axes.imshow(info['fold'])
         self.shape_img.draw()
 
