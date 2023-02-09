@@ -5,6 +5,11 @@ from inv_env import register
 
 # Need a test for uniformity of initialisation
 def initialPdf(sample_num=1_000):
+    """
+    To test that the initial sequences are indeed sampled from a uniform 
+    distribution (no bias) with enough range to cover to full sequence spectrum
+    Conclusion: this is now the case
+    """
     env = gym.make('inv_fold/TweakWorld-v0')
     initial_seq_array = np.zeros(sample_num)
     for i in range(sample_num):
