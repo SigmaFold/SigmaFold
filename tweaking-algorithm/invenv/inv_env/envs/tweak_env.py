@@ -207,14 +207,18 @@ class TweakingInverse(gym.Env):
     
     @staticmethod
     def seq_list2str(list):
+        """Method to convert a list of 0 and 1s into a string of H and Ps"""
         new_str = ''.join([str(x) for x in list]).replace('1', 'H').replace('0', 'P')
         return new_str
     
     def compute_reward(self, folds: list, degen: int) -> int:
         return 1
     
+    # TODO: need to test this function!
     @staticmethod
     def fold_list2matrix(fold, target):
+        """Method to convert a fold (list of coordinate) into a np.ndarray"""
+
         n, m = np.shape(target)
         # Convert fold to matrix for further analysis
         template = np.zeros((n,m))
