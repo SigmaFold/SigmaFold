@@ -1,8 +1,4 @@
-Urgent:
-Need to finish the UI:
-1) Implement visualisation tools for the folded sequence
-2) Update sequnce
-3) Clean up code for env and UI cause it's a big messi
+Need to prepare unit test!
 
 Todo list:
 - Build new env (file tweak_env already created) with following feature:
