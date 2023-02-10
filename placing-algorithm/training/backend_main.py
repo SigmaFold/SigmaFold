@@ -12,8 +12,7 @@ import numpy as np
 import mmh3
 import tabulate
 from db.supabase_setup import SupabaseDB
-
-
+import json
 def cartesian2matrix(path):
     """Function that encodes a cartesian set of coordinates into a matrix"""
     # generate a 25 by 25 matrix in numpy
@@ -80,12 +79,12 @@ def exploitLength(length):
     # Set the dataframes for each column in a dict, umbers should be np.uint64
     map_df = map_df.astype({"map_id": int, "sequence_id": int, "shape_id": int})
     # print all duplicates of map_id in map_df
-    print(tabulate.tabulate(map_df[map_df.duplicated(subset=["map_id"])], headers="keys", tablefmt="psql"))
+    #print(tabulate.tabulate(map_df[map_df.duplicated(subset=["map_id"])], headers="keys", tablefmt="psql"))
     seq_df = seq_df.astype({"sequence_id": int, "degeneracy": int, "length": int})
     shape_df = shape_df.astype({"shape_id": int, "min_degeneracy": int, "length": int})
-
+    print(tabulate.tabulate(shape_df, headers="keys", tablefmt="psql"))
     #print(tabulate.tabulate(shape_df, headers="keys", tablefmt="psql"))
-    print(tabulate.tabulate(seq_df, headers="keys", tablefmt="psql"))
+    # print(tabulate.tabulate(seq_df, headers="keys", tablefmt="psql"))
     #print(tabulate.tabulate(map_df, headers="keys", tablefmt="psql"))
     #print(shape_df.dtypes)
     # Convert all columns to int
@@ -103,19 +102,36 @@ def exploitLength(length):
     return shape_list, seq_list, map_list
 
 
-def commit_to_supabase( shape_list, seq_list, mapping_list):
+def commit_to_supabase(n, shape_list, seq_list, mapping_list):
     """ Adds all the data to the database asynchronously"""
     # Create a client
     db = SupabaseDB()
     # Add all the data to the database
-    db.supabase.table("Sequences").insert(seq_list).execute()
-    db.supabase.table("Shapes").insert(shape_list).execute()
-    db.supabase.table("Mappings").insert(mapping_list).execute()
+    try:
+        db.supabase.table("Sequences").insert(seq_list).execute()
+        db.supabase.table("Shapes").insert(shape_list).execute()
+        db.supabase.table("Mappings").insert(mapping_list).execute()
+    except Exception as e:
+        # Save the the list in json with name coresponding to length
+        with open(f"data/seq_{n}.json", "w") as f:
+            json.dump(seq_list, f)
+        with open(f"data/shape_{n}.json", "w") as f:
+            json.dump(shape_list, f)
+        with open(f"data/map_{n}.json", "w") as f:
+            json.dump(mapping_list, f)
+        
+        print("Error: ", e)
+        print("Data saved to json files")
+        return
+    print("Data added to database")
+    
+
 
 
 if __name__ == '__main__':
-    set_limit = 7
-    n = 3
+    set_limit = 25
+    n = 14
     while n <= set_limit:
-        commit_to_supabase(*exploitLength(n))
+        print("Adding data for length: ", n)
+        commit_to_supabase(n, *exploitLength(n))
         n += 1 

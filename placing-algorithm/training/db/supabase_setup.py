@@ -33,5 +33,7 @@ if __name__ == "__main__":
     print(db.supabase)
 
     # Add a dummy element
-    # db.supabase.table("test").insert({"name": "test", "data": 2}).execute()
+    db.supabase.table("test").insert({"name": "test", "data": 2}).execute()
+
+
 
