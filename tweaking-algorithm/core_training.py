@@ -5,7 +5,7 @@ from stable_baselines3 import PPO
 
 # Global Parameters
 models_dir = "saved_weights"
-TIMESTEPS_SAVE = 10000
+TIMESTEPS_SAVE = 10_000
 iters = 0 # change initial value to latest iters to avoid overwriting files
 
 def training_main():

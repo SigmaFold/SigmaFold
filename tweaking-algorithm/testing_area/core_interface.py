@@ -20,10 +20,6 @@ from matplotlib.figure import Figure
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from inv_env.envs.aux_functions import *
 
-# Test data
-H = np.array([[100, 2, 39, 190], [402, 55, 369, 1023], [300, 700, 8, 412], [170, 530, 330, 1]])
-Z = np.array([[3, 290, 600, 480], [1011, 230, 830, 0], [152, 750, 5, 919], [340, 7, 543, 812]])
-
 class mainAncestor(QWidget):
     def __init__(self):
         super(mainAncestor, self).__init__()
@@ -57,11 +53,11 @@ class mainAncestor(QWidget):
         
         # Shape viewer
         self.shape_img = matrixCanvas(self, width=5, height=5, dpi=100)
-        self.shape_img.axes.imshow([[]],
+        self.shape_img.axes.imshow([[0]],
                             interpolation='nearest', cmap=plt.cm.ocean)
 
         self.target_img = matrixCanvas(self, width=5, height=5, dpi=100)
-        self.target_img.axes.imshow([[]],
+        self.target_img.axes.imshow([[1]],
                             interpolation='nearest', cmap=plt.cm.ocean)
         
         # Populate mwindow
