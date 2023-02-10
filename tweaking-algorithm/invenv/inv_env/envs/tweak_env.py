@@ -15,8 +15,8 @@ sys.path.append(
     os.path.abspath(__file__)))))))
 
 import lib.native_fold as nf
-import inv_env.envs.aux_functions as aux 
-# import lib.native_fold as nf
+import inv_env.envs.aux_functions as aux
+import inv_env.envs.data_functions as dtf
 
 class TweakingInverse(gym.Env):
     """
@@ -105,9 +105,6 @@ class TweakingInverse(gym.Env):
 
         # TODO: what to do with that? was good idea tho!
         self._min_conv = np.mean(sc.signal.convolve(self.target_shape, self.target_shape))
-            
-        # Environment Attributes
-        # idk
 
     def reset(self, options=None,seed=None):
         self.target_shape = aux.generate_shape(self.seq_length)
@@ -123,19 +120,21 @@ class TweakingInverse(gym.Env):
         # updating everything
         self._sequence_list[index] = amino_code
         self.sequence_int = self._encode(self._sequence_list)
-        sequence_str = self.seq_list2str(self._sequence_list)
         
-        # reward function
+        # folding the sequence and getting the degeneracy
         heap = nf.compute_energy(
             self.paths,
-            self.seq_list2str(self._sequence_list))
+            dtf.seq_list2str(self._sequence_list))
         folds, degen = nf.native_fold(heap)
-        reward = self.compute_reward([folds], degen)
+        folds = [dtf.fold_list2matrix(fold, self.target_shape) for fold in folds]
+        
+        # the folds + degeneracy are fed to reward function
+        reward = aux.compute_reward(folds, degen)
 
         # done = (deviation == self._min_conv) # TODO: add 5% threshold
         done = False
         obs = self._get_obs()
-        fold = self.fold_list2matrix(folds[0][1], self.target_shape)
+        fold = dtf.fold_list2matrix(folds[0][1], self.target_shape)
 
         return obs, reward, done, {'fold': fold, 'seq_list': self._sequence_list}
     
@@ -205,32 +204,3 @@ class TweakingInverse(gym.Env):
         
         return index, amino_code
     
-    @staticmethod
-    def seq_list2str(list):
-        """Method to convert a list of 0 and 1s into a string of H and Ps"""
-        new_str = ''.join([str(x) for x in list]).replace('1', 'H').replace('0', 'P')
-        return new_str
-    
-    def compute_reward(self, folds: list, degen: int) -> int:
-        return 1
-    
-    # TODO: need to test this function!
-    @staticmethod
-    def fold_list2matrix(fold, target):
-        """Method to convert a fold (list of coordinate) into a np.ndarray"""
-
-        n, m = np.shape(target)
-        # Convert fold to matrix for further analysis
-        template = np.zeros((n,m))
-        yoffset = round(n/2)-1
-        xoffset = round(m/2)-1
-        
-        for base in fold:
-            full_coord = base
-            try:
-                template[full_coord[0]+yoffset, full_coord[1]+xoffset] = 1
-            except IndexError:
-                print('Incompatible shape')
-
-        template = template.astype(int)
-        return template

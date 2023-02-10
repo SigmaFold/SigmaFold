@@ -1,7 +1,7 @@
 import numpy as np
 import random as rnd
 import scipy as sc
-
+import matplotlib.pyplot as plt
 
 
 def generate_shape(seq_len=int(10)):
@@ -55,140 +55,24 @@ def generate_shape(seq_len=int(10)):
     # print(f"monke got stuck {monke_stupid_index} times")
     return shape
 
-def primitive_fold(sequence):
+def compute_reward(folds: int, degen: int):
+    displayCols = 9
+    displayRows = 5
 
-    input_sequence = sequence
-    print(input_sequence)
+    fig = plt.figure()
 
-    origin = (0, 0)
-    dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # right, down, left, up
-    visited = set()
-
-    # generate every possible path of length n going through coordinates x,y
-    paths = []
-    n = len(input_sequence)
-    print("At least here")
-
-    def generate_paths(x, y, visited, path):
-        if len(path) < n:
-            print("hello")
-            if origin not in path:
-                path.append(origin)
-                visited.add(origin)
-            for dir in dirs:
-                new_x = x + dir[0]
-                new_y = y + dir[1]
-                if (new_x, new_y) not in visited:
-                    visited.add((new_x, new_y))
-                    generate_paths(new_x, new_y, visited, path + [(new_x, new_y)])
-                    visited.remove((new_x, new_y))
-        else:
-            paths.append(path)
-
-
-    generate_paths(0, 0, visited, [])
-    print("Step 2")
-    # print("Total Possible Paths ====  > ", len(paths))
-
-    # map each element in each path to the corresponding element in the input sequence
-    paths = [list(zip(path, input_sequence)) for path in paths]
-
-    # Define densitu as the number of neighbours between points within a path. sum 1 for each neighbour
-    def get_neighbours(x, y):
-        neighbours = []
-        # create list of directions with diagonals
-        dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # right, down, left, up
-        for dir in dirs:
-            new_x = x + dir[0]
-            new_y = y + dir[1]
-            neighbours.append((new_x, new_y))
-        return neighbours
-
-
-    # sum all neighbours where second element of tuple is H
-    def get_energy(path):
-        energy = 0
-        for idx, point in enumerate(path):
-            if point[1] == 'H':
-                for neighbour in get_neighbours(point[0][0], point[0][1]):
-                    index = path.index((neighbour, 'H')) if (neighbour, 'H') in path else -1
-                    if index != -1 and index not in range(idx - 1, idx + 2):
-                        energy -= 1
-
-        return energy/2 # divide by 2 to avoid double counting
-
-
-    # add energies to paths
-    paths = [(get_energy(path), path) for path in paths]
-    # print("Paths with energies ====> ", paths)
-
-    # isolate all paths with minimum energy
-    min_energy = min([path[0] for path in paths])
-    # print("Minimum energy is ====> ", min_energy)
-    min_energy_paths = [path for path in paths if path[0] == min_energy]
-
-    return min_energy, min_energy_paths
-
-def get_reward(sequence, target, log=0):
-    """Function that gets a sequence as a string and ouputs the corresponding score
-    Log: 0 to hide everthing, 1 to show everything, 2 to only show final result
-    """
-    print("Function called")
-    # Fold the input sequence
-    _, opt_path = primitive_fold(sequence)
-    degeneracy = len(opt_path)
-    prim_fold = opt_path[0][1]
-
-    # Analyse target shape
-    n, m = np.shape(target)
-
-    # Convert fold to matrix for further analysis
-    template = np.zeros((n,m))
-    yoffset = round(n/2)-1
-    xoffset = round(m/2)-1
-    
-    print("Step 2")
-
-    for base in prim_fold:
-        full_coord = base[0]
-        try:
-            template[full_coord[0]+yoffset, full_coord[1]+xoffset] = 1
-        except IndexError:
-            print('Incompatible shape')
-
-    template = template.astype(int)
-
-    if log == 1:
-        print("Template:")
-        print(template)
-        print()
-        print("Target:")
-        print(target)
-        print(f'\nDegeneracy is {degeneracy}')
-
-    # Clunky implementation of Kullback-Leiber divergence but why not
-    divergence = 0
-    A = np.sum(target)
-    B = np.sum(template)
-    for i in range(n):
-        for j in range(m):
-            divergence += target[i,j]*(np.log10((template[i,j]+10)/(target[i,j]+10)))
-
-    # Reward: low degeneracy and low divergence are rewarded
-    reward = 1/degeneracy*1/divergence
-
-    if log == 1:
-        print(f'Divergence from target shape: {divergence}\n')
-
-    if log > 0:
-        print(f'Final Reward: {reward}\n')
-
-    dev = sc.signal.convolve(template, target)
-    print(dev)
-    print(np.mean(dev))
-
-    
-    return reward, template, dev, degeneracy
+    _, axs = plt.subplots(5, 9, figsize = (8, 4))
+    fold_no = 0
+    print(f'The degen is fuck you {degen}')
+    for r in range(displayRows):
+        for c in range(displayCols):
+            try:
+                axs[r, c].imshow(folds[fold_no])
+            except IndexError:
+                print('C\'est la fin... du MONDE!')
+                break
+            fold_no += 1
+    plt.show()
 
 if __name__ == '__main__':
     print(generate_shape())
