@@ -105,32 +105,25 @@ def exploitLength(length):
 def commit_to_supabase(n, shape_list, seq_list, mapping_list):
     """ Adds all the data to the database asynchronously"""
     # Create a client
-    db = SupabaseDB()
-    # Add all the data to the database
-    try:
-        db.supabase.table("Sequences").insert(seq_list).execute()
-        db.supabase.table("Shapes").insert(shape_list).execute()
-        db.supabase.table("Mappings").insert(mapping_list).execute()
-    except Exception as e:
-        # Save the the list in json with name coresponding to length
-        with open(f"data/seq_{n}.json", "w") as f:
-            json.dump(seq_list, f)
-        with open(f"data/shape_{n}.json", "w") as f:
-            json.dump(shape_list, f)
-        with open(f"data/map_{n}.json", "w") as f:
-            json.dump(mapping_list, f)
-        
-        print("Error: ", e)
-        print("Data saved to json files")
-        return
+
+    with open(f"data/seq_{n}.json", "w") as f:
+        json.dump(seq_list, f)
+    with open(f"data/shape_{n}.json", "w") as f:
+        json.dump(shape_list, f)
+    with open(f"data/map_{n}.json", "w") as f:
+        json.dump(mapping_list, f)
+    
+    print("Error: ", e)
+    print("Data saved to json files")
+    return
     print("Data added to database")
     
 
 
 
 if __name__ == '__main__':
-    set_limit = 25
-    n = 14
+    set_limit = 12
+    n = 12
     while n <= set_limit:
         print("Adding data for length: ", n)
         commit_to_supabase(n, *exploitLength(n))
