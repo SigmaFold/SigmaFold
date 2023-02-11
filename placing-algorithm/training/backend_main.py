@@ -13,6 +13,8 @@ import mmh3
 import tabulate
 from db.supabase_setup import SupabaseDB
 import json
+from lib.tools import profile
+
 def cartesian2matrix(path):
     """Function that encodes a cartesian set of coordinates into a matrix"""
     # generate a 25 by 25 matrix in numpy
@@ -24,7 +26,7 @@ def cartesian2matrix(path):
     curr_shape_id = mmh3.hash64(str(matrix), signed=True)[0]
     return curr_shape_id
 
-
+@profile
 def exploitLength(length):
     # Where we will store the dictionaries of data
     seq_list = []
@@ -113,7 +115,6 @@ def commit_to_supabase(n, shape_list, seq_list, mapping_list):
     with open(f"data/map_{n}.json", "w") as f:
         json.dump(mapping_list, f)
     
-    print("Error: ", e)
     print("Data saved to json files")
     return
     print("Data added to database")
@@ -122,8 +123,8 @@ def commit_to_supabase(n, shape_list, seq_list, mapping_list):
 
 
 if __name__ == '__main__':
-    set_limit = 12
-    n = 12
+    set_limit = 10
+    n = 10
     while n <= set_limit:
         print("Adding data for length: ", n)
         commit_to_supabase(n, *exploitLength(n))

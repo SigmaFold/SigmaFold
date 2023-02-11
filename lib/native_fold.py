@@ -72,8 +72,7 @@ def compute_energy(paths, sequence):
                     if i % 2 == 0:
                         H_coords_even.append((curr_x, curr_y))
                         for coord in H_coords_odd[:-1]:  # skip last element
-                            distance = (curr_x - coord[0]) ** 2 + (
-                                    curr_y - coord[1]) ** 2  # calculate distance between 2 Hs
+                            distance = abs(curr_x - coord[0]) + abs(curr_y - coord[1])  # calculate distance between 2 Hs using city block distance
                             if distance == 1:
                                 energy -= 1
                     else:

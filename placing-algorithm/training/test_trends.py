@@ -1,4 +1,4 @@
-from supabase_setup import SupabaseDB
+from db.supabase_setup import SupabaseDB
 import json
 import pandas as pd 
 import tabulate
