@@ -126,17 +126,16 @@ class TweakingInverse(gym.Env):
             self.paths,
             dtf.seq_list2str(self._sequence_list))
         folds, degen = nf.native_fold(heap)
-        folds = [dtf.fold_list2matrix(fold, self.target_shape) for fold in folds]
+        folds = [dtf.fold_list2matrix(fold, self.seq_length) for fold in folds]
         
         # the folds + degeneracy are fed to reward function
-        reward = aux.compute_reward(folds, degen)
+        reward, avg_fold = aux.tweaking_reward(folds, degen, self.seq_length)
 
         # done = (deviation == self._min_conv) # TODO: add 5% threshold
         done = False
         obs = self._get_obs()
-        fold = dtf.fold_list2matrix(folds[0][1], self.target_shape)
 
-        return obs, reward, done, {'fold': fold, 'seq_list': self._sequence_list}
+        return obs, reward, done, {'fold': avg_fold, 'seq_list': self._sequence_list}
     
     def render(self):
         return None

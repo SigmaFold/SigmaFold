@@ -3,30 +3,32 @@
 
 import numpy as np
 
-def fold_list2matrix(fold, target):
+def fold_list2matrix(fold, length):
     """
     Method to convert a fold (list of coordinate) into a np.ndarray.
-    It uses the target shape as the template (in terms of size).
-    (0, 0) corresponds to the center of the template, so there will be
-    an offset with the target. This is to be corrected.
+    The size is twice the length of the sequence to avoid clipping/warping.
     """
 
-    n, m = np.shape(target)
+    n = length*2+1 # always odd number
+    m = length*2+1
     # Convert fold to matrix for further analysis
+
     template = np.zeros((n,m))
-    yoffset = round(n/2)-1
-    xoffset = round(m/2)-1
-    
+
+    yoffset = (n+1)/2
+    xoffset = (m+1)/2
     for base in fold[1]:
         full_coord = base
+        m = int(full_coord[0]+yoffset)
+        n = int(full_coord[1]+xoffset)
         try:
-            template[full_coord[0]+yoffset, full_coord[1]+xoffset] = 1
+            template[m, n] = 1
         except IndexError:
-            print('Incompatible shape')
+            print(f"SHOULD NOT HAPPEN with ({m}; {n})")
+            print(f"Full coordinates: {full_coord}")
 
     template = template.astype(int)
-    print("Hey popilopipi")
-    print(template)
+
     return template
 
 def seq_list2str(list):

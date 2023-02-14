@@ -26,7 +26,7 @@ class mainAncestor(QWidget):
         
         # Root attributes
         self.setWindowTitle("Tweaking Agent - Debugging Area")
-        self.resize(500, 500)
+        self.resize(1000, 700)
         self.layout = QGridLayout()
         
         # Add env
@@ -40,7 +40,6 @@ class mainAncestor(QWidget):
         self.seq_label = QLabel("Sequence will appear here")
         self.seq_label.setFrameStyle(QFrame.Panel)
         self.seq_label.setLineWidth(2)
-        self.seq_label.setFixedSize(500, 200)
         self.seq_label.setAlignment(QtCore.Qt.AlignCenter)
 
         btn_init = QPushButton("New env")
@@ -55,25 +54,28 @@ class mainAncestor(QWidget):
         self.shape_img = matrixCanvas(self, width=5, height=5, dpi=100)
         self.shape_img.axes.imshow([[0]],
                             interpolation='nearest', cmap=plt.cm.ocean)
+        self.shape_img.resize(100, 500)
+
 
         self.target_img = matrixCanvas(self, width=5, height=5, dpi=100)
         self.target_img.axes.imshow([[1]],
                             interpolation='nearest', cmap=plt.cm.ocean)
+        self.target_img.resize(100, 500)
         
         # Populate mwindow
         # row, col, row_span, col_span
         self.layout.addWidget(self.seq_label, 1, 1, 2, 2)
-        self.layout.addWidget(btn_init, 3, 2)
-        self.layout.addWidget(btn_init, 4, 2)
-        self.layout.addWidget(self.action_input, 5, 2)
-        self.layout.addWidget(btn_submit, 6, 2)
+        self.layout.addWidget(btn_init, 1, 4)
+        self.layout.addWidget(self.action_input, 1, 5)
+        self.layout.addWidget(btn_submit, 2, 5)
 
-        self.layout.addWidget(self.shape_img, 3, 1, 2, 1)
-        self.layout.addWidget(self.target_img, 5, 1, 2, 1)
+        self.layout.addWidget(self.shape_img, 3, 1, 10, 10)
+        self.layout.addWidget(self.target_img, 3, 11, 10, 10)
         
         ### Data storage-related variables
         # Batch only stores human-readable data:
         # Degeneracy (int) - Correlation (int) - Target (matrix) - Seq (list)
+        self.current_batch_obs = {'reward'}
         self.new_batch_info = {'seq_list': []}
         self.current_batch_info = {'seq_list': []}
 
@@ -110,7 +112,7 @@ class mainAncestor(QWidget):
         # Update folded sequence:
         self.shape_img.axes.clear()
         print(info['fold'])
-        self.shape_img.axes.imshow(info['fold'])
+        self.shape_img.axes.imshow(info['fold'], cmap=plt.cm.ocean)
         self.shape_img.draw()
 
         self._update_seq_label()
