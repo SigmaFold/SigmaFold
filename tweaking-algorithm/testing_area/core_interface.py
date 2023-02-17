@@ -111,7 +111,8 @@ class mainAncestor(QWidget):
 
         # Update folded sequence:
         self.shape_img.axes.clear()
-        print(info['fold'])
+        # print("TEMPLATE below :")
+        # print(info['fold'])
         self.shape_img.axes.imshow(info['fold'], cmap=plt.cm.ocean)
         self.shape_img.draw()
 

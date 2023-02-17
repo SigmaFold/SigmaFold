@@ -4,7 +4,7 @@ from stable_baselines3 import PPO
 
 models_dir = "saved_weights"
 
-env = gym.make('inv_fold/PrimWorld-v0')
+env = gym.make('inv_fold/TweakWorld-v0')
 env.reset()
 
 model_path = f"{models_dir}/250000.zip"

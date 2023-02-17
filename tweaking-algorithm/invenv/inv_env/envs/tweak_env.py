@@ -100,8 +100,8 @@ class TweakingInverse(gym.Env):
         self.target_shape = np.ndarray(shape=None) # TODO: improve init shape
         self.fold = np.ndarray(shape=None)
 
-        self.current_degeneracy = int()
-        self.current_deviation = int()
+        self.current_degeneracy = 1
+        self.current_deviation = 1
 
         # TODO: what to do with that? was good idea tho!
         self._min_conv = np.mean(sc.signal.convolve(self.target_shape, self.target_shape))
@@ -129,8 +129,9 @@ class TweakingInverse(gym.Env):
         folds = [dtf.fold_list2matrix(fold, self.seq_length) for fold in folds]
         
         # the folds + degeneracy are fed to reward function
-        reward, avg_fold = aux.tweaking_reward(folds, degen, self.seq_length)
-
+        reward, avg_fold, info = aux.legacy_tweaking_reward(folds, self.target_shape, degen, self.seq_length, self.current_degeneracy, self.current_deviation)
+        self.current_degeneracy = info['degen']
+        self.current_deviation = info['corr']
         # done = (deviation == self._min_conv) # TODO: add 5% threshold
         done = False
         obs = self._get_obs()
