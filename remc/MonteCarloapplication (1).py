@@ -14,6 +14,8 @@ import random as random
 
 forwardbias=1
 offset=0
+#this is just a method for counting energy. It effectively takes a matrix of H and Ps and subtracts 
+#the bonds that are backbone affiliated
 def counter(matrix,sequence):
     extras=0
     count=0
@@ -48,39 +50,58 @@ def counter(matrix,sequence):
 # In[86]:
 
 
-def srmc(oldmat,newmat,guesse,possibles,temp,sequence):
-    bestenergy=guesse
+#this takes in an old matrix and a revised matrix with a change. It also keeps a list of degenerate shapes of equal energy 
+#temp is for the replica exchange monte carlo bit and is effectively a weighting factor
+#sequence is mainly for the counter function 
+def srmc(oldmat,newmat,bestenergy,possibles,temp,sequence):
+    
+    guesse=counter(oldmat,sequence)
     result=oldmat
+    #calculate differences in energy between matrices
     delt=counter(newmat,sequence)-guesse
+    #depending on whether the new energy is better or not choose three states
     if delt>0:
-        guesse=counter(newmat,sequence)
+        #if new energy is closer to ground state, switch structure. 
+        
         result=newmat
-        possibles=[]
-        return possibles,result
+        #if the newenergy is actually the best we've seen so far. Reset best energy and degen list
+        if counter(newmat,sequence)>bestenergy:
+            bestenergy=counter(newmat,sequence)
+            possibles=[newmat]
+        return possibles,result,bestenergy
+    #if the energies are equal, go with new structure
     elif delt==0:
-        possibles.append(newmat)
+        #if the energy equal to best energy, add it to degeneracy list 
+        if counter(newmat,sequence)==bestenergy:
+            possibles.append(newmat)
         result=newmat
-        return possibles,result
+        return possibles,result,bestenergy
     else:
+        #if the newmat is worse than oldmat, probabilistically switch to newmat
         p=random.random()
         if p>math.exp(delt/temp):
             result=newmat
-        return possibles,result
+        return possibles,result,bestenergy
 #replicalist is a list of {matrix,energy,temperature}
 def remc(replicalist,offset):
+    #offset to allow comparisons between different pairs 
     i=offset+1
     while i+1<len(replicalist):
+        #basically compare each replica with the one next over with weighting from the temperature 
         j=i+1
         delta=(replicalist[j][2]-replicalist[i][2])*(-replicalist[i][1]+replicalist[j][1])
         if delta<0:
+            #this means either the temoperature or energy is wrong, so we need to switch the temperatures (I chose to switch the matrixes instead) 
             replicalist[j][0],replicalist[i][0]=replicalist[i][0],replicalist[j][0]
             replicalist[j][1],replicalist[i][1]=replicalist[i][1],replicalist[j][1]
         else: 
             p=random.random()
             if p<math.exp(-delta):
-                            
+                #probability of switching if actually the first is better than the second 
                 replicalist[j][0],replicalist[i][0]=replicalist[i][0],replicalist[j][0]
-                replicalist[j][1],replicalist[i][1]=replicalist[i][1],replicalist[j][1]        
+                replicalist[j][1],replicalist[i][1]=replicalist[i][1],replicalist[j][1]
+    #change the offset 
+    offset=1-offset
     
             
             
@@ -114,7 +135,7 @@ des
 # In[68]:
 
 
-#c
+c
 
 
 # In[36]:
