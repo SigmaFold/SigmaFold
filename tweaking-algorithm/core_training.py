@@ -16,7 +16,7 @@ def training_main():
     """
 
     # Setup
-    env = gym.make('inv_fold/PrimWorld-v0')
+    env = gym.make('inv_fold/TweakWorld-v0')
     env.reset()
 
     # Instantiate the agent
