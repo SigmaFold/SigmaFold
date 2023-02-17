@@ -22,8 +22,8 @@ def end_pull(rand_num, seq, n, mat):
         # move 1st position to the random free space
         mat[free_spaces[random_space][0], free_spaces[random_space][1]] = 1
         mat[row_1, col_1] = 0
-        print(f'New Matrix: {mat}')
-    elif rand_num == n:
+        return mat
+    else:
         free_spaces = []
         # find index of the last and 2nd last elements of the sequence in the matrix
         [[row_end], [col_end]] = np.where(mat == n)
@@ -43,8 +43,7 @@ def end_pull(rand_num, seq, n, mat):
         # move last position to the random free space
         mat[free_spaces[random_space][0], free_spaces[random_space][1]] = n
         mat[row_end, col_end] = 0
-        print(f'New Matrix: {mat}')
-
+        return mat
 
          
          
@@ -70,7 +69,10 @@ print(f'Test Matrix: {test_matrix}')
 random_number = np.random.randint(1,n+1)
 random_number = 8
 
-# call the end_pull function
-end_pull(random_number, sequence, n, test_matrix)
+# choosing which pull move to use
+if random_number == 0 or random_number == n:
+    # call the end_pull function
+    new_matrix = end_pull(random_number, sequence, n, test_matrix)
+    print(f'New Matrix: {new_matrix}')
 
 
