@@ -68,11 +68,9 @@ def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, cur
     fold_stack = np.zeros((degen, bound, bound))
     for i, fold in enumerate(folds):
         # find centroid
-        m_c, n_c = find_centroids(fold)
+        m_c, n_c = find_centroids(fold) # need to round centroids here
         fold[m_c, n_c] = 2
 
-        # rotate image
-        orient_image(fold, m_c, n_c)
         # add image to stack
         fold_stack[i,:,:] = fold[m_c-half_bound:m_c+half_bound+1, 
                                  n_c-half_bound:n_c+half_bound+1]
@@ -90,6 +88,9 @@ def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, cur
                 break
             fold_no += 1
     
+    # new align
+    # template = align_matrix(fold_stack[0], target)
+
     # align target
     template = np.zeros(shape=(bound, bound))
     target_centroids = find_centroids(target)
@@ -124,8 +125,9 @@ def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, cur
             res_list = []
             for i in range(4):    
                 fold = np.rot90(fold, 1)
-                plt.figure()
-                plt.imshow(fold)
+                # plt.figure()
+                # plt.imshow(fold)
+                template = align_matrix(template, fold)
                 result = np.abs(np.subtract(fold, template)) * weight_matrix
                 result = np.sum(result)
                 res_list.append(result)
@@ -140,23 +142,45 @@ def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, cur
     # calculating the reward
     min_corr = min(result_dict.values())
     degen = len(result_dict.keys())
-    
-    reward = (curr_corr - min_corr)
-    print(reward/curr_corr)
-    # reward = (curr_corr - min_corr)/curr_corr + (curr_degen - degen)/curr_degen
-    print(reward)
+
     info = {
-        'corr': min_corr,
+        'corr': min_corr - 1, # to remove the "2" error cause by displaying yellow pixel for center
         'degen': degen
     }
     print(info)
+
+    weight_degen = 1 if (degen > 50) else degen/50
+    diff_dev = curr_corr - min_corr # positive (good) if deviation has decreased
+    diff_degen = curr_degen - degen  # positive (good) if degeneracy has decreased
+    reward_dev = (1-weight_degen) * (diff_dev)**2 * np.sign(diff_dev)
+    reward_degen = weight_degen * (diff_degen)**2 * np.sign(diff_degen)
+    reward = reward_dev + reward_degen
+    print(f'Reward is ! {reward}')
     return reward, template, info
 
+def align_matrix(og_shape, template):
+    template_c = find_centroids(template) # centroids of template
+    # print(f"centroids of template is {template_c}")
+    og_c = find_centroids(og_shape) # centroids of og shape
+    new_shape = np.zeros(np.shape(template)) # new shape same dimension as template
+    diff = np.subtract(template_c, og_c) # difference to align centers
+
+    # iterate through each element in original shape
+    for index in np.ndindex(np.shape(og_shape)):
+        if og_shape[index[0]][index[1]] == 1:
+            new_coord = index + diff
+            new_shape[new_coord[0]][new_coord[1]] = 1
+
+    return new_shape
+
 def find_centroids(image):
+    """Returns centroids of int"""
     zeroth_neutral = np.sum(image)
     zeroth_moments = [np.sum(x) for x in np.nonzero(image)]
-    m_centroid, n_centroid = np.round(np.array(zeroth_moments)/zeroth_neutral)
-    return int(m_centroid), int(n_centroid)
+    m_centroid, n_centroid = (np.array(zeroth_moments)/zeroth_neutral)
+    m_centroid = math.floor(m_centroid)
+    n_centroid = math.floor(n_centroid)
+    return m_centroid, n_centroid
 
 def orient_image(image, m_c, n_c):
     µ_20 = np.sum((np.nonzero(image)[0] - m_c)**2)
@@ -174,41 +198,4 @@ def concurrent_reward():
     equilibrium. Will write more after discussion with group
     """
     pass
-
-def tweaking_reward(fold, degen, seq_length):
-    DISP_COLS = 9
-    DISP_ROWS = 5
-    half_bound = int(math.ceil(seq_length/2))
-    bound = 2*half_bound+1
-
-    # align all folds into one stack
-    fold_stack = np.zeros((degen, bound, bound))
-    print(np.shape(fold_stack))
-    for i, fold in enumerate(folds):
-        # find centroid
-        m_c, n_c = find_centroids(fold)
-
-        # rotate image
-        # orient_image(fold, m_c, n_c)
-        print(m_c, n_c)
-        # add image to stack
-        fold_stack[i,:,:] = fold[m_c-half_bound:m_c+half_bound+1, 
-                                 n_c-half_bound:n_c+half_bound+1]
-    
-    _, axs = plt.subplots(DISP_ROWS, DISP_COLS)
-    for r in range(DISP_ROWS):
-        for c in range(DISP_COLS):
-            try:
-                axs[r, c].imshow(fold_stack[fold_no,:,:])
-            except IndexError:
-                print('C\'est la fin... du MONDE!')
-                break
-            fold_no += 1
-
-    return None
-
-    # need to reshape the target
-    axs[-1, -1].imshow()
-if __name__ == '__main__':
-    print(generate_shape())
 

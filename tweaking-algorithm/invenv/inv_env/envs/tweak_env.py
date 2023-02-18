@@ -5,6 +5,7 @@ from gym import spaces
 import scipy as sc
 import sys, os
 
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(
     os.path.dirname(
@@ -17,6 +18,7 @@ sys.path.append(
 import lib.native_fold as nf
 import inv_env.envs.aux_functions as aux
 import inv_env.envs.data_functions as dtf
+from heursitics_algorithm.heuristics import heuristics
 
 class TweakingInverse(gym.Env):
     """
@@ -77,13 +79,13 @@ class TweakingInverse(gym.Env):
     """
 
     DEFAULT_HP_TABLE = {
-        'H': 0,
-        'P': 1,
+        'H': 1,
+        'P': 0,
     }
 
     def __init__(self,
         base_num=2,
-        seq_length=10,
+        seq_length=20,
         amino_code_table=DEFAULT_HP_TABLE) -> None:
         super().__init__()
 
@@ -97,18 +99,32 @@ class TweakingInverse(gym.Env):
         # Dynamic attributes
         self.sequence_int = 8
         self._sequence_list = list()
+        self._sequence_str = str()
         self.target_shape = np.ndarray(shape=None) # TODO: improve init shape
         self.fold = np.ndarray(shape=None)
 
-        self.current_degeneracy = 1
-        self.current_deviation = 1
+        self.current_degeneracy = 100
+        self.current_deviation = 0
 
         # TODO: what to do with that? was good idea tho!
-        self._min_conv = np.mean(sc.signal.convolve(self.target_shape, self.target_shape))
+        self._min_conv = np.mean(sc.signal.convolve(self.target_shape,
+                                                     self.target_shape))
 
     def reset(self, options=None,seed=None):
         self.target_shape = aux.generate_shape(self.seq_length)
-        self.sequence_int, self._sequence_list = self._init_sequence()
+        print(self.target_shape)
+        self._sequence_str = heuristics(self.target_shape)
+        self.sequence_int = self._encode(dtf.seq_heur2env(seq=self._sequence_str))
+        self._sequence_list = self._decode(self.sequence_int)
+        print(f'idk {self._sequence_list}')
+        
+        print(f'here {dtf.seq_list2str(self._sequence_list)}')
+        heap = nf.compute_energy(
+            self.paths,
+            self._sequence_str)
+        _, degen = nf.native_fold(heap)
+        self.current_degeneracy = degen
+        print(f'init degen is {degen}')
         obs = self._get_obs()
         # info = self._get_info()
 
