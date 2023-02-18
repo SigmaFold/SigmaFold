@@ -36,4 +36,8 @@ def seq_list2str(list):
     new_str = ''.join(
         [str(x) for x in list]).replace('1', 'H').replace('0', 'P')
     return new_str
+
+def seq_heur2env(seq):
+    return list(seq.replace('H', '1').replace('P', '0'))
+    
     
