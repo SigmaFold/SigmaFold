@@ -38,6 +38,7 @@ def seq_list2str(list):
     return new_str
 
 def seq_heur2env(seq):
+    """from string to list"""
     return list(seq.replace('H', '1').replace('P', '0'))
     
     

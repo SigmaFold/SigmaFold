@@ -85,7 +85,7 @@ class TweakingInverse(gym.Env):
 
     def __init__(self,
         base_num=2,
-        seq_length=20,
+        seq_length=10,
         amino_code_table=DEFAULT_HP_TABLE) -> None:
         super().__init__()
 
@@ -123,6 +123,7 @@ class TweakingInverse(gym.Env):
             self.paths,
             self._sequence_str)
         _, degen = nf.native_fold(heap)
+        degen /= 2 # Halve degen because of refelections
         self.current_degeneracy = degen
         print(f'init degen is {degen}')
         obs = self._get_obs()
@@ -182,7 +183,7 @@ class TweakingInverse(gym.Env):
         while number:
             digit_list.append(number % b)
             number = number // b
-
+        print(digit_list)
         while len(digit_list) < self.seq_length:
             digit_list.insert(0, 0)
 
