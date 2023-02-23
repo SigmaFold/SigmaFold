@@ -11,6 +11,7 @@ def vsdh_move(seq, n, mat):
         # call the end_pull function
         new_mat = end_move(random_number, seq, n, mat)
     else:
+        
         # call the corner_pull function
         new_mat = corner_move(random_number, seq, n, mat)
 
@@ -128,6 +129,50 @@ def crankshaft_move(rand_num, seq, n, mat):
     col_dir = col_aft - col_num
 
     # TODO: incomplete
+
+# pull move
+def pull_move(rand_num, seq, n, mat):
+    # find the index of the element, and the next element in the sequence in the matrix
+    [[row_num], [col_num]] = np.where(mat == rand_num)
+    [[row_aft], [col_aft]] = np.where(mat == rand_num+1)
+
+    # check for free spaces diagonally to the element
+    free_spaces = []
+    if mat[row_num-1, col_num-1] == 0 and mat[row_aft-1, col_aft-1] == 0:
+        free_spaces.append([row_num-1, col_num-1])
+    if mat[row_num-1, col_num+1] == 0 and mat[row_aft-1, col_aft+1] == 0:
+        free_spaces.append([row_num-1, col_num+1])
+    if mat[row_num+1, col_num-1] == 0 and mat[row_aft+1, col_aft-1] == 0:
+        free_spaces.append([row_num+1, col_num-1])
+    if mat[row_num+1, col_num+1] == 0 and mat[row_aft+1, col_aft+1] == 0:
+        free_spaces.append([row_num+1, col_num+1])
+    print(f'Free Spaces: {free_spaces}')
+
+    # choose a random free space
+    if len(free_spaces) == 0:
+        print(f'No free spaces. Returning original matrix.')
+        return mat
+    else:
+        random_space = np.random.randint(0,len(free_spaces))
+    
+    # move the element to the random free space
+    mat[free_spaces[random_space][0], free_spaces[random_space][1]] = rand_num
+    mat[row_num, col_num] = 0
+    
+    # direction of movement
+    row_dir = free_spaces[random_space][0] - row_num
+    col_dir = free_spaces[random_space][1] - col_num
+
+    # move all subsequent elements similarly until the pull move is complete
+    for i in range(rand_num+1, n+1):
+        [[row_num], [col_num]] = np.where(mat == i)
+        if mat[row_num+row_dir, col_num+col_dir] == 0:
+            mat[row_num+row_dir, col_num+col_dir] = i
+            mat[row_num, col_num] = 0
+        else:
+            print(f'Pull move completed at element {i-1}.')
+            break
+    return mat
 
 
 if __name__ == "__main__":
