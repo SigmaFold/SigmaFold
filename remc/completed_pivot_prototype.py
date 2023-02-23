@@ -1,10 +1,10 @@
-import numpy as np
+
 import numpy as np
 import math as math
 import random as random
 from copy import deepcopy
 
-#this allows us to visualize tuples for debugging and also just being useful 
+#this allows us to visualize tuples for debugging and also just being useful
 def graphicchain(chain,matrix):
 
     lattice=np.ndarray.tolist(np.zeros([len(matrix),len(matrix)]))
@@ -53,7 +53,7 @@ def end_move(rand_num, seq, n, mat,positions):
 
     if rand_num==1:
         [row_1, col_1] = [positions[0][1],positions[0][2]]
-        [row_2, col_2] = [positions[1][1],positions[1][2]]   
+        [row_2, col_2] = [positions[1][1],positions[1][2]]
         # find adjacent free spaces to the 2nd element
         if row_2>0:
             if mat[row_2-1, col_2] == 0 or mat[row_2-1, col_2] == '0.0' or mat[row_2-1, col_2] == '0':
@@ -70,7 +70,7 @@ def end_move(rand_num, seq, n, mat,positions):
         #print(f'Free Spaces: {free_spaces}')
         if len(free_spaces)>0:
             random_space = np.random.randint(0,len(free_spaces))
-        #this bit should be optimized 
+        #this bit should be optimized
         #new_mat=(np.ndarray.tolist((np.zeros((len(mat),len(mat[1]))))))
         # choose a random free space
        
@@ -86,7 +86,7 @@ def end_move(rand_num, seq, n, mat,positions):
         #[[row_end], [col_end]] = np.where(mat == n)
         #[[row_2end], [col_2end]] = np.where(mat == n-1)
         [row_end, col_end] = [positions[n-1][1],positions[n-1][2]]
-        [row_2end, col_2end] = [positions[n-2][1],positions[n-2][2]]  
+        [row_2end, col_2end] = [positions[n-2][1],positions[n-2][2]]
         # find adjacent free spaces to the 2nd last element
         if row_2end>0:
             if mat[row_2end-1, col_2end] == 0 or mat[row_2end-1, col_2end] == '0.0' or mat[row_2end-1, col_2end] == '0':
@@ -120,13 +120,13 @@ def corner_move(rand_num, seq, n, mat,positions):
     free_spaces_aft = []
     
     # find the index of the element, the element before and the alement after it in the sequence in the matrix
-    [row_1, col_1] = [positions[0][1],positions[0][2]]
+
     [row_num,col_num] = [positions[rand_num-1][1],positions[rand_num-1][2]]
     [row_bef,col_bef] = [positions[rand_num-2][1],positions[rand_num-2][2]]
     [row_aft,col_aft] = [positions[rand_num][1],positions[rand_num][2]]
     
     # find adjacent free spaces to the element before
-    # TODO: make it more efficient by checking corners of element 
+    # TODO: make it more efficient by checking corners of element
     if row_bef>0:
         if mat[row_bef-1, col_bef]==0 or mat[row_bef-1, col_bef] == '0.0' or mat[row_bef-1, col_bef] == '0' :
             free_spaces_bef.append([row_bef-1, col_bef])
@@ -134,7 +134,7 @@ def corner_move(rand_num, seq, n, mat,positions):
 
         if mat[row_bef+1, col_bef]==0 or mat[row_bef+1, col_bef] == '0.0' or mat[row_bef+1, col_bef] == '0' :
             free_spaces_bef.append([row_bef+1, col_bef])
-    if col_bef>0:        
+    if col_bef>0:
         if mat[row_bef, col_bef-1]==0 or mat[row_bef, col_bef-1] == '0.0' or mat[row_bef, col_bef-1] == '0' :
             free_spaces_bef.append([row_bef, col_bef-1])
     if col_bef<len(mat)-1:
@@ -154,7 +154,7 @@ def corner_move(rand_num, seq, n, mat,positions):
             free_spaces_aft.append([row_aft, col_aft-1])
     if col_aft<len(mat)-1:
         if mat[row_aft, col_aft+1]==0 or mat[row_aft, col_aft+1] == '0.0' or mat[row_aft, col_aft+1] == '0' :
-            free_spaces_aft.append([row_aft, col_aft+1])    
+            free_spaces_aft.append([row_aft, col_aft+1])
     
     # find the common free space between the two lists
     common_space = list(set(tuple(x) for x in free_spaces_bef) & set(tuple(x) for x in free_spaces_aft))
@@ -175,7 +175,7 @@ def corner_move(rand_num, seq, n, mat,positions):
     return mat,positions
 
 
-#energy function 
+#energy function
 def counter(matrix,sequence):
     extras=0
     count=0
@@ -185,10 +185,10 @@ def counter(matrix,sequence):
             if i<len(sequence)-1:
                 if sequence[i]==sequence[i+1] and i<len(sequence)-1:
                     extras=extras+1
-            if i>0:        
+            if i>0:
                 if sequence[i]==sequence[i-1] and i>0:
                     extras=extras+1
-    #given a matrix, loop through and count the energy. This can be much more efficient by only looking locally via using the chain 
+    #given a matrix, loop through and count the energy. This can be much more efficient by only looking locally via using the chain
     for i in range(len(matrix)):
         for j in range(len(matrix[1])):
             if matrix[i][j]!="P" and matrix[i][j]!=0 and matrix[i][j]!='0' and matrix[i][j]!='0.0':
@@ -217,7 +217,7 @@ def srmc(oldmat,newmat,bestenergy,possibles,temp,sequence,positionsj,positionsol
     #print(graphicchain(positions,test_matrix))
     #depending on whether the new energy is better or not choose three states
     if delt>0:
-        #if new energy is closer to ground state, switch structure. 
+        #if new energy is closer to ground state, switch structure.
         
         result=newmat
         #if the newenergy is actually the best we've seen so far. Reset best energy and degen list
@@ -232,7 +232,7 @@ def srmc(oldmat,newmat,bestenergy,possibles,temp,sequence,positionsj,positionsol
         return possibles,result,bestenergy,currentenergy,positions
     #if the energies are equal, go with new structure
     elif delt==0:
-        #if the energy equal to best energy, add it to degeneracy list 
+        #if the energy equal to best energy, add it to degeneracy list
         result=newmat
         if currentenergy==bestenergy:
             possibles.append(result)
@@ -252,32 +252,32 @@ def srmc(oldmat,newmat,bestenergy,possibles,temp,sequence,positionsj,positionsol
 #replicalist is a list of {matrix,energy,temperature}
 #fix to be matrix,positions,energy,temperature
 def remc(replicalist,offset):
-    #offset to allow comparisons between different pairs 
+    #offset to allow comparisons between different pairs
     i=offset+1
     while i+1<len(replicalist):
-        #basically compare each replica with the one next over with weighting from the temperature 
+        #basically compare each replica with the one next over with weighting from the temperature
         j=i+1
         delta=(-replicalist[j][3]+replicalist[i][3])*(-replicalist[i][2]+replicalist[j][2])
         if delta<0:
-            #this means either the temoperature or energy is wrong, so we need to switch the temperatures (I chose to switch the matrixes instead) 
+            #this means either the temoperature or energy is wrong, so we need to switch the temperatures (I chose to switch the matrixes instead)
                 replicalist[j][0],replicalist[i][0]=replicalist[i][0],replicalist[j][0]
                 replicalist[j][1],replicalist[i][1]=replicalist[i][1],replicalist[j][1]
                 replicalist[j][2],replicalist[i][2]=replicalist[i][2],replicalist[j][2]
-        else: 
+        else:
             p=random.random()
             if p<math.exp(-delta):
-                #probability of switching if actually the first is better than the second 
+                #probability of switching if actually the first is better than the second
                 replicalist[j][0],replicalist[i][0]=replicalist[i][0],replicalist[j][0]
                 replicalist[j][1],replicalist[i][1]=replicalist[i][1],replicalist[j][1]
                 replicalist[j][2],replicalist[i][2]=replicalist[i][2],replicalist[j][2]
-    #change the offset 
+    #change the offset
         i=i+1
 
     offset=1-offset
     return replicalist,offset
 
 
-#generate replicas with info matrix,path,energy,temp 
+#generate replicas with info matrix,path,energy,temp
 def genreplicalist(startmatrix,positions,numberofthings,starttemp,endtemp):
     z=[]
     energy=counter(startmatrix,sequence)
@@ -292,24 +292,24 @@ def genreplicalist(startmatrix,positions,numberofthings,starttemp,endtemp):
 
 #fix to be matrix,positions,energy,temperature
 
-#generate replicalist off random sequence 
+#generate replicalist off random sequence
 def singlestep(replicalist,possibles,truebestenergy):
     #do this for each replica
     for i in range(len(replicalist)):
-        #save our initials 
+        #save our initials
         old=deepcopy(replicalist[i][0])
         oldmemory=deepcopy(replicalist[i][0])
         temp=replicalist[i][3]
         positions12=deepcopy(replicalist[i][1])
         bestenergy1=truebestenergy
-        #create a set of new matrices with a single move difference 
+        #create a set of new matrices with a single move difference
         new_matrix,positions13=vsdh_move(sequence,n,old,positions12)
         #decide whether to keep the new or old matrix based on delta energy difference
         possibles,result,bestenergy,currentenergy,positions15=srmc(oldmemory,new_matrix,bestenergy1,possibles,temp,sequence,positions13,positions12)
-        #update the replica 
+        #update the replica
         replicalist[i][0],replicalist[i][1],replicalist[i][2]=result,positions15,currentenergy
 
-        #potentially update best energy seen so far 
+        #potentially update best energy seen so far
         if currentenergy>truebestenergy:
             truebestenergy=currentenergy
             
@@ -324,16 +324,16 @@ def alltogether(positions,numberofthings,starttemp,endtemp,latticesize,guesstrue
    possibles=[]
    deltatime=0
    truebestenergy=guesstruebest
-   #generate base replicates off some guess positions 
+   #generate base replicates off some guess positions
    replicates=genreplicalist(startmatrix,positions,numberofthings,starttemp,endtemp)
    zees=deepcopy(replicates)
-   #can change this to time step, so choose number of iterations 
-   while truebestenergy<9:
+   #can change this to time step, so choose number of iterations
+   while deltatime<time:
        #print(deltatime)
    #generate a replicalist of the size specified at the start
-       #choose replicas to keep/changes to make 
+       #choose replicas to keep/changes to make
        zees,truebestenergy,possibles=singlestep(zees,possibles,truebestenergy)
-       #correct the temperature accordingly via remc 
+       #correct the temperature accordingly via remc
        zees,offset=remc(zees,offset)
        deltatime=deltatime+1
        avgs[0]=avgs[0]+counter(zees[0][0],sequence)
@@ -361,13 +361,13 @@ if __name__ == "__main__":
 
     counter(test_matrix,sequence)
 
-    p,r,b,c,p1=srmc(test_matrix,o1,bestenergy,possibles,15,sequence,p1,positions1)
+   
     genreplicalist(test_matrix,positions1,5,160,220);
-    replicates=genreplicalist(test_matrix,positions1,5,5,1)
+    
     possibles=[]
 
     avgs=[0,0,0,0,0]
 
     #replicalist,best energy, list of structures with best energy
 
-    r,t,p=alltogether(r[1][1],5,160,220,10,0,0,60000,sequence)
+    r,t,p=alltogether(positions1,5,160,220,10,0,0,600,sequence)
