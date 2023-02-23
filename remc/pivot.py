@@ -153,6 +153,3 @@ if __name__ == "__main__":
     new_matrix = vsdh_move(sequence, n, test_matrix)
     print(f'New Matrix: {new_matrix}')
 
-
-
-
