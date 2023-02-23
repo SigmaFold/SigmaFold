@@ -1,44 +1,21 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[902]:
-
-
 import numpy as np
 import numpy as np
 import math as math
 import random as random
 from copy import deepcopy
+
+#this allows us to visualize tuples for debugging and also just being useful 
+def graphicchain(chain,matrix):
+
+    lattice=np.ndarray.tolist(np.zeros([len(matrix),len(matrix)]))
+    for i in range(len(chain)):
+        lattice[chain[i][1]][chain[i][2]]=chain[i][0]
+    lattice=np.array(lattice)
+    return(lattice)
+
+
 # choosing the right VSHD move
-
-forwardbias=1
-offset=0
-bestenergy=0
-sequence = "HHHHHHHHPHHHHPHH"
-speedfactor=2
-possibles=[]
-n = len(sequence)
-#create a test matrix of size 11X11 where the origin is at the center [5,5]
-test_matrix = np.ndarray.tolist(np.zeros((10,10)))
-positions1=[['H',4, 5],['H',5, 5],['H',5, 4], ['H',6, 4],['H',6, 5],['H',7, 5],['H',7, 4],['H',7, 3],['P',7, 2],['H',6, 2],['H',6, 3],['H',5, 3],['H',5, 2],['P',4, 2],['H',4, 3],['H',4, 4]]
-test_matrix=graphicchain(positions1,test_matrix)
-test_matrix=np.array(test_matrix)
-
-
-
-
-
-
-# In[845]:
-
-
-len(positions1)
-
-
-# In[920]:
-
-
-def vsdh_move(seq, n, mate,positionsk):
+def vsdh_move(seq, n, mate, positionsk):
     # choose a random number between 1 to n inclusive
     random_number = np.random.randint(1,n+1)
     positions=deepcopy(positionsk)
@@ -54,11 +31,11 @@ def vsdh_move(seq, n, mate,positionsk):
         #print(mate)
         #print(mate)
         #print(new_mat)
-        new_mat,positions = end_move(random_number, seq, n, mod,positions)
-        return new_mat,positions
+        new_mat, positions = end_move(random_number, seq, n, mod, positions)
+        return new_mat, positions
     else:
         # call the corner_pull function
-        new_mat,positions = corner_move(random_number, seq, n, mod,positions)
+        new_mat, positions = corner_move(random_number, seq, n, mod, positions)
         #print(mate)
         #print(mate)
         #print(new_mat)
@@ -69,9 +46,7 @@ def vsdh_move(seq, n, mate,positionsk):
         #print(mat)
         #return old_mat,positions
     
-
-        
-
+    
 # end move
 def end_move(rand_num, seq, n, mat,positions):
     free_spaces = []
@@ -138,6 +113,7 @@ def end_move(rand_num, seq, n, mat,positions):
             positions[n-1]=[positions[n-1][0],free_spaces[random_space][0], free_spaces[random_space][1]]
         return mat,positions
     
+
 # corner move
 def corner_move(rand_num, seq, n, mat,positions):
     free_spaces_bef = []
@@ -198,18 +174,6 @@ def corner_move(rand_num, seq, n, mat,positions):
         positions[rand_num-1]=[positions[rand_num-1][0],common_space[random_space][0], common_space[random_space][1]]
     return mat,positions
 
-#this allows us to visualize tuples for debugging and also just being useful 
-def graphicchain(chain,matrix):
-
-    lattice=np.ndarray.tolist(np.zeros([len(matrix),len(matrix)]))
-    for i in range(len(chain)):
-        lattice[chain[i][1]][chain[i][2]]=chain[i][0]
-    lattice=np.array(lattice)
-    return(lattice)
-
-
-# In[921]:
-
 
 #energy function 
 def counter(matrix,sequence):
@@ -241,15 +205,6 @@ def counter(matrix,sequence):
                     if matrix[i][j]==matrix[i][j+1]:
                         count=count+1
     return (count-extras)/2
-
-
-# In[922]:
-
-
-counter(test_matrix,sequence)
-
-
-# In[930]:
 
 
 def srmc(oldmat,newmat,bestenergy,possibles,temp,sequence,positionsj,positionsold):
@@ -294,27 +249,6 @@ def srmc(oldmat,newmat,bestenergy,possibles,temp,sequence,positionsj,positionsol
         return possibles,result,bestenergy,currentenergy,positions
 
 
-# In[864]:
-
-
-p,r,b,c,p1=srmc(test_matrix,o1,bestenergy,possibles,15,sequence,p1,positions1)
-
-
-# In[851]:
-
-
-p
-
-
-# In[852]:
-
-
-r
-
-
-# In[955]:
-
-
 #replicalist is a list of {matrix,energy,temperature}
 #fix to be matrix,positions,energy,temperature
 def remc(replicalist,offset):
@@ -343,15 +277,6 @@ def remc(replicalist,offset):
     return replicalist,offset
 
 
-# In[ ]:
-
-
-
-
-
-# In[969]:
-
-
 #generate replicas with info matrix,path,energy,temp 
 def genreplicalist(startmatrix,positions,numberofthings,starttemp,endtemp):
     z=[]
@@ -361,17 +286,6 @@ def genreplicalist(startmatrix,positions,numberofthings,starttemp,endtemp):
         tempstep=starttemp+(i)*(endtemp-starttemp)/(numberofthings-1)
         z.append([startmatrix,positions,energy,tempstep])
     return z
-        
-        
-
-
-# In[967]:
-
-
-genreplicalist(test_matrix,positions1,5,160,220);
-
-
-# In[956]:
 
 
 #final code
@@ -379,8 +293,6 @@ genreplicalist(test_matrix,positions1,5,160,220);
 #fix to be matrix,positions,energy,temperature
 
 #generate replicalist off random sequence 
-replicates=genreplicalist(test_matrix,positions1,5,5,1)
-possibles=[]
 def singlestep(replicalist,possibles,truebestenergy):
     #do this for each replica
     for i in range(len(replicalist)):
@@ -404,12 +316,7 @@ def singlestep(replicalist,possibles,truebestenergy):
     return replicalist,truebestenergy,possibles
         
 
-
-# In[1014]:
-
-
 #replicalist,truebestenergy,possibles
-avgs=[0,0,0,0,0]
 def alltogether(positions,numberofthings,starttemp,endtemp,latticesize,guesstruebest,offset,time,sequence):
    empty=np.zeros((latticesize,latticesize))
    startmatrix=graphicchain(positions,empty)
@@ -435,40 +342,32 @@ def alltogether(positions,numberofthings,starttemp,endtemp,latticesize,guesstrue
    return zees,truebestenergy,possibles
 
 
-# In[ ]:
+if __name__ == "__main__":
+    forwardbias=1
+    offset=0
+    bestenergy=0
+    sequence = "HHHHHHHHPHHHHPHH"
+    speedfactor=2
+    possibles=[]
+    n = len(sequence)
+    
+    #create a test matrix of size 11X11 where the origin is at the center [5,5]
+    test_matrix = np.ndarray.tolist(np.zeros((10,10)))
+    positions1=[['H',4, 5],['H',5, 5],['H',5, 4], ['H',6, 4],['H',6, 5],['H',7, 5],['H',7, 4],['H',7, 3],['P',7, 2],['H',6, 2],['H',6, 3],['H',5, 3],['H',5, 2],['P',4, 2],['H',4, 3],['H',4, 4]]
+    test_matrix=graphicchain(positions1,test_matrix)
+    test_matrix=np.array(test_matrix)
 
+    len(positions1)
 
-#replicalist,best energy, list of structures with best energy
+    counter(test_matrix,sequence)
 
-r,t,p=alltogether(r[1][1],5,160,220,10,0,0,60000,sequence);
+    p,r,b,c,p1=srmc(test_matrix,o1,bestenergy,possibles,15,sequence,p1,positions1)
+    genreplicalist(test_matrix,positions1,5,160,220);
+    replicates=genreplicalist(test_matrix,positions1,5,5,1)
+    possibles=[]
 
+    avgs=[0,0,0,0,0]
 
-# In[1009]:
+    #replicalist,best energy, list of structures with best energy
 
-
-avgs
-
-
-# In[1010]:
-
-
-t
-
-
-# In[1011]:
-
-
-r[1][0]
-
-
-# In[1012]:
-
-
-r
-
-
-# In[ ]:
-
-
-
-
+    r,t,p=alltogether(r[1][1],5,160,220,10,0,0,60000,sequence)
