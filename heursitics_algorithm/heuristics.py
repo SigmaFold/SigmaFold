@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import random as rnd
 
 def index_shape(shape):
     '''
@@ -65,7 +66,7 @@ def optimal_path(df, shape):
     '''
     # dictionary of how many total terminal neighbours paths have
     terminal_nb = {}
-    for i in range(8,2,-1): # min number of connected neighbours for terminals = 4, maximum = 8
+    for i in range(8,1,-1): # min number of connected neighbours for terminals = 4, maximum = 8
         terminal_nb[i] = [] # create empty list for path
 
     # dictionary of neighbour count and positions
@@ -83,7 +84,7 @@ def optimal_path(df, shape):
             terminal_nb[term_nb].append(path)
     
     # remove repeating paths where start & end are swapped
-    for i in range(8,3,-1):
+    for i in range(8,1,-1):
         for path in terminal_nb[i]:
             if list(reversed(path)) in terminal_nb[i]:
                 terminal_nb[i].remove(path)
@@ -306,18 +307,20 @@ def heuristics(target):
     Input: target - matrix of 1's and 0's
     Output: sequence - string of H and P
     '''
-    print(f'target is \n {target}')
+    print(f'Target shape is \n {target}')
     target = np.asarray(target) # test
     target1 = index_shape(target) # index the input shape
-    seq_df = get_env(target1)
-    paths_dict = optimal_path(seq_df, target1)
+    seq_df = get_env(target1) # get required information
+    paths_dict = optimal_path(seq_df, target1) # generates optimal paths
+    
+    # chooses the most optimal neighbours
     opt_nb = 0
     for i in range(max(paths_dict.keys()),min(paths_dict.keys())-1,-1):
         if len(paths_dict[i]) != 0:
             opt_nb = i
             break
-    __, __, sequence = assign_HP(paths_dict[opt_nb][0], target1)
+    __, __, sequence = assign_HP(rnd.choice(paths_dict[opt_nb]), target1) # randomly selects from pool of candidates
     
-    print(sequence)
+    print(f"The input sequence from heuristics is {sequence}")
     return sequence
 

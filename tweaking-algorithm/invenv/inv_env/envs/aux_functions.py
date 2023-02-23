@@ -144,17 +144,18 @@ def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, cur
     degen = len(result_dict.keys())
 
     info = {
+        'degen': degen,
         'corr': min_corr - 1, # to remove the "2" error cause by displaying yellow pixel for center
-        'degen': degen
     }
     print(info)
-
-    weight_degen = 1 if (degen > 50) else degen/50
+    weight_degen = 1 if (curr_degen > 50) else curr_degen/50
     diff_dev = curr_corr - min_corr # positive (good) if deviation has decreased
     diff_degen = curr_degen - degen  # positive (good) if degeneracy has decreased
     reward_dev = (1-weight_degen) * (diff_dev)**2 * np.sign(diff_dev)
     reward_degen = weight_degen * (diff_degen)**2 * np.sign(diff_degen)
     reward = reward_dev + reward_degen
+    print(f'Curr_degen: {curr_degen} | Curr_dev {curr_corr}')
+    print(f'Reward_degen {reward_degen} | Reward_dev {reward_dev}')
     print(f'Reward is ! {reward}')
     return reward, template, info
 
