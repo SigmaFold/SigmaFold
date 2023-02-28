@@ -46,7 +46,7 @@ def genreplicalist(start_matrix, positions, number_of_things, start_temp, end_te
     z = []
     # Convert the positions to a path
     path, sequence = positions2path(positions)
-    energy = native_fold.compute_energy([path], sequence)[
+    energy = -native_fold.compute_energy([path], sequence)[
         0][0]  # Compute the energy of the path
     # generate a list of replicas with info about the matrix, path, energy, and temperature
     for i in range(number_of_things):
@@ -62,10 +62,10 @@ def srmc(old_mat, new_mat, best_energy, possibles, temp, positionsj, positions_o
     positions = deepcopy(positions_old)
     result = deepcopy(old_mat)
     path_old, sequence = positions2path(positions_old)
-    guess_e = native_fold.compute_energy([path_old], sequence)[0][0]
+    guess_e = -native_fold.compute_energy([path_old], sequence)[0][0]
 
     path_new, sequence = positions2path(positionsj)
-    current_energy = native_fold.compute_energy([path_new], sequence)[0][0]
+    current_energy = -native_fold.compute_energy([path_new], sequence)[0][0]
 
     # calculate differences in energy between matrices
     delt = current_energy-guess_e
@@ -191,8 +191,8 @@ def remc_complete(positions, number_of_things, start_temp, end_temp, lattice_siz
         positions4 = zees[4][1]
         path0, _ = positions2path(positions0)
         path4, _ = positions2path(positions4)
-        avgs[0] = avgs[0] + native_fold.compute_energy([path0], sequence)[0][0]
-        avgs[4] = avgs[4] + native_fold.compute_energy([path4], sequence)[0][0]
+        avgs[0] = avgs[0] + -native_fold.compute_energy([path0], sequence)[0][0]
+        avgs[4] = avgs[4] + -native_fold.compute_energy([path4], sequence)[0][0]
     # print("end")
     return zees, true_best_energy, possibles
 
