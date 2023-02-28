@@ -99,8 +99,7 @@ def compute_energy(paths, sequence):
                             if distance == 1:
                                 energy -= 1
                 j = i
-        if energy<0:
-            energy=-energy
+
         heapq.heappush(heap, (energy, path))
 
     return heap
