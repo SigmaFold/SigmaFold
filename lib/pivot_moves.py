@@ -16,7 +16,7 @@ def matrix2positions(matrix, sequence):
 def vsdh_move(seq, n, mat):
     # choose a random number between 1 to n inclusive
     random_number = np.random.randint(1, n+1)
-    random_number = 2
+    # random_number = 15
     print(f'Random number chosen: {random_number}')
     (total_rows, total_cols) = mat.shape
 
@@ -24,7 +24,7 @@ def vsdh_move(seq, n, mat):
 
     # choose a random move
     random_move = np.random.randint(1, 5)
-    random_move = 4
+    random_move = 3
     if random_move == 1:
         # call the end move function
         print('End move chosen')
@@ -52,7 +52,6 @@ def vsdh_move(seq, n, mat):
         pos = matrix2positions(mat, seq)
         return mat, pos
     else:
-        print(new_mat)
         new_pos = matrix2positions(new_mat, seq)
         return new_mat, new_pos
 
@@ -207,6 +206,7 @@ def crankshaft_move(rand_num, seq, n, mat, total_rows, total_cols):
             print('Crankshaft move failed')
             return mat
     u_num = mat[row_u, col_u]
+    # print(f'u_num = {u_num}, row_u = {row_u}, col_u = {col_u}')
 
     # do the crankshaft move
     num = rand_num+1
@@ -231,6 +231,7 @@ def crankshaft_move(rand_num, seq, n, mat, total_rows, total_cols):
             mat[new_pos[0], new_pos[1]] = num
             mat[row, col] = 0
         num += 1
+        # print(f'mat = {mat}')
     return mat
 
 # pull move
@@ -307,9 +308,6 @@ def pull_move(rand_num, seq, n, mat, total_rows, total_cols):
             mat[row_num+row_dir, col_num+col_dir] = i
             if mat[row_num, col_num] == i:
                 mat[row_num, col_num] = 0
-            print(f'row_num: {row_num}, col_num: {col_num}')
-            print(f'coord_dict: {coord_dict}')
-            print(f'mat: {mat}')
         else:
             print('Pull move failed')
             return old_mat
@@ -338,14 +336,14 @@ if __name__ == "__main__":
     # test_matrix[7, 8] = 10
     # print(f'Test Matrix: {test_matrix}')
 
-    test_matrix = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    test_matrix = np.array([[0, 0, 16, 0, 0, 0, 0, 0, 0, 0],
+                       [0, 14, 15, 0, 0, 0, 0, 0, 0, 0],
+                       [0, 13, 0, 0, 0, 0, 0, 0, 0, 0],
+                       [0, 12, 0, 0, 0, 0, 0, 0, 0, 0],
+                       [0, 11, 10, 9, 8, 7, 0, 0, 0, 0],
+                       [0, 0, 0, 0, 0, 6, 3, 2, 1, 0],
+                       [0, 0, 0, 0, 0, 5, 4, 0, 0, 0],
                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                       [0, 0, 15, 16, 0, 0, 0, 0, 0, 0],
-                       [0, 0, 14, 0, 0, 1, 0, 0, 0, 0],
-                       [0, 12, 13, 0, 3, 2, 0, 0, 0, 0],
-                       [0, 11, 10, 0, 4, 5, 0, 0, 0, 0],
-                       [0, 0, 9, 8, 7, 6, 0, 0, 0, 0],
                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],])
     print(f'Test Matrix: {test_matrix}')

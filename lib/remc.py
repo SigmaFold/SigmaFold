@@ -162,6 +162,7 @@ def remc(replica_list, offset):
 def remc_complete(positions, number_of_things, start_temp, end_temp, lattice_size, guess_true_best, offset, time):
     empty_matrix = np.zeros((lattice_size, lattice_size))
     start_matrix = num_matrix(positions, empty_matrix)
+    print(f'starting matrix is {start_matrix}')
     _, sequence = positions2path(positions)
 
     possibles = []
@@ -174,6 +175,7 @@ def remc_complete(positions, number_of_things, start_temp, end_temp, lattice_siz
     replicates = genreplicalist(
         start_matrix, positions, number_of_things, start_temp, end_temp)
     zees = deepcopy(replicates)  # deepcopy to avoid changing the original
+    iterations = 0
 
     while deltatime < time:
         # generate a replicalist of the size specified at the start
@@ -192,6 +194,9 @@ def remc_complete(positions, number_of_things, start_temp, end_temp, lattice_siz
         path4, _ = positions2path(positions4)
         avgs[0] = avgs[0] + native_fold.compute_energy([path0], sequence)[0][0]
         avgs[4] = avgs[4] + native_fold.compute_energy([path4], sequence)[0][0]
+        if iterations == 5:
+            break
+        iterations += 1
     # print("end")
     return zees, true_best_energy, possibles
 
@@ -217,16 +222,16 @@ if __name__ == "__main__":
     print(f'True best energy: {true_best_energy}')
     print(f'Possibles: {possibles}')
 
-    num_mat = np.array[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                       [0, 0, 15, 16, 0, 0, 0, 0, 0, 0],
-                       [0, 0, 14, 0, 0, 1, 0, 0, 0, 0],
-                       [0, 12, 13, 0, 3, 2, 0, 0, 0, 0],
-                       [0, 11, 10, 0, 4, 5, 0, 0, 0, 0],
-                       [0, 0, 9, 8, 7, 6, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],]
+    # num_mat = np.array[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                    [0, 0, 15, 16, 0, 0, 0, 0, 0, 0],
+    #                    [0, 0, 14, 0, 0, 1, 0, 0, 0, 0],
+    #                    [0, 12, 13, 0, 3, 2, 0, 0, 0, 0],
+    #                    [0, 11, 10, 0, 4, 5, 0, 0, 0, 0],
+    #                    [0, 0, 9, 8, 7, 6, 0, 0, 0, 0],
+    #                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],]
     
     # # To check if pivot is working properly
     # path, seq = positions2path(positions1)
