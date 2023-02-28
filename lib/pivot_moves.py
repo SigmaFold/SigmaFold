@@ -24,7 +24,7 @@ def vsdh_move(seq, n, mat):
 
     # choose a random move
     random_move = np.random.randint(1, 5)
-    random_move = 3
+    # random_move = 3
     if random_move == 1:
         # call the end move function
         print('End move chosen')
@@ -210,6 +210,7 @@ def crankshaft_move(rand_num, seq, n, mat, total_rows, total_cols):
 
     # do the crankshaft move
     num = rand_num+1
+    old_mat = mat.copy()
     # find the non zero elements between rand_num and u_num reflect them along the axis created by mat[row_num, col_num] and mat[row_u, col_u]
     while num != u_num:
         # find the index of the element in the matrix
@@ -226,7 +227,7 @@ def crankshaft_move(rand_num, seq, n, mat, total_rows, total_cols):
         # check if new position is out of bounds or if it is already occupied
         if mat[new_pos[0], new_pos[1]] != 0 or new_pos[0] < 0 or new_pos[0] > total_rows-1 or new_pos[1] < 0 or new_pos[1] > total_cols-1:
             print('Crankshaft move failed')
-            return mat
+            return old_mat
         else:
             mat[new_pos[0], new_pos[1]] = num
             mat[row, col] = 0
