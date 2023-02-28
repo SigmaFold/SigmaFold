@@ -282,25 +282,34 @@ def pull_move(rand_num, seq, n, mat, total_rows, total_cols):
     col_dir = free_spaces[random_space][1] - col_num
 
     # move all subsequent elements similarly until the pull move is complete
-    coord_dict = {}
+    coord_dict = {} # dictionary to store the coordinates of the elements that are not in the matrix
     for i in range(rand_num+1, n+1):
-        indices = np.where(mat == i)
+        indices = np.where(mat == i) # find the index of the element in the matrix
+        
+        # if element in matrix, use the index from np.where
         if indices[0].size > 0:
             [[row_num], [col_num]] = indices
+        # if element not in matrix, use the index from coord_dict
         else:
             [row_num, col_num] = coord_dict[i]
 
-        if row_num+row_dir >= 0 and row_num+row_dir < total_rows and col_num+col_dir >= 0 and col_num+col_dir < total_cols:
+        if row_num+row_dir >= 0 and row_num+row_dir < total_rows and col_num+col_dir >= 0 and col_num+col_dir < total_cols: # check if the move is out of bounds
+            # check if the move is blocked by another element and if the current element is the next element or is trying to replacing an element smaller than it
             if mat[row_num+row_dir, col_num+col_dir] != 0 and (i == rand_num+1 or i > mat[row_num+row_dir, col_num+col_dir]):
                 print('Pull move failed')
                 return old_mat
-            elif mat[row_num+row_dir, col_num+col_dir] != 0:
+            
+            elif mat[row_num+row_dir, col_num+col_dir] != 0 and (i < mat[row_num+row_dir, col_num+col_dir]):
                 coord_dict[mat[row_num+row_dir, col_num+col_dir]
                            ] = [row_num+row_dir, col_num+col_dir]
             else:
                 pass
             mat[row_num+row_dir, col_num+col_dir] = i
-            mat[row_num, col_num] = 0
+            if mat[row_num, col_num] == i:
+                mat[row_num, col_num] = 0
+            print(f'row_num: {row_num}, col_num: {col_num}')
+            print(f'coord_dict: {coord_dict}')
+            print(f'mat: {mat}')
         else:
             print('Pull move failed')
             return old_mat
@@ -339,6 +348,7 @@ if __name__ == "__main__":
                        [0, 0, 9, 8, 7, 6, 0, 0, 0, 0],
                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],])
+    print(f'Test Matrix: {test_matrix}')
     sequence = 'HHHHHHHHPHHHHPHH'
     n = len(sequence)
 
