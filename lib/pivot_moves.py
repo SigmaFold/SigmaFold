@@ -176,10 +176,12 @@ def corner_move(rand_num, seq, n, mat, total_rows, total_cols):
 
 
 def crankshaft_move(rand_num, seq, n, mat, total_rows, total_cols):
+    old_mat = mat.copy()
+
     # ensure it is not the first or last element of the sequence
     if rand_num == 1 or rand_num == n:
         print('Crankshaft move failed')
-        return mat
+        return old_mat
 
     # find the index of the element, the element before and the element after
     [[row_num], [col_num]] = np.where(mat == rand_num)
@@ -193,24 +195,31 @@ def crankshaft_move(rand_num, seq, n, mat, total_rows, total_cols):
     # fail if the next element is in the same direction
     if row_dir == row_aft - row_num and col_dir == col_aft - col_num:
         print('Crankshaft move failed')
-        return mat
+        return old_mat
 
     # find the next non zero element in the matrix in the direction of the current element
     row_u = row_num + row_dir
     col_u = col_num + col_dir
+    # check if row or column index is out of bounds
+    if row_u < 0 or row_u > total_rows-1 or col_u < 0 or col_u > total_cols-1:
+        print('Crankshaft move failed')
+        return old_mat
+    
     while mat[row_u, col_u] == 0:
         row_u += row_dir
         col_u += col_dir
         # check if row or column index is out of bounds
         if row_u < 0 or row_u > total_rows-1 or col_u < 0 or col_u > total_cols-1:
             print('Crankshaft move failed')
-            return mat
+            return old_mat
     u_num = mat[row_u, col_u]
+    if u_num < rand_num:
+        print('Crankshaft move failed')
+        return old_mat
     # print(f'u_num = {u_num}, row_u = {row_u}, col_u = {col_u}')
 
     # do the crankshaft move
     num = rand_num+1
-    old_mat = mat.copy()
     # find the non zero elements between rand_num and u_num reflect them along the axis created by mat[row_num, col_num] and mat[row_u, col_u]
     while num != u_num:
         # find the index of the element in the matrix
