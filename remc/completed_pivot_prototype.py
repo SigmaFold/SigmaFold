@@ -335,6 +335,7 @@ def alltogether(positions,numberofthings,starttemp,endtemp,latticesize,guesstrue
        zees,truebestenergy,possibles=singlestep(zees,possibles,truebestenergy)
        #correct the temperature accordingly via remc
        zees,offset=remc(zees,offset)
+       print(zees[0][0])
        deltatime=deltatime+1
        avgs[0]=avgs[0]+counter(zees[0][0],sequence)
        avgs[4]=avgs[4]+counter(zees[4][0],sequence)
@@ -356,6 +357,7 @@ if __name__ == "__main__":
     positions1=[['H',4, 5],['H',5, 5],['H',5, 4], ['H',6, 4],['H',6, 5],['H',7, 5],['H',7, 4],['H',7, 3],['P',7, 2],['H',6, 2],['H',6, 3],['H',5, 3],['H',5, 2],['P',4, 2],['H',4, 3],['H',4, 4]]
     test_matrix=graphicchain(positions1,test_matrix)
     test_matrix=np.array(test_matrix)
+    # print(test_matrix[0])
 
     len(positions1)
 

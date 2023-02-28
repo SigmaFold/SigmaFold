@@ -1,11 +1,22 @@
 import numpy as np
 
+# converts matrix to positions
+
+
+def matrix2positions(matrix, sequence):
+    positions = []
+    for i in range(len(sequence)):
+        positions.append([sequence[i], np.where(matrix == i+1)
+                         [0][0], np.where(matrix == i+1)[1][0]])
+    return positions
 
 # choosing the right VSHD move
+
+
 def vsdh_move(seq, n, mat):
     # choose a random number between 1 to n inclusive
     random_number = np.random.randint(1, n+1)
-    random_number = 5
+    random_number = 2
     print(f'Random number chosen: {random_number}')
     (total_rows, total_cols) = mat.shape
 
@@ -38,9 +49,12 @@ def vsdh_move(seq, n, mat):
     # check if the matrix has changed
     if np.array_equal(new_mat, mat):
         print('No change made, returned original path')
-        return mat
+        pos = matrix2positions(mat, seq)
+        return mat, pos
     else:
-        return new_mat
+        print(new_mat)
+        new_pos = matrix2positions(new_mat, seq)
+        return new_mat, new_pos
 
 
 # end move
@@ -277,7 +291,7 @@ def pull_move(rand_num, seq, n, mat, total_rows, total_cols):
             [row_num, col_num] = coord_dict[i]
 
         if row_num+row_dir >= 0 and row_num+row_dir < total_rows and col_num+col_dir >= 0 and col_num+col_dir < total_cols:
-            if mat[row_num+row_dir, col_num+col_dir] != 0 and i == rand_num+1:
+            if mat[row_num+row_dir, col_num+col_dir] != 0 and (i == rand_num+1 or i > mat[row_num+row_dir, col_num+col_dir]):
                 print('Pull move failed')
                 return old_mat
             elif mat[row_num+row_dir, col_num+col_dir] != 0:
@@ -302,19 +316,34 @@ if __name__ == "__main__":
     # create a test matrix of size 11X11 where the origin is at the center [5,5]
     test_matrix = np.zeros((15, 15))
 
-    # fill the matrix with numbers indicating a SAW
-    test_matrix[5, 5] = 1
-    test_matrix[5, 6] = 2
-    test_matrix[5, 7] = 3
-    test_matrix[5, 8] = 4
-    test_matrix[6, 8] = 5
-    test_matrix[6, 9] = 6
-    test_matrix[6, 10] = 7
-    test_matrix[7, 10] = 8
-    test_matrix[7, 9] = 9
-    test_matrix[7, 8] = 10
-    print(f'Test Matrix: {test_matrix}')
+    # # fill the matrix with numbers indicating a SAW
+    # test_matrix[5, 5] = 1
+    # test_matrix[5, 6] = 2
+    # test_matrix[5, 7] = 3
+    # test_matrix[5, 8] = 4
+    # test_matrix[6, 8] = 5
+    # test_matrix[6, 9] = 6
+    # test_matrix[6, 10] = 7
+    # test_matrix[7, 10] = 8
+    # test_matrix[7, 9] = 9
+    # test_matrix[7, 8] = 10
+    # print(f'Test Matrix: {test_matrix}')
 
-    # do the move
+    test_matrix = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       [0, 0, 15, 16, 0, 0, 0, 0, 0, 0],
+                       [0, 0, 14, 0, 0, 1, 0, 0, 0, 0],
+                       [0, 12, 13, 0, 3, 2, 0, 0, 0, 0],
+                       [0, 11, 10, 0, 4, 5, 0, 0, 0, 0],
+                       [0, 0, 9, 8, 7, 6, 0, 0, 0, 0],
+                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],])
+    sequence = 'HHHHHHHHPHHHHPHH'
+    n = len(sequence)
+
+    #do the move
     new_matrix = vsdh_move(sequence, n, test_matrix)
     print(f'New Matrix: {new_matrix}')
+
+    # print(matrix2positions(test_matrix, sequence))
