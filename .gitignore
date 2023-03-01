@@ -5,7 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+saved_weights
 # Distribution / packaging
 .Python
 build/
