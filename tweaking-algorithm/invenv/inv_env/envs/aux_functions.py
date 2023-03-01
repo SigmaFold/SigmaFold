@@ -55,7 +55,7 @@ def generate_shape(seq_len=int(10)):
     # print(f"monke got stuck {monke_stupid_index} times")
     return shape
 
-def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, curr_degen, curr_corr):
+def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, curr_degen, curr_corr, log=0):
     """
     
     """
@@ -78,15 +78,15 @@ def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, cur
     # display the stack
     _, axs = plt.subplots(displayRows, displayCols)
     fold_no = 0
-    print(f'The degen is {degen}')
-    for r in range(displayRows):
-        for c in range(displayCols):
-            try:
-                axs[r, c].imshow(fold_stack[fold_no,:,:])
-            except IndexError:
-                print('error')
-                break
-            fold_no += 1
+    if log !=0:
+        for r in range(displayRows):
+            for c in range(displayCols):
+                try:
+                    axs[r, c].imshow(fold_stack[fold_no,:,:])
+                except IndexError:
+                    print('error')
+                    break
+                fold_no += 1
     
     # new align
     # template = align_matrix(fold_stack[0], target)
@@ -137,7 +137,8 @@ def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, cur
                 print(fold)
 
     # print(result_dict)
-    plt.show()
+    if log != 0:
+        plt.show()
     
     # calculating the reward
     min_corr = min(result_dict.values())
@@ -154,9 +155,7 @@ def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, cur
     reward_dev = (1-weight_degen) * (diff_dev)**2 * np.sign(diff_dev)
     reward_degen = weight_degen * (diff_degen)**2 * np.sign(diff_degen)
     reward = reward_dev + reward_degen
-    print(f'Curr_degen: {curr_degen} | Curr_dev {curr_corr}')
-    print(f'Reward_degen {reward_degen} | Reward_dev {reward_dev}')
-    print(f'Reward is ! {reward}')
+    print(f'Reward is {reward} !')
     return reward, template, info
 
 def align_matrix(og_shape, template):

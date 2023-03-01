@@ -76,6 +76,9 @@ class TweakingInverse(gym.Env):
     | 1   | Target shape(ndarray) | 0                   | Inf               |
     | 2   | Deviation (int)       | 0                   | Inf               |
     | 3   | Degeneracy (int)      | 0                   | Inf               |
+    
+    The information space only contains redundant information, and its main
+    purpose is to interact with the GUI to display clean information.
     """
 
     DEFAULT_HP_TABLE = {
@@ -98,50 +101,48 @@ class TweakingInverse(gym.Env):
 
         # Dynamic attributes
         self.sequence_int = 8
-        self._sequence_list = list()
-        self._sequence_str = str()
+        self.sequence_list = list()
+        self.sequence_str = str()
         self.target_shape = np.ndarray(shape=None) # TODO: improve init shape
         self.fold = np.ndarray(shape=None)
 
         self.current_degeneracy = 100
         self.current_deviation = 0
+        
 
-        # TODO: what to do with that? was good idea tho!
-        self._min_conv = np.mean(sc.signal.convolve(self.target_shape,
-                                                     self.target_shape))
+        low = np.array([0, 0, -10_000], dtype=np.float64)
+        high = np.array([1_000, 1_000, 10_000], dtype=np.float64)
+        self.observation_space = spaces.Box(low=low, high=high, dtype=np.float64)
+        self.action_space = spaces.Discrete(base_num*seq_length)
 
     def reset(self, options=None,seed=None):
         self.target_shape = aux.generate_shape(self.seq_length)
-        print(self.target_shape)
-        self._sequence_str = heuristics(self.target_shape)
-        self.sequence_int = self._encode(dtf.seq_heur2env(seq=self._sequence_str))
-        self._sequence_list = self._decode(self.sequence_int)
-        print(f'idk {self._sequence_list}')
+        self.sequence_str = heuristics(self.target_shape)
+        self.sequence_int = self._encode(dtf.seq_heur2env(seq=self.sequence_str))
+        self.sequence_list = self._decode(self.sequence_int)
         
-        print(f'here {dtf.seq_list2str(self._sequence_list)}')
         heap = nf.compute_energy(
             self.paths,
-            self._sequence_str)
+            self.sequence_str)
         _, degen = nf.native_fold(heap)
         degen /= 2 # Halve degen because of refelections
         self.current_degeneracy = degen
-        print(f'init degen is {degen}')
-        obs = self._get_obs()
+        obs = self.get_obs()
         # info = self._get_info()
 
-        return obs, {'seq_list': self._sequence_list}
+        return obs, {'seq_list': self.sequence_list}
 
     def step(self, action):
         index, amino_code = self._parse_action(action)
         
         # updating everything
-        self._sequence_list[index] = amino_code
-        self.sequence_int = self._encode(self._sequence_list)
+        self.sequence_list[index] = amino_code
+        self.sequence_int = self._encode(self.sequence_list)
         
         # folding the sequence and getting the degeneracy
         heap = nf.compute_energy(
             self.paths,
-            dtf.seq_list2str(self._sequence_list))
+            dtf.seq_list2str(self.sequence_list))
         folds, degen = nf.native_fold(heap)
         folds = [dtf.fold_list2matrix(fold, self.seq_length) for fold in folds]
         
@@ -150,13 +151,28 @@ class TweakingInverse(gym.Env):
         self.current_degeneracy = info['degen']
         self.current_deviation = info['corr']
         # done = (deviation == self._min_conv) # TODO: add 5% threshold
-        done = False
-        obs = self._get_obs()
 
-        return obs, reward, done, {'fold': avg_fold, 'seq_list': self._sequence_list}
+
+        done = (self.current_deviation == 0) & (self.current_degeneracy < 6)
+        obs = self.get_obs()
+
+        return obs, reward, done, {'fold': avg_fold, 'seq_list': self.sequence_list}
     
     def render(self):
         return None
+    
+    def get_obs(self):
+        """
+        Important method that controls the flux of information towards
+        the neural network.
+        """
+        state = (
+            self.sequence_str,
+            self.target_shape,
+            self.current_degeneracy,
+            self.current_deviation)
+        
+        return state
 
     def _init_sequence(self):
         """
@@ -183,7 +199,6 @@ class TweakingInverse(gym.Env):
         while number:
             digit_list.append(number % b)
             number = number // b
-        print(digit_list)
         while len(digit_list) < self.seq_length:
             digit_list.insert(0, 0)
 
@@ -196,7 +211,6 @@ class TweakingInverse(gym.Env):
                010011010 --> 154
         HP model (base2) --> Neural Network compatible value
         """
-        print(number)
 
         split_num = number
         b = self.base_num
@@ -207,13 +221,8 @@ class TweakingInverse(gym.Env):
 
         return result
     
-    def _get_obs(self):
-        state = (self.sequence_int, self.target_shape, self.current_degeneracy,
-            self.current_deviation)
-        return state
-
     def _get_info(self):
-        info = (self._sequence_list, )
+        info = (self.sequence_list, )
 
     def _parse_action(self, action):
         index = action // self.base_num
