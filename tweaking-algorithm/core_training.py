@@ -1,11 +1,11 @@
 import numpy as np
 import gym
 from  invenv.inv_env import register
-from stable_baselines3 import PPO
+from stable_baselines3 import A2C
 
 # Global Parameters
 models_dir = "saved_weights"
-TIMESTEPS_SAVE = 10_000
+TIMESTEPS_SAVE = 50
 iters = 0 # change initial value to latest iters to avoid overwriting files
 
 def training_main():
@@ -20,8 +20,8 @@ def training_main():
     env.reset()
 
     # Instantiate the agent
-    model = PPO('MlpPolicy', env, learning_rate=1e-3, verbose=1)
-
+    model = A2C('MlpPolicy', env, learning_rate=1e-3, verbose=1)
+    iters = 1 
     # Train the agent
     while True:
         iters += 1
