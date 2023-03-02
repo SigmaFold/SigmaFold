@@ -2,7 +2,6 @@ import gym
 import numpy as np
 import random as rnd
 from gym import spaces
-import scipy as sc
 import sys, os
 import math
 
