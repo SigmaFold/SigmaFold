@@ -76,10 +76,11 @@ def srmc(old_mat, new_mat, best_energy, possibles, temp, positionsj, positions_o
         result = new_mat
         # if the newenergy is actually the best we've seen so far. Reset best energy and degen list
         if current_energy == best_energy:
-            possibles.append(result)
+            # convert result to immutable
+            possibles.add(tuple(map(tuple, result)))
         if current_energy > best_energy:
             best_energy = current_energy
-            possibles = [result]
+            possibles = set(tuple(map(tuple, result)))
         positions = deepcopy(positionsj)
         return possibles, result, best_energy, current_energy, positions
 
@@ -88,7 +89,7 @@ def srmc(old_mat, new_mat, best_energy, possibles, temp, positionsj, positions_o
         # if the energy equal to best energy, add it to degeneracy list
         result = new_mat
         if current_energy == best_energy:
-            possibles.append(result)
+            possibles.add(tuple(map(tuple, result)))
         positions = deepcopy(positionsj)
 
         return possibles, result, best_energy, current_energy, positions
@@ -165,7 +166,7 @@ def remc_complete(positions, number_of_things, start_temp, end_temp, lattice_siz
     print(f'starting matrix is {start_matrix}')
     _, sequence = positions2path(positions)
 
-    possibles = []
+    possibles = set()
     avgs = [0, 0, 0, 0, 0]
     deltatime = 0  # can change this to time step to choose number of iterations
     true_best_energy = guess_true_best
@@ -216,6 +217,8 @@ if __name__ == "__main__":
         positions1, number_of_things, start_temp, end_temp, lattice_size, guess_true_best, offset, time)
     print(f'Replicas: {replicas}')
     print(f'True best energy: {true_best_energy}')
+    # convert every element in set to np array 
+    possibles = [np.array(x) for x in possibles]
     print(f'Possibles: {possibles}')
 
     # num_mat = np.array[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
