@@ -8,7 +8,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 
-# from tools import profile
+from tools import profile
 
 
 def step_function(x):
@@ -16,10 +16,10 @@ def step_function(x):
     return 1 if x > 0 else 0
 
 
-# @profile
+@profile
 def fold_n(n):
     """Takes the previous n's path as input and attempts to add the next element in the sequence to the end of the path"""
-
+    print("Generating paths of length {}".format(n))
     dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
     paths = []  # new paths to be generated
     cap_x = ceil(n / 2) - 1
@@ -49,13 +49,13 @@ def fold_n(n):
     return paths
 
 
-# @profile
+@profile
 def compute_energy(paths, sequence):
     """ Match the sequence to each paths and compute the energy. Return all minimum energy structures. Stores paths in a heap.
         H-H bond = -1
         P-P bond = 0
     """
-
+    print("Computing energy of {} paths".format(len(paths)))
     # Create a heap to store the paths
     # TODO: Optimise to to use the odd-even contact rule
     heap = []
@@ -138,25 +138,24 @@ if __name__ == "__main__":
     x = 0
     y = 0
     # G = generateWalks(n)
-    sequence = "PHPPHPPH"
-    n = len(sequence)
-    paths = fold_n(n)
-    heap = compute_energy(paths, sequence)
+    for n in range(15, 18):
+        print(n)
+        paths = fold_n(n)
+        # heap = compute_energy(paths, sequence)
     # pop from heap until energy changes
-    energy = heap[0][0]
-    print(n)
-    while heap[0][0] == energy:
-        path = heapq.heappop(heap)
-        print(path)
-        # plot the path
-        x = [coord[0] for coord in path[1]]
-        y = [coord[1] for coord in path[1]]
-        # print h and p on graph
-        for i in range(n):
-            if sequence[i] == 'H':
-                plt.text(x[i], y[i], 'H')
-            else:
-                plt.text(x[i], y[i], 'P')
-        plt.plot(x, y, 'ro')
-        plt.plot(x, y)
-        plt.show()
+    
+    # while heap[0][0] == energy:
+    #     path = heapq.heappop(heap)
+    #     print(path)
+    #     # plot the path
+    #     x = [coord[0] for coord in path[1]]
+    #     y = [coord[1] for coord in path[1]]
+    #     # print h and p on graph
+    #     for i in range(n):
+    #         if sequence[i] == 'H':
+    #             plt.text(x[i], y[i], 'H')
+    #         else:
+    #             plt.text(x[i], y[i], 'P')
+    #     plt.plot(x, y, 'ro')
+    #     plt.plot(x, y)
+    #     plt.show()

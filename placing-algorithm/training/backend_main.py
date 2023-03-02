@@ -26,7 +26,7 @@ def cartesian2matrix(path):
     curr_shape_id = mmh3.hash64(str(matrix), signed=True)[0]
     return curr_shape_id
 
-@profile
+# @profile
 def exploitLength(length):
     # Where we will store the dictionaries of data
     seq_list = []
@@ -108,23 +108,21 @@ def commit_to_supabase(n, shape_list, seq_list, mapping_list):
     """ Adds all the data to the database asynchronously"""
     # Create a client
 
-    with open(f"data/seq_{n}.json", "w") as f:
+    with open(f"data/{n}/seq_{n}.json", "w") as f:
         json.dump(seq_list, f)
-    with open(f"data/shape_{n}.json", "w") as f:
+    with open(f"data/{n}/shape_{n}.json", "w") as f:
         json.dump(shape_list, f)
-    with open(f"data/map_{n}.json", "w") as f:
+    with open(f"data/{n}/map_{n}.json", "w") as f:
         json.dump(mapping_list, f)
     
     print("Data saved to json files")
-    return
-    print("Data added to database")
-    
+    return    
 
 
 
 if __name__ == '__main__':
-    set_limit = 10
-    n = 10
+    set_limit = 16
+    n = 13
     while n <= set_limit:
         print("Adding data for length: ", n)
         commit_to_supabase(n, *exploitLength(n))

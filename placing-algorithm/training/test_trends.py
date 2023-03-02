@@ -1,3 +1,7 @@
+"""
+Nico: A place where I am testing out some trends. Let's see if I can find a pattern in the data.
+"""
+
 from db.supabase_setup import SupabaseDB
 import json
 import pandas as pd 
@@ -15,6 +19,15 @@ def sequence_to_integer(sequence):
         binary = binary.zfill(32)
     return int(binary, 2)
 
+def center_of_mass(sequence):
+        # find mean of indices of H's
+        mean_H_indices = sum([i for i, letter in enumerate(sequence) if letter == "H"])/sequence.count("H")
+        # calculate the distance of each H from the center of mass
+        # sum the distances
+        # divide by the number of H's
+        # this is the standard deviation
+        std = sum([abs(i - mean_H_indices) for i, letter in enumerate(sequence) if letter == "H"])/sequence.count("H")
+        return std
 
     
 def get_data_from_json(n):
@@ -44,7 +57,7 @@ def get_data_from_json(n):
 
 
     # get rid of all rows where degeneracy is more than 4
-    seq_df = seq_df[seq_df["degeneracy"] <= 2]
+    seq_df = seq_df[seq_df["degeneracy"] <= 4]
 
     # print the dataframe
     # print(tabulate.tabulate(seq_df, headers='keys', tablefmt='psql'))
@@ -87,15 +100,7 @@ def get_data_from_json(n):
     # add an extra column. Compute the center of mass of the sequence
     # this is the average of the indices of the H's
     # this is the center of mass of the sequence
-    def center_of_mass(sequence):
-        # find mean of indices of H's
-        mean_H_indices = sum([i for i, letter in enumerate(sequence) if letter == "H"])/sequence.count("H")
-        # calculate the distance of each H from the center of mass
-        # sum the distances
-        # divide by the number of H's
-        # this is the standard deviation
-        std = sum([abs(i - mean_H_indices) for i, letter in enumerate(sequence) if letter == "H"])/sequence.count("H")
-        return std
+    
 
     seq_df["center_of_mass"] = seq_df["sequence"].apply(lambda x: center_of_mass(x))
     print(tabulate.tabulate(seq_df, headers='keys', tablefmt='psql'))
@@ -141,7 +146,77 @@ def get_data_from_json(n):
     print(np.mean(seq_df["center_of_mass"]))
     print(np.std(seq_df["center_of_mass"]))
 
+
+def explore_trend_in_good_sequences(n=15):
+    def center_of_mass(sequence):
+        # find mean of indices of H's
+        mean_H_indices = sum([i for i, letter in enumerate(sequence) if letter == "H"])/sequence.count("H")
+        # calculate the distance of each H from the center of mass
+        # sum the distances
+        # divide by the number of H's
+        # this is the standard deviation
+        std = sum([abs(i - mean_H_indices) for i, letter in enumerate(sequence) if letter == "H"])/sequence.count("H")
+        return std
     
+    # read the sequence json
+    import os 
+    with open(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + f"/data/{n}/seq_{n}.json", "r") as f:
+        seq_list = json.load(f)
+        print("Parsed seq_list")
+    
+    # Calculate the ratio of H's to P's
+    #Plot a histogram of the ratio
+
+
+    
+    # convert the list of dicts to a pandas dataframe
+    seq_df = pd.DataFrame(seq_list)
+   
+    #print(tabulate.tabulate(seq_df, headers='keys', tablefmt='psql'))
+
+    # Get the data for n=14 and add that to the dataframe
+    with open(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + f"/data/14/seq_14.json", "r") as f:
+        seq_list = json.load(f)
+        print("Parsed seq_list")
+    
+    # Append the data to the dataframe
+    seq_df = seq_df.append(pd.DataFrame(seq_list))
+     # filter out sequences that do not have degenracy of 2
+    seq_df = seq_df[seq_df["degeneracy"] == 2]
+        
+    # Calculate the ratio of H's to P's
+    #Plot a histogram of the ratio
+    seq_df["ratio"] = seq_df["sequence"].apply(lambda x: x.count("H")/x.count("P"))
+
+
+    #plot histogram of the ratio
+    plt.hist(seq_df["ratio"], bins=20)
+    plt.show()
+
+    # estimate the center of mass of the sequence
+    seq_df["center_of_mass"] = seq_df["sequence"].apply(lambda x: center_of_mass(x))
+    
+    # plot the histogram of the center of mass
+    plt.hist(seq_df["center_of_mass"], bins=20)
+    plt.show()
+
+
+    # count the number of sequences with ratio more than 3
+    print(seq_df[seq_df["ratio"] > 3].shape[0])
+    #  output them in a dataframe
+    print(tabulate.tabulate(seq_df[seq_df["ratio"] > 3], headers='keys', tablefmt='psql'))t
+
+
+
+
+
+
+
+
+   
+
+
+
 
 
 
@@ -167,8 +242,9 @@ def get_data_from_json(n):
     
 if __name__ == '__main__':
     n = 14
-    print("Getting data for length: ", n)
-    get_data_from_json(n)
+    # print("Getting data for length: ", n)
+    # get_data_from_json(n)
+    explore_trend_in_good_sequences()
 
 
 

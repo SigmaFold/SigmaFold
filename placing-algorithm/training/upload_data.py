@@ -1,17 +1,22 @@
 import json
 from db.supabase_setup import SupabaseDB
+import sys 
+import os 
+
+
 
 
 def import_data_from_json(n):
     """ Imports data from json files and returns lists of dicts"""
-    with open(f"data/seq_{n}.json", "r") as f:
+
+    with open(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + f"/data/{n}/seq_{n}.json", "r") as f:
         seq_list = json.load(f)
         print("Parsed seq_list")
-    with open(f"data/shape_{n}.json", "r") as f:
+    with open(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + f"/data/{n}/shape_{n}.json", "r") as f:
         shape_list = json.load(f)
         print("Parsed shape_list")
 
-    with open(f"data/map_{n}.json", "r") as f:
+    with open(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + f"/data/{n}/map_{n}.json", "r") as f:
         mapping_list = json.load(f)
         print("Parsed mapping_list")
     
@@ -52,7 +57,6 @@ def commit_to_supabase(shape_list, seq_list, mapping_list):
 
 
 if __name__ == '__main__':
-    n = 14
-
+    n = 15
     print("Adding data for length: ", n)
     import_data_from_json(n)
