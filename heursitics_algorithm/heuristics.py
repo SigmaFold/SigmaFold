@@ -307,7 +307,6 @@ def heuristics(target):
     Input: target - matrix of 1's and 0's
     Output: sequence - string of H and P
     '''
-    print(f'Target shape is \n {target}')
     target = np.asarray(target) # test
     target1 = index_shape(target) # index the input shape
     seq_df = get_env(target1) # get required information

@@ -12,3 +12,9 @@ tabulate # prints tables nice and sexy
 mmh3
 python-dotenv # handes .env files
 supabase # database
+
+# DeepRL
+stable-baslines3 >= 1.7.0
+gym >= 0.26.0
+
+

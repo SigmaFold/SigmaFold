@@ -94,7 +94,7 @@ class mainAncestor(QWidget):
         new_batch_info = self.new_batch[1]
 
         # Initialise target shape
-        target = new_batch_obs[1]
+        target = new_batch_obs["target_folded"]
         self.target_img.axes.clear()
         self.target_img.axes.imshow(target, cmap=plt.cm.ocean)
         self.target_img.draw()
@@ -110,11 +110,11 @@ class mainAncestor(QWidget):
         self.new_batch_info = info
 
         # Update folded sequence:
-        self.shape_img.axes.clear()
-        # print("TEMPLATE below :")
-        # print(info['fold'])
-        self.shape_img.axes.imshow(info['fold'], cmap=plt.cm.ocean)
-        self.shape_img.draw()
+        # self.shape_img.axes.clear()
+        # # print("TEMPLATE below :")
+        # # print(info['fold'])
+        # self.shape_img.axes.imshow(info['fold'], cmap=plt.cm.ocean)
+        # self.shape_img.draw()
 
         self._update_seq_label()
 

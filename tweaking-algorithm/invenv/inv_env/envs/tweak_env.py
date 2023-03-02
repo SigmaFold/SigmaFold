@@ -4,7 +4,7 @@ import random as rnd
 from gym import spaces
 import scipy as sc
 import sys, os
-
+import math
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(
@@ -15,10 +15,12 @@ sys.path.append(
     os.path.dirname(
     os.path.abspath(__file__)))))))
 
+# Custom libraries
 import lib.native_fold as nf
 import inv_env.envs.aux_functions as aux
 import inv_env.envs.data_functions as dtf
 from heursitics_algorithm.heuristics import heuristics
+import inv_env.envs.modular_spaces as mod
 
 class TweakingInverse(gym.Env):
     """
@@ -39,7 +41,7 @@ class TweakingInverse(gym.Env):
     1) sequence_int: representing the sequence as a base10 number. This makes
         this integer non-readable by humans but it is a better input data for
         neural networks
-    2) _sequence_list: representing the sequence as a list of bases (0,1...), so
+    2) sequence_list: representing the sequence as a list of bases (0,1...), so
         that it can be understand by humans. It is useful because actions can
         only be performed on this reprentation (the int version compacts 
         everything in one single number)
@@ -79,6 +81,15 @@ class TweakingInverse(gym.Env):
     
     The information space only contains redundant information, and its main
     purpose is to interact with the GUI to display clean information.
+
+    ### Notes and Todos:
+
+    1) Lower and upper bounds of reward_breakdown (line 120) are temp solutions,
+    need more refined numbers there.
+
+    2) Warning from package: unconventional shape (is it a big deal?)
+
+    3) Must switch to new step API to account for truncation vs termination
     """
 
     DEFAULT_HP_TABLE = {
@@ -109,11 +120,8 @@ class TweakingInverse(gym.Env):
         self.current_degeneracy = 100
         self.current_deviation = 0
         
-
-        low = np.array([0, 0, -10_000], dtype=np.float64)
-        high = np.array([1_000, 1_000, 10_000], dtype=np.float64)
-        self.observation_space = spaces.Box(low=low, high=high, dtype=np.float64)
-        self.action_space = spaces.Discrete(base_num*seq_length)
+        spaces_struct = mod.debug_no_text_space(seq_length, base_num)
+        self.action_space, self.observation_space, self._get_obs = spaces_struct
 
     def reset(self, options=None,seed=None):
         self.target_shape = aux.generate_shape(self.seq_length)
@@ -129,8 +137,8 @@ class TweakingInverse(gym.Env):
         self.current_degeneracy = degen
         obs = self.get_obs()
         # info = self._get_info()
-
-        return obs, {'seq_list': self.sequence_list}
+        print("New version!")
+        return obs
 
     def step(self, action):
         index, amino_code = self._parse_action(action)
@@ -147,16 +155,17 @@ class TweakingInverse(gym.Env):
         folds = [dtf.fold_list2matrix(fold, self.seq_length) for fold in folds]
         
         # the folds + degeneracy are fed to reward function
-        reward, avg_fold, info = aux.legacy_tweaking_reward(folds, self.target_shape, degen, self.seq_length, self.current_degeneracy, self.current_deviation)
+        reward, info = aux.legacy_tweaking_reward(
+            folds, self.target_shape, degen, self.seq_length, 
+            self.current_degeneracy, self.current_deviation)
         self.current_degeneracy = info['degen']
         self.current_deviation = info['corr']
         # done = (deviation == self._min_conv) # TODO: add 5% threshold
 
-
-        done = (self.current_deviation == 0) & (self.current_degeneracy < 6)
+        terminated = (self.current_deviation == 0) & (self.current_degeneracy < 6)
         obs = self.get_obs()
 
-        return obs, reward, done, {'fold': avg_fold, 'seq_list': self.sequence_list}
+        return obs, reward, terminated, {'seq_list': self.sequence_list}
     
     def render(self):
         return None
@@ -166,14 +175,8 @@ class TweakingInverse(gym.Env):
         Important method that controls the flux of information towards
         the neural network.
         """
-        state = (
-            self.sequence_str,
-            self.target_shape,
-            self.current_degeneracy,
-            self.current_deviation)
-        
-        return state
-
+        return self._get_obs(self)
+    
     def _init_sequence(self):
         """
         Method used when initialising the state of the environment. Returns an

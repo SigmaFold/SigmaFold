@@ -1,3 +1,8 @@
+"""
+Collection of functions used by 
+"""
+
+
 import numpy as np
 import random as rnd
 import scipy as sc
@@ -8,6 +13,10 @@ def generate_shape(seq_len=int(10)):
 
     # maximum dimension
     half_len = int(round(seq_len/2))
+
+    # from another piece of code
+    half_bound = int(math.ceil(seq_len/2))
+    bound = 2*half_bound+1
 
     # compute triangle constraint
     bounds = np.tril(np.ones([half_len, half_len], dtype=int), 0) # boundary for reference
@@ -53,7 +62,8 @@ def generate_shape(seq_len=int(10)):
         path_len = np.count_nonzero(shape)
 
     # print(f"monke got stuck {monke_stupid_index} times")
-    return shape
+    aligned_target = align_target(shape, bound, half_bound)
+    return aligned_target
 
 def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, curr_degen, curr_corr, log=0):
     """
@@ -90,14 +100,6 @@ def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, cur
     
     # new align
     # template = align_matrix(fold_stack[0], target)
-
-    # align target
-    template = np.zeros(shape=(bound, bound))
-    target_centroids = find_centroids(target)
-    diff = np.subtract([half_bound,half_bound], list(target_centroids))
-    for index in np.ndindex(np.shape(target)):
-        new_coord = index + diff
-        template[new_coord[0], new_coord[1]] = target[index] # transformed matrix for comparison
     
     # orientation invariant screening
     shape_set = set()
@@ -127,14 +129,12 @@ def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, cur
                 fold = np.rot90(fold, 1)
                 # plt.figure()
                 # plt.imshow(fold)
-                template = align_matrix(template, fold)
-                result = np.abs(np.subtract(fold, template)) * weight_matrix
+                target = align_matrix(target, fold)
+                result = np.abs(np.subtract(fold, target)) * weight_matrix
                 result = np.sum(result)
                 res_list.append(result)
             result = min(res_list)
             result_dict[test_fset.__hash__()] = result
-            if result < 6:
-                print(fold)
 
     # print(result_dict)
     if log != 0:
@@ -156,7 +156,7 @@ def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, cur
     reward_degen = weight_degen * (diff_degen)**2 * np.sign(diff_degen)
     reward = reward_dev + reward_degen
     print(f'Reward is {reward} !')
-    return reward, template, info
+    return reward, info
 
 def align_matrix(og_shape, template):
     template_c = find_centroids(template) # centroids of template
@@ -172,6 +172,15 @@ def align_matrix(og_shape, template):
             new_shape[new_coord[0]][new_coord[1]] = 1
 
     return new_shape
+
+def align_target(target, bound, half_bound):
+    template = np.zeros(shape=(bound, bound), dtype=np.uint8)
+    target_centroids = find_centroids(target)
+    diff = np.subtract([half_bound,half_bound], list(target_centroids))
+    for index in np.ndindex(np.shape(target)):
+        new_coord = index + diff
+        template[new_coord[0], new_coord[1]] = target[index] # transformed matrix for comparison
+    return template
 
 def find_centroids(image):
     """Returns centroids of int"""
