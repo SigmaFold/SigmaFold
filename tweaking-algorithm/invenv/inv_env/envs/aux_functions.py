@@ -9,6 +9,17 @@ import random as rnd
 import scipy as sc
 import matplotlib.pyplot as plt
 import math
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(
+    os.path.dirname(
+    os.path.dirname(
+    os.path.dirname(
+    os.path.dirname(
+    os.path.dirname(
+    os.path.abspath(__file__)))))))
+
+import library.db_toolkit as db
+
 
 def generate_shape(seq_len=int(10)):
 
@@ -187,10 +198,5 @@ def orient_image(image, m_c, n_c):
 
     return eig_val, eig_vect
 
-def concurrent_reward():
-    """
-    Implements another possible reward function, based on the idea of 
-    equilibrium. Will write more after discussion with group
-    """
-    pass
 
+def supabase_reward()
