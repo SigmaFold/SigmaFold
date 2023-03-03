@@ -11,7 +11,7 @@ import sys, os
 
 # Set current working directory to be 3 levels above the current file
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) # THIS WILL BREAK IF YOU MOVE FILES AROUND
-from lib.generate_permutations import perm_gen
+from library.generate_permutations import perm_gen
 
 
 def get_optimal_path_sequence(length=1, model=2):
