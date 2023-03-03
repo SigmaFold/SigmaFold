@@ -15,7 +15,7 @@ import json
 # from lib.tools import profile
 import time
 
-def cartesian2matrix(path):
+def cartesian2matrix(path, return_matrix=False):
     """Function that encodes a cartesian set of coordinates into a matrix"""
     # generate a 25 by 25 matrix in numpy
     matrix = np.zeros((25, 25))
@@ -24,6 +24,8 @@ def cartesian2matrix(path):
     # Array hashing
     matrix.flags.writeable = False
     curr_shape_id = mmh3.hash64(str(matrix), signed=True)[0]
+    if return_matrix:
+        return curr_shape_id, matrix
     return curr_shape_id
 
 def exploitLength(length):
@@ -51,7 +53,7 @@ def exploitLength(length):
         # For each possible folds of the current sequence
         for _, fold in folds_heap:
 
-            shape_id = cartesian2matrix(fold)
+            shape_id, matrix = cartesian2matrix(fold, return_matrix=True) 
             seq_hash = mmh3.hash64(sequence + str(shape_id), signed=True)[0]  # Hash the sequence
             seq_df.loc[len(seq_df)] = [seq_hash, sequence, degeneracy, length, energy, shape_id]  # Add the sequence to the sequence_df
             
@@ -68,8 +70,6 @@ def exploitLength(length):
                 # Update min_energy if necessary
                 if energy < shape_df.loc[shape_df["shape_id"] == shape_id, "min_energy"].iloc[0]:
                     shape_df.loc[shape_df["shape_id"] == shape_id, "min_energy"] = energy
-            
-            # convert to int 
   
     # remove all sequences with shape_mapping 0 
     seq_df = seq_df[seq_df["shape_mapping"] != 0]
@@ -77,6 +77,11 @@ def exploitLength(length):
     # Get datatypes right in the dataframe
     seq_df = seq_df.astype({"sequence_id": int, "degeneracy": int, "length": int, "shape_mapping": int})
     shape_df = shape_df.astype({"shape_id": int, "min_degeneracy": int, "length": int})
+
+    # Remove all duplicates from each dataframe
+    seq_df = seq_df.drop_duplicates()
+    shape_df = shape_df.drop_duplicates()
+
 
     print(tabulate.tabulate(shape_df, headers="keys", tablefmt="psql"))
 

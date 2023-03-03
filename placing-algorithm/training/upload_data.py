@@ -10,7 +10,9 @@ def upload_data(n):
     with open(f"data/{n}/shape_{n}.json", "r") as f:
         shape_list = json.load(f)
         print("Parsed shape_list")
-    
+    # Drop all duplicates from the lists
+    seq_list = list({v['sequence_id']: v for v in seq_list}.values())
+    shape_list = list({v['shape_id']: v for v in shape_list}.values())
     try:
         commit_to_supabase(shape_list, seq_list)
     except Exception as e:
@@ -36,8 +38,6 @@ def commit_to_supabase(shape_list, seq_list):
         print("Data not added to database")
         commit_to_supabase(shape_list[:len(shape_list)//2], seq_list[:len(seq_list)//2])
         commit_to_supabase(shape_list[len(shape_list)//2:], seq_list[len(seq_list)//2:])
-
-        
         return
     print("Data added to database")
 
@@ -47,6 +47,6 @@ def commit_to_supabase(shape_list, seq_list):
 
 
 if __name__ == '__main__':
-    for n in range(1,10):
+    for n in range(10, 13):
         print("Adding data for length: ", n)
-        import_data_from_json(n)
+        upload_data(n)

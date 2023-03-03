@@ -9,7 +9,6 @@ import json
 
 def execute_and_save_native_fold(n):
     fold = fold_n(n)
-
     # save the fold as a json file
     with open(f"data/folds/fold_{n}.json", "w") as f:
         json.dump(fold, f)
