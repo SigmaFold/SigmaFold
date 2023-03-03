@@ -1,12 +1,11 @@
 import sys
 import os
-
+from upload_data import upload_data
 # Set current working directory to be 3 levels above the current file
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))  # THI
 
 from lib.generate_permutations import *
 from lib.native_fold import *
-
 import pandas as pd
 import numpy as np
 import mmh3
@@ -27,20 +26,16 @@ def cartesian2matrix(path):
     curr_shape_id = mmh3.hash64(str(matrix), signed=True)[0]
     return curr_shape_id
 
-
 def exploitLength(length):
     # Where we will store the dictionaries of data
     seq_list = []
     shape_list = []
-    map_list = []
 
     seen_shapes = set()
-    seen_map_ids = set()
     # Initialise the Dataframes
     # set the datatypes for each column
     seq_df = pd.DataFrame(columns=["sequence_id", "sequence", "degeneracy", "length", "energy", "shape_mapping"])
     shape_df = pd.DataFrame(columns=["shape_id", "min_degeneracy", "length", "min_energy"])
-    map_df = pd.DataFrame(columns=["map_id", "sequence_id", "shape_id"])
 
     paths = fold_n(length)  # Get all the possible paths for a given length
     comb_array = perm_gen(length, 2)  # Get all the possible sequences for a given length
@@ -50,7 +45,6 @@ def exploitLength(length):
         
         energy_heap = compute_energy(paths, sequence)  # Compute the energy of all the possible paths
         folds_heap, degeneracy, energy = native_fold(energy_heap, return_energy=True)  # Get all the low-energy folds for a given sequence
-        # print(tabulate.tabulate(seq_df, headers="keys", tablefmt="psql"))
 
         if degeneracy > 100:  # Skip deg>100 cause that's useless    anyway
             continue
@@ -59,7 +53,6 @@ def exploitLength(length):
 
             shape_id = cartesian2matrix(fold)
             seq_hash = mmh3.hash64(sequence + str(shape_id), signed=True)[0]  # Hash the sequence
-
             seq_df.loc[len(seq_df)] = [seq_hash, sequence, degeneracy, length, energy, shape_id]  # Add the sequence to the sequence_df
             
             # For each fold update the shape_df
@@ -80,36 +73,36 @@ def exploitLength(length):
   
     # remove all sequences with shape_mapping 0 
     seq_df = seq_df[seq_df["shape_mapping"] != 0]
-    # convert to int
+
+    # Get datatypes right in the dataframe
     seq_df = seq_df.astype({"sequence_id": int, "degeneracy": int, "length": int, "shape_mapping": int})
-    # Set the dataframes for each column in a dict, umbers should be np.uint64
-    #     # print all duplicates of map_id in map_df
-    #print(tabulate.tabulate(map_df[map_df.duplicated(subset=["map_id"])], headers="keys", tablefmt="psql"))
-    seq_df = seq_df.astype({"sequence_id": int, "degeneracy": int, "length": int})
     shape_df = shape_df.astype({"shape_id": int, "min_degeneracy": int, "length": int})
+
     print(tabulate.tabulate(shape_df, headers="keys", tablefmt="psql"))
-    for _, row in map_df.iterrows():
-        map_list.append(row.to_dict())
+
     for _, row in shape_df.iterrows():
         shape_list.append(row.to_dict())
     # Package each row of seq_df into a dict and add to list
     for _, row in seq_df.iterrows():
         seq_list.append(row.to_dict())
-    # Package each row of map_df into a dict and add to list
-    
 
     return shape_list, seq_list
 
 
 def commit_to_supabase(n, shape_list, seq_list):
     """ Adds all the data to the database asynchronously"""
+
     # Create a client
-    
     with open(f"data/{n}/seq_{n}.json", "w") as f:
         json.dump(seq_list, f)
     with open(f"data/{n}/shape_{n}.json", "w") as f:
         json.dump(shape_list, f)
-    
+    try:
+        upload_data(n)
+    except Exception as e:
+        print(e)
+        print("Data unsuccesfully uploaded to supabase. Do this manually later.")
+        return
     print("Data saved to json files")
     return
     
@@ -117,8 +110,8 @@ def commit_to_supabase(n, shape_list, seq_list):
 
 
 if __name__ == '__main__':
-    set_limit = 10
-    n = 1
+    set_limit = 13
+    n =11
     execution_time = {}
     while n <= set_limit:
         print("Adding data for length: ", n)

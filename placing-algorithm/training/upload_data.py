@@ -2,7 +2,7 @@ import json
 from db.supabase_setup import SupabaseDB
 
 
-def import_data_from_json(n):
+def upload_data(n):
     """ Imports data from json files and returns lists of dicts"""
     with open(f"data/{n}/seq_{n}.json", "r") as f:
         seq_list = json.load(f)
@@ -28,8 +28,7 @@ def commit_to_supabase(shape_list, seq_list):
     # Add all the data to the database
     try:
         # insert if it doesn't exist
-        # db.supabase.table("Shapes").insert(shape_list, upsert=True).execute()
-
+        db.supabase.table("Shapes").insert(shape_list, upsert=True).execute()
         db.supabase.table("Sequences").insert(seq_list, upsert=True).execute()
     except Exception as e:
         # try again halving the data
