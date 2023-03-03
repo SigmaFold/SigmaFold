@@ -3,9 +3,9 @@ import os
 # Set current working directory to be 3 levels above the current file
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))  # THI
 
-from lib.generate_permutations import *
-from lib.native_fold import *
-from lib.db_toolkit import *
+from library.generate_permutations import *
+from library.native_fold import *
+from library.db_toolkit import *
 import pandas as pd
 import numpy as np
 import mmh3

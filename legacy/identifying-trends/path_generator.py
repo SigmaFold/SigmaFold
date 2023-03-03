@@ -11,7 +11,7 @@ from path_generator import handle_sequence, remove_duplicates
 import os, sys
 # this allows us to import from the lib folder which is two folders up from this one
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))) # THIS WILL BREAK IF YOU MOVE FILES AROUND
-from lib.native_fold import compute_energy, native_fold
+from library.native_fold import compute_energy, native_fold
 
 
 

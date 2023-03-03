@@ -16,7 +16,7 @@ sys.path.append(
     os.path.abspath(__file__)))))))
 
 # Custom libraries
-import lib.native_fold as nf
+import library.native_fold as nf
 import inv_env.envs.aux_functions as aux
 import inv_env.envs.data_functions as dtf
 from heursitics_algorithm.heuristics import heuristics
