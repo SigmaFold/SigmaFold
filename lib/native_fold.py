@@ -3,20 +3,14 @@ Provides a set a function to find and compute the energy of all possible paths w
 """
 import heapq
 from math import ceil
-
-import networkx as nx
+import json
 import matplotlib.pyplot as plt
-
-
-# from tools import profile
-
 
 def step_function(x):
     """Returns 1 if x > 0, 0 otherwise"""
     return 1 if x > 0 else 0
 
-
-# @profile
+# ========================= Brute Force Folding Functions =========================
 def fold_n(n):
     """Takes the previous n's path as input and attempts to add the next element in the sequence to the end of the path"""
 
@@ -24,7 +18,6 @@ def fold_n(n):
     paths = []  # new paths to be generated
     cap_x = ceil(n / 2) - 1
 
-    # TODO: Optimise using numpy arrays for the visited set potentially
     def generate_paths(path, visited):
         """Generate all possible paths of length n starting at (0, 0)"""
         if len(path) == n:
@@ -49,7 +42,6 @@ def fold_n(n):
     return paths
 
 
-# @profile
 def compute_energy(paths, sequence):
     """ Match the sequence to each paths and compute the energy. Return all minimum energy structures. Stores paths in a heap.
         H-H bond = -1
@@ -104,27 +96,6 @@ def compute_energy(paths, sequence):
 
     return heap
 
-
-# Not yet in use but could be useful.
-def generateWalks(n):
-    """Generates a graph of all possible walks of length n starting at (0,0). numbers te entire grid"""
-    G = nx.DiGraph()
-    dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-    # travel to every node in the graph and add every neighbour and direction
-    for x in range(-n, n):
-        for y in range(-n + abs(x), n - abs(x)):
-            for dir in dirs:
-                if (x + dir[0] < n and y + dir[1] < n):
-                    G.add_edge((x, y), (x + dir[0], y + dir[1]), dir=dir)
-                    # add edge between neighbours
-    # add edge between (0,0) and (0,1)
-
-    # nx.draw(G, with_labels=True)
-    # plt.show()
-
-    return G
-
-
 def native_fold(heap, return_energy=False):
     """Returns all native folds and the degeneracy"""
     energy = heap[0][0]
@@ -136,30 +107,49 @@ def native_fold(heap, return_energy=False):
         return folds, len(folds), energy
     return folds, len(folds)
 
+# ========================= Executing and Saving Folds =========================
+def execute_and_save_native_fold(n):
+    fold = fold_n(n)
+    # save the fold as a json file
+    with open(f"data/folds/fold_{n}.json", "w") as f:
+        json.dump(fold, f)
+    
+def read_fold_from_json(n):
+    with open(f"data/folds/fold_{n}.json", "r") as f:
+        fold = json.load(f)
+    
+    # convert every coordinate in the nest to tuples
+    for i, path in enumerate(fold):
+        fold[i] = [tuple(coord) for coord in path]
+
+    return fold
+
 
 if __name__ == "__main__":
-    x = 0
-    y = 0
-    # G = generateWalks(n)
-    sequence = "PHPPHPPH"
-    n = len(sequence)
-    paths = fold_n(n)
-    heap = compute_energy(paths, sequence)
-    # pop from heap until energy changes
-    energy = heap[0][0]
-    # print(n)
-    while heap[0][0] == energy:
-        path = heapq.heappop(heap)
-        # print(path)
-        # plot the path
-        x = [coord[0] for coord in path[1]]
-        y = [coord[1] for coord in path[1]]
-        # print h and p on graph
-        for i in range(n):
-            if sequence[i] == 'H':
-                plt.text(x[i], y[i], 'H')
-            else:
-                plt.text(x[i], y[i], 'P')
-        plt.plot(x, y, 'ro')
-        plt.plot(x, y)
-        plt.show()
+    # ----> Executing and saving a given fold <----
+    n = 20
+    execute_and_save_native_fold(20)
+
+    # ----> Testing the forward fold of a singular sequence <---- [UNCOMMENT IF NEEDED]
+    # sequence = "PHPPHPPH"
+    # n = len(sequence)
+    # paths = fold_n(n)
+    # heap = compute_energy(paths, sequence)
+    # # pop from heap until energy changes
+    # energy = heap[0][0]
+    # # print(n)
+    # while heap[0][0] == energy:
+    #     path = heapq.heappop(heap)
+    #     # print(path)
+    #     # plot the path
+    #     x = [coord[0] for coord in path[1]]
+    #     y = [coord[1] for coord in path[1]]
+    #     # print h and p on graph
+    #     for i in range(n):
+    #         if sequence[i] == 'H':
+    #             plt.text(x[i], y[i], 'H')
+    #         else:
+    #             plt.text(x[i], y[i], 'P')
+    #     plt.plot(x, y, 'ro')
+    #     plt.plot(x, y)
+    #     plt.show()

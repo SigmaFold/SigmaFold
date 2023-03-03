@@ -1,16 +1,15 @@
 import sys
 import os
-from upload_data import upload_data
 # Set current working directory to be 3 levels above the current file
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))  # THI
 
 from lib.generate_permutations import *
 from lib.native_fold import *
+from lib.db_toolkit import *
 import pandas as pd
 import numpy as np
 import mmh3
 import tabulate
-from db.supabase_setup import SupabaseDB
 import json
 # from lib.tools import profile
 import time
@@ -115,8 +114,8 @@ def commit_to_supabase(n, shape_list, seq_list):
 
 
 if __name__ == '__main__':
-    set_limit = 13
-    n =11
+    set_limit = 17
+    n =14
     execution_time = {}
     while n <= set_limit:
         print("Adding data for length: ", n)
