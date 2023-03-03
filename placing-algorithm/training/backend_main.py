@@ -27,18 +27,26 @@ def cartesian2matrix(path, return_matrix=False):
         return curr_shape_id, matrix
     return curr_shape_id
 
+
+
 def exploitLength(length):
     # Where we will store the dictionaries of data
     seq_list = []
     shape_list = []
-
     seen_shapes = set()
-    # Initialise the Dataframes
-    # set the datatypes for each column
     seq_df = pd.DataFrame(columns=["sequence_id", "sequence", "degeneracy", "length", "energy", "shape_mapping"])
     shape_df = pd.DataFrame(columns=["shape_id", "min_degeneracy", "length", "min_energy"])
 
-    paths = fold_n(length)  # Get all the possible paths for a given length
+    # NEW SPEEDUP TO AVOID REPEATED COMPUTATIONS
+    if os.path.exists(f"data/folds/fold_{length}.json"):
+        with open(f"data/folds/fold_{length}.json", "r") as f:
+            paths = json.load(f)
+    else:       
+        paths = fold_n(length)  # Get all the possible paths for a given length 
+        # Save the paths to a json file
+        with open(f"data/folds/fold_{n}", "w") as f:
+            json.dump(paths, f)
+
     comb_array = perm_gen(length, 2)  # Get all the possible sequences for a given length
 
     # Iterate over all the possible combinations
@@ -81,7 +89,6 @@ def exploitLength(length):
     seq_df = seq_df.drop_duplicates()
     shape_df = shape_df.drop_duplicates()
 
-
     print(tabulate.tabulate(shape_df, headers="keys", tablefmt="psql"))
 
     for _, row in shape_df.iterrows():
@@ -93,7 +100,7 @@ def exploitLength(length):
     return shape_list, seq_list
 
 
-def commit_to_supabase(n, shape_list, seq_list):
+def save_and_upload(n, shape_list, seq_list):
     """ Adds all the data to the database asynchronously"""
 
     # Create a client
@@ -120,7 +127,7 @@ if __name__ == '__main__':
     while n <= set_limit:
         print("Adding data for length: ", n)
         time_start = time.time()
-        commit_to_supabase(n, *exploitLength(n))
+        save_and_upload(n, *exploitLength(n))
         time_end = time.time()
         execution_time[n] = time_end - time_start
         print("Time taken: ", time_end - time_start)

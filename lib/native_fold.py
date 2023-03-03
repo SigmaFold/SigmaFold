@@ -12,7 +12,7 @@ def step_function(x):
 
 # ========================= Brute Force Folding Functions =========================
 def fold_n(n):
-    """Takes the previous n's path as input and attempts to add the next element in the sequence to the end of the path"""
+    """Returns all possible paths of length n starting at (0, 0)"""
 
     dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
     paths = []  # new paths to be generated
