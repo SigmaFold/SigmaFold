@@ -14,7 +14,7 @@ python-dotenv # handes .env files
 supabase # database
 
 # DeepRL
-stable-baselines3 >= 1.7.0
+stable-baselines3
 gym >= 0.26.0
 
 
