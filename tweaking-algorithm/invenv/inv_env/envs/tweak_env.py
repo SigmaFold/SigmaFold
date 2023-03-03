@@ -17,7 +17,8 @@ import library.native_fold as nf
 import inv_env.envs.aux_functions as aux
 import inv_env.envs.data_functions as dtf
 from heursitics_algorithm.heuristics import heuristics
-import inv_env.envs.modular_spaces as mod
+import inv_env.envs.modular_spaces as msp
+import inv_env.envs.modular_reward as mrew
 
 class TweakingInverse(gym.Env):
     """
@@ -107,19 +108,23 @@ class TweakingInverse(gym.Env):
         self.upper_encoding_bound = seq_length * base_num
         self.paths = nf.fold_n(self.seq_length)
 
-        # Dynamic attributes
+        # Dynamic core attributes
         self.sequence_int = 8
         self.sequence_list = list()
         self.sequence_str = str()
         self.target_shape = np.ndarray(shape=None) # TODO: improve init shape
         self.fold = np.ndarray(shape=None)
 
+        # ??
         self.current_degeneracy = 100
         self.current_deviation = 0
         
-        spaces_struct = mod.debug_no_text_space(seq_length, base_num)
+        # Modular Gym spaces
+        spaces_struct = msp.debug_no_text_space(seq_length, base_num)
         self.action_space, self.observation_space, self._get_obs = spaces_struct
 
+        # Modular Reward code
+        self._routine = None
     def reset(self, options=None,seed=None):
         self.target_shape = aux.generate_shape(self.seq_length)
         self.sequence_str = heuristics(self.target_shape)
@@ -152,7 +157,7 @@ class TweakingInverse(gym.Env):
         folds = [dtf.fold_list2matrix(fold, self.seq_length) for fold in folds]
         
         # the folds + degeneracy are fed to reward function
-        reward, info = aux.legacy_tweaking_reward(
+        reward, info = mrew.legacy_tweaking_reward(self,
             folds, self.target_shape, degen, self.seq_length, 
             self.current_degeneracy, self.current_deviation)
         self.current_degeneracy = info['degen']
