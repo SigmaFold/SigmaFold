@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 import numpy as np
 from random import randint
 import json 
+import pandas as pd
+from tabulate import tabulate
 
 load_dotenv()
 
@@ -75,36 +77,30 @@ def commit_to_supabase(shape_list, seq_list, retries = 0):
     print("Data added to database")
 
 # ========================= Useful Queries =========================
-def db_energy_function(seq_id):
-    """ Energy function using the database
-    Ruleset: 
-        - If the shape sequence doesn't map into the target shape, return -Infinity
-        - If the shape sequence maps into the target shape, return the energy field and the degeneracy
-    
-        The seq_id encaspulates both the sequence and the shape_id, so if it exists in the database, it means that mapping exists.
+def db_energy_function(shape_mapping):
     """
-
+    Called when all info is needed on a shape in the database. Returns a dataframe with the sequences that fold into the given shape and their rankig   
+    """
     db = SupabaseDB()
-    
-    # Find sequence match
-    seq_match = db.supabase.table("Sequences").select("*").eq("sequence_id", seq_id).execute()
-    if seq_match.data == None:
-        return float("-inf")
-    else:
-        # If there are matches, return the energy and degeneracy
-        return seq_match.data[0]["energy"], seq_match.data[0]["degeneracy"]
+    # Get the sequences that fold into the given shape
+    seq_list = db.supabase.table("Sequences").select("*").eq("shape_mapping", shape_mapping).execute().data
+    # Sort the sequences by degeneracy
+    seq_list.sort(key=lambda x: x["degeneracy"], reverse=True)
+    df = pd.DataFrame(seq_list)
+    # Add a ranking column
+    df["ranking"] =df["degeneracy"].rank(ascending=True, method="dense")
+    return df
+
+
+
     
 
 
 
 if __name__ == "__main__":
     # testing the energy function
-    print(db_energy_function(4141209559943024073))
+    
+    print(db_energy_function(-5985573905669293688))
 
     # Use this section to upload data of a certain size to the database
-    for n in range(9, 13):
-        print(f"Uploading data for n = {n}")
-        upload_data(n)
-
-
     
