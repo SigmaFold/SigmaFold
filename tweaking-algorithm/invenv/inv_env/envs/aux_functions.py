@@ -2,6 +2,7 @@
 Collection of functions used by 
 """
 
+# TODO: do not check deviation if degen > 5000000
 
 import numpy as np
 import random as rnd
@@ -65,15 +66,20 @@ def generate_shape(seq_len=int(10)):
     aligned_target = align_target(shape, bound, half_bound)
     return aligned_target
 
-def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, curr_degen, curr_corr, log=0):
+def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, curr_degen, curr_corr):
     """
-    
+    Old function that uses 
     """
-    displayCols = 15
-    displayRows = 7
     half_bound = int(math.ceil(seq_length/2))
     bound = 2*half_bound+1
-
+    
+    # Short-circuit the func is too much degen anyway
+    if degen > 5_000:
+        degen /= 4 # quick removal of inflation due to rotation
+        diff_degen = curr_degen - degen
+        reward_degen = (diff_degen)**2 * np.sign(diff_degen)
+        return reward_degen, {'trunc': True}
+    
     # align all folds into one stack
     fold_stack = np.zeros((degen, bound, bound))
     for i, fold in enumerate(folds):
@@ -84,22 +90,6 @@ def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, cur
         # add image to stack
         fold_stack[i,:,:] = fold[m_c-half_bound:m_c+half_bound+1, 
                                  n_c-half_bound:n_c+half_bound+1]
-
-    # display the stack
-    _, axs = plt.subplots(displayRows, displayCols)
-    fold_no = 0
-    if log !=0:
-        for r in range(displayRows):
-            for c in range(displayCols):
-                try:
-                    axs[r, c].imshow(fold_stack[fold_no,:,:])
-                except IndexError:
-                    print('error')
-                    break
-                fold_no += 1
-    
-    # new align
-    # template = align_matrix(fold_stack[0], target)
     
     # orientation invariant screening
     shape_set = set()
@@ -135,10 +125,6 @@ def legacy_tweaking_reward(folds: list, target, degen: int, seq_length: int, cur
                 res_list.append(result)
             result = min(res_list)
             result_dict[test_fset.__hash__()] = result
-
-    # print(result_dict)
-    if log != 0:
-        plt.show()
     
     # calculating the reward
     min_corr = min(result_dict.values())
