@@ -125,12 +125,15 @@ def generateWalks(n):
     return G
 
 
-def native_fold(heap):
+def native_fold(heap, return_energy=False):
     """Returns all native folds and the degeneracy"""
     energy = heap[0][0]
     folds = []
     while heap and heap[0][0] == energy:
         folds.append(heapq.heappop(heap))
+
+    if return_energy:
+        return folds, len(folds), energy
     return folds, len(folds)
 
 

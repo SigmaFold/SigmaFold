@@ -13,7 +13,8 @@ import mmh3
 import tabulate
 from db.supabase_setup import SupabaseDB
 import json
-from lib.tools import profile
+# from lib.tools import profile
+import time
 
 def cartesian2matrix(path):
     """Function that encodes a cartesian set of coordinates into a matrix"""
@@ -26,7 +27,7 @@ def cartesian2matrix(path):
     curr_shape_id = mmh3.hash64(str(matrix), signed=True)[0]
     return curr_shape_id
 
-@profile
+
 def exploitLength(length):
     # Where we will store the dictionaries of data
     seq_list = []
@@ -37,8 +38,8 @@ def exploitLength(length):
     seen_map_ids = set()
     # Initialise the Dataframes
     # set the datatypes for each column
-    seq_df = pd.DataFrame(columns=["sequence_id", "sequence", "degeneracy", "length"])
-    shape_df = pd.DataFrame(columns=["shape_id", "min_degeneracy", "length"])
+    seq_df = pd.DataFrame(columns=["sequence_id", "sequence", "degeneracy", "length", "energy", "shape_mapping"])
+    shape_df = pd.DataFrame(columns=["shape_id", "min_degeneracy", "length", "min_energy"])
     map_df = pd.DataFrame(columns=["map_id", "sequence_id", "shape_id"])
 
     paths = fold_n(length)  # Get all the possible paths for a given length
@@ -46,51 +47,47 @@ def exploitLength(length):
 
     # Iterate over all the possible combinations
     for sequence in comb_array:
-        seq_hash = mmh3.hash64(sequence, signed=True)[0]  # Hash the sequence
         
         energy_heap = compute_energy(paths, sequence)  # Compute the energy of all the possible paths
-        folds_heap, degeneracy = native_fold(energy_heap)  # Get all the low-energy folds for a given sequence
-        seq_df.loc[len(seq_df)] = [seq_hash, sequence, degeneracy, length]
-        if degeneracy > 30:  # Skip deg>100 cause that's useless anyway
+        folds_heap, degeneracy, energy = native_fold(energy_heap, return_energy=True)  # Get all the low-energy folds for a given sequence
+        # print(tabulate.tabulate(seq_df, headers="keys", tablefmt="psql"))
+
+        if degeneracy > 100:  # Skip deg>100 cause that's useless    anyway
             continue
         # For each possible folds of the current sequence
         for _, fold in folds_heap:
-            shape_id = cartesian2matrix(fold)
 
+            shape_id = cartesian2matrix(fold)
+            seq_hash = mmh3.hash64(sequence + str(shape_id), signed=True)[0]  # Hash the sequence
+
+            seq_df.loc[len(seq_df)] = [seq_hash, sequence, degeneracy, length, energy, shape_id]  # Add the sequence to the sequence_df
+            
             # For each fold update the shape_df
             if shape_id not in seen_shapes:  # Will run if shape has not yet been added to database
                 seen_shapes.add(shape_id)
                 # add new shape to shape_df without using append
-                shape_df.loc[len(shape_df)] = [shape_id, degeneracy, length]
+                shape_df.loc[len(shape_df)] = [shape_id, degeneracy, length, energy]
             else:
                 # Update min_degeneracy if necessary
                 if degeneracy < shape_df.loc[shape_df["shape_id"] == shape_id, "min_degeneracy"].iloc[0]:
                     shape_df.loc[shape_df["shape_id"] == shape_id, "min_degeneracy"] = degeneracy
-            
 
-            # Add mapping to map_df
-            # Check if previous index is equal to mapping
-        
-            map_id = mmh3.hash64(str(seq_hash) + str(shape_id), signed=True)[0]
-            if map_id not in seen_map_ids:
-                seen_map_ids.add(map_id)
-                map_df.loc[len(map_df)] = [map_id, seq_hash, shape_id]
+                # Update min_energy if necessary
+                if energy < shape_df.loc[shape_df["shape_id"] == shape_id, "min_energy"].iloc[0]:
+                    shape_df.loc[shape_df["shape_id"] == shape_id, "min_energy"] = energy
+            
             # convert to int 
   
-
+    # remove all sequences with shape_mapping 0 
+    seq_df = seq_df[seq_df["shape_mapping"] != 0]
+    # convert to int
+    seq_df = seq_df.astype({"sequence_id": int, "degeneracy": int, "length": int, "shape_mapping": int})
     # Set the dataframes for each column in a dict, umbers should be np.uint64
-    map_df = map_df.astype({"map_id": int, "sequence_id": int, "shape_id": int})
-    # print all duplicates of map_id in map_df
+    #     # print all duplicates of map_id in map_df
     #print(tabulate.tabulate(map_df[map_df.duplicated(subset=["map_id"])], headers="keys", tablefmt="psql"))
     seq_df = seq_df.astype({"sequence_id": int, "degeneracy": int, "length": int})
     shape_df = shape_df.astype({"shape_id": int, "min_degeneracy": int, "length": int})
     print(tabulate.tabulate(shape_df, headers="keys", tablefmt="psql"))
-    #print(tabulate.tabulate(shape_df, headers="keys", tablefmt="psql"))
-    # print(tabulate.tabulate(seq_df, headers="keys", tablefmt="psql"))
-    #print(tabulate.tabulate(map_df, headers="keys", tablefmt="psql"))
-    #print(shape_df.dtypes)
-    # Convert all columns to int
-    # Package each row of shape_df into a dict and add to list
     for _, row in map_df.iterrows():
         map_list.append(row.to_dict())
     for _, row in shape_df.iterrows():
@@ -101,31 +98,33 @@ def exploitLength(length):
     # Package each row of map_df into a dict and add to list
     
 
-    return shape_list, seq_list, map_list
+    return shape_list, seq_list
 
 
-def commit_to_supabase(n, shape_list, seq_list, mapping_list):
+def commit_to_supabase(n, shape_list, seq_list):
     """ Adds all the data to the database asynchronously"""
     # Create a client
-
-    with open(f"data/seq_{n}.json", "w") as f:
+    
+    with open(f"data/{n}/seq_{n}.json", "w") as f:
         json.dump(seq_list, f)
-    with open(f"data/shape_{n}.json", "w") as f:
+    with open(f"data/{n}/shape_{n}.json", "w") as f:
         json.dump(shape_list, f)
-    with open(f"data/map_{n}.json", "w") as f:
-        json.dump(mapping_list, f)
     
     print("Data saved to json files")
     return
-    print("Data added to database")
     
 
 
 
 if __name__ == '__main__':
     set_limit = 10
-    n = 10
+    n = 1
+    execution_time = {}
     while n <= set_limit:
         print("Adding data for length: ", n)
+        time_start = time.time()
         commit_to_supabase(n, *exploitLength(n))
+        time_end = time.time()
+        execution_time[n] = time_end - time_start
+        print("Time taken: ", time_end - time_start)
         n += 1 
