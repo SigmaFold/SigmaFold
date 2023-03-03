@@ -3,7 +3,8 @@ import numpy as np
 # converts matrix to positions
 
 
-def matrix2positions(matrix, sequence):
+def matrix2positions(mat, sequence):
+    matrix = mat.copy()
     positions = []
     for i in range(len(sequence)):
         positions.append([sequence[i], np.where(matrix == i+1)
@@ -24,7 +25,7 @@ def vsdh_move(seq, n, mat):
 
     # choose a random move
     random_move = np.random.randint(1, 5)
-    # random_move = 3
+    # random_move = 4
     if random_move == 1:
         # call the end move function
         print('End move chosen')
@@ -234,14 +235,18 @@ def crankshaft_move(rand_num, seq, n, mat, total_rows, total_cols):
             new_pos = [row_num - num_dir_row, col_num + num_dir_col]
 
         # check if new position is out of bounds or if it is already occupied
-        if mat[new_pos[0], new_pos[1]] != 0 or new_pos[0] < 0 or new_pos[0] > total_rows-1 or new_pos[1] < 0 or new_pos[1] > total_cols-1:
+        if new_pos[0] < 0 or new_pos[0] > total_rows-1 or new_pos[1] < 0 or new_pos[1] > total_cols-1:
             print('Crankshaft move failed')
             return old_mat
+        elif mat[new_pos[0], new_pos[1]] != 0:
+            print('Crankshaft move failed')
+            return old_mat 
         else:
             mat[new_pos[0], new_pos[1]] = num
             mat[row, col] = 0
         num += 1
-        # print(f'mat = {mat}')
+        print(f'mat = {mat}')
+        print(f'old_mat = {old_mat}')
     return mat
 
 # pull move
@@ -326,12 +331,12 @@ def pull_move(rand_num, seq, n, mat, total_rows, total_cols):
 
 if __name__ == "__main__":
 
-    # initialize the sequence
-    sequence = "HPPHHPHHHH"
-    n = len(sequence)
+    # # initialize the sequence
+    # sequence = "HPPHHPHHHH"
+    # n = len(sequence)
 
-    # create a test matrix of size 11X11 where the origin is at the center [5,5]
-    test_matrix = np.zeros((15, 15))
+    # # create a test matrix of size 11X11 where the origin is at the center [5,5]
+    # test_matrix = np.zeros((15, 15))
 
     # # fill the matrix with numbers indicating a SAW
     # test_matrix[5, 5] = 1
@@ -346,22 +351,30 @@ if __name__ == "__main__":
     # test_matrix[7, 8] = 10
     # print(f'Test Matrix: {test_matrix}')
 
-    test_matrix = np.array([[0, 0, 16, 0, 0, 0, 0, 0, 0, 0],
-                       [0, 14, 15, 0, 0, 0, 0, 0, 0, 0],
-                       [0, 13, 0, 0, 0, 0, 0, 0, 0, 0],
-                       [0, 12, 0, 0, 0, 0, 0, 0, 0, 0],
-                       [0, 11, 10, 9, 8, 7, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 6, 3, 2, 1, 0],
-                       [0, 0, 0, 0, 0, 5, 4, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],])
+    test_matrix = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 22, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 21, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 20, 0],
+                            [0, 0, 0, 0, 11, 12, 15, 16, 19, 0],
+                            [0, 0, 0, 0, 10, 13, 14, 17, 18, 0],
+                            [0, 0, 0, 0, 9, 6, 5, 2, 1, 0],
+                            [0, 0, 0, 0, 8, 7, 4, 3, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],])
     print(f'Test Matrix: {test_matrix}')
-    sequence = 'HHHHHHHHPHHHHPHH'
+    sequence = 'HHHPHHHHPHHHHPHHPPHPHH'
     n = len(sequence)
 
     #do the move
-    new_matrix = vsdh_move(sequence, n, test_matrix)
+    new_matrix, _ = vsdh_move(sequence, n, test_matrix)
+    # print(f'New Matrix: {new_matrix}')
+
+    for i in range(10000):
+        new_matrix, _ = vsdh_move(sequence, n, new_matrix)
+        # print(f'New Matrix: {new_matrix}')
+        if i == 99:
+            print(i+1, ' done')
+    print(f'Test Matrix: {test_matrix}')
     print(f'New Matrix: {new_matrix}')
 
     # print(matrix2positions(test_matrix, sequence))

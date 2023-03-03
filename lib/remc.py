@@ -27,6 +27,16 @@ def num_matrix(positions, matrix):
         graphic_matrix[positions[i][1]][positions[i][2]] = i + 1
     return graphic_matrix
 
+def num2HP_matrix(sequence, matrix):
+    '''This function takes a list of sequence positions and a numerical path matrix and returns a matrix with the positions of the list marked on the matrix as H or P.
+    The positions list is a list of lists containing the amino acid, the x coordinate and the y coordinate of the amino acid.
+    The format is [['H', 4, 5], ['P', 5, 5], ['H', 6, 5]]
+    The numpy matrix acts as a background for the positions.'''
+    graphic_matrix = matrix.copy().astype(str)
+    for i in range(len(sequence)):
+        graphic_matrix[graphic_matrix == str(i+1)] = sequence[i]    
+    return graphic_matrix
+
 
 def positions2path(positions):
     '''This function takes a list of sequence positions and returns a list of tuple coordinates of the path and a string of the sequence residues.
@@ -200,6 +210,7 @@ def remc_complete(positions, number_of_things, start_temp, end_temp, lattice_siz
 
 if __name__ == "__main__":
 
+    sequence = 'HHHHHHHHPHHHHPHH'
     speedfactor = 2
     positions1 = [['H', 4, 5], ['H', 5, 5], ['H', 5, 4], ['H', 6, 4],
                   ['H', 6, 5], ['H', 7, 5], ['H', 7, 4], ['H', 7, 3],
@@ -218,47 +229,5 @@ if __name__ == "__main__":
     print(f'Replicas: {replicas}')
     print(f'True best energy: {true_best_energy}')
     # convert every element in set to np array 
-    possibles = [np.array(x) for x in possibles]
+    possibles = [num2HP_matrix(sequence, np.array(x)) for x in possibles]
     print(f'Possibles: {possibles}')
-
-    # num_mat = np.array[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #                    [0, 0, 15, 16, 0, 0, 0, 0, 0, 0],
-    #                    [0, 0, 14, 0, 0, 1, 0, 0, 0, 0],
-    #                    [0, 12, 13, 0, 3, 2, 0, 0, 0, 0],
-    #                    [0, 11, 10, 0, 4, 5, 0, 0, 0, 0],
-    #                    [0, 0, 9, 8, 7, 6, 0, 0, 0, 0],
-    #                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    #                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],]
-    
-    # # To check if pivot is working properly
-    # path, seq = positions2path(positions1)
-    # num_mat = num_matrix(positions1, np.zeros((10, 10)))
-    # print(num_mat)
-    # pivot_moves.vsdh_move(seq, len(seq), num_mat)
-
-    # # create a test matrix of size 11X11 where the origin is at the center [5,5]
-    # test_matrix = np.zeros((10, 10))  # Initialize a matrix of zeros
-    # positions1 = [['H', 4, 5], ['H', 5, 5], ['H', 5, 4], ['H', 6, 4],
-    #               ['H', 6, 5], ['H', 7, 5], ['H', 7, 4], ['H', 7, 3],
-    #               ['P', 7, 2], ['H', 6, 2], ['H', 6, 3], ['H', 5, 3],
-    #               ['H', 5, 2], ['P', 4, 2], ['H', 4, 3], ['H', 4, 4]]  # List of positions
-    # # Mark the positions on the matrix in H and P
-    # HP_mat = HP_matrix(positions1, test_matrix)
-    # # Mark the positions on the matrix numerically
-    # num_mat = num_matrix(positions1, test_matrix)
-    # # print(f'HP Matrix: {HP_mat}')
-    # # print(f'Numbered Matrix: {num_mat}')
-
-    # # find the energy of the sequence in the text_matrix
-    # path, seq = positions2path(positions1)  # Convert the positions to a path
-    # # print(f'Path: {path}')
-    # # print(f'Sequence: {seq}')
-    # energy = native_fold.compute_energy([path], sequence)[
-    #     0][0]  # Compute the energy of the path
-    # # print(f'Energy of the path: {energy}')
-
-    # # generate a list of replicas with info about the matrix, path, energy, and temperature
-    # replica_list = genreplicalist(num_mat, positions1, 5, 160, 220)
-    # print(f'Replica List: {replica_list}')
