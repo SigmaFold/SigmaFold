@@ -1,9 +1,7 @@
 import gym
 import numpy as np
 import random as rnd
-from gym import spaces
 import sys, os
-import math
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(
