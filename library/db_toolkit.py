@@ -4,7 +4,6 @@ Provides a set of functions useful for saving, loading or manipulating data in t
 
 from supabase import Client, create_client
 import os
-import psycopg2
 from dotenv import load_dotenv
 import numpy as np
 from random import randint
