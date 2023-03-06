@@ -27,6 +27,7 @@ def num_matrix(positions, matrix):
         graphic_matrix[positions[i][1]][positions[i][2]] = i + 1
     return graphic_matrix
 
+
 def num2HP_matrix(sequence, matrix):
     '''This function takes a list of sequence positions and a numerical path matrix and returns a matrix with the positions of the list marked on the matrix as H or P.
     The positions list is a list of lists containing the amino acid, the x coordinate and the y coordinate of the amino acid.
@@ -34,7 +35,7 @@ def num2HP_matrix(sequence, matrix):
     The numpy matrix acts as a background for the positions.'''
     graphic_matrix = matrix.copy().astype(str)
     for i in range(len(sequence)):
-        graphic_matrix[graphic_matrix == str(i+1)] = sequence[i]    
+        graphic_matrix[graphic_matrix == str(i+1)] = sequence[i]
     return graphic_matrix
 
 
@@ -90,7 +91,8 @@ def srmc(old_mat, new_mat, best_energy, possibles, temp, positionsj, positions_o
             possibles.add(tuple(map(tuple, result)))
         if current_energy > best_energy:
             best_energy = current_energy
-            possibles = set(tuple(map(tuple, result)))
+            possibles = set()
+            possibles.add(tuple(map(tuple, result)))
         positions = deepcopy(positionsj)
         return possibles, result, best_energy, current_energy, positions
 
@@ -192,9 +194,9 @@ def remc_complete(positions, number_of_things, start_temp, end_temp, lattice_siz
         # choose replicas to keep/changes to make
         zees, true_best_energy, possibles = single_step(
             zees, possibles, true_best_energy, sequence)
-        print('----- NEXT ITERATION -----')
-        for i in range(len(zees)):
-            print(zees[i][0])
+        # print('----- NEXT ITERATION -----')
+        # for i in range(len(zees)):
+        #     print(zees[i][0])
         # correct the temperature accordingly via remc
         zees, offset = remc(zees, offset)
         deltatime = deltatime + 1
@@ -202,32 +204,58 @@ def remc_complete(positions, number_of_things, start_temp, end_temp, lattice_siz
         positions4 = zees[4][1]
         path0, _ = positions2path(positions0)
         path4, _ = positions2path(positions4)
-        avgs[0] = avgs[0] + -native_fold.compute_energy([path0], sequence)[0][0]
-        avgs[4] = avgs[4] + -native_fold.compute_energy([path4], sequence)[0][0]
+        avgs[0] = avgs[0] + - \
+            native_fold.compute_energy([path0], sequence)[0][0]
+        avgs[4] = avgs[4] + - \
+            native_fold.compute_energy([path4], sequence)[0][0]
     # print("end")
     return zees, true_best_energy, possibles
 
 
 if __name__ == "__main__":
 
-    sequence = 'HHHHHHHHPHHHHPHH'
+    # sequence = 'HHHHHHHHPHHHHPHH'
     speedfactor = 2
-    positions1 = [['H', 4, 5], ['H', 5, 5], ['H', 5, 4], ['H', 6, 4],
-                  ['H', 6, 5], ['H', 7, 5], ['H', 7, 4], ['H', 7, 3],
-                  ['P', 7, 2], ['H', 6, 2], ['H', 6, 3], ['H', 5, 3],
-                  ['H', 5, 2], ['P', 4, 2], ['H', 4, 3], ['H', 4, 4]]  # List of positions
+    # positions1 = [['H', 4, 5], ['H', 5, 5], ['H', 5, 4], ['H', 6, 4],
+    #               ['H', 6, 5], ['H', 7, 5], ['H', 7, 4], ['H', 7, 3],
+    #               ['P', 7, 2], ['H', 6, 2], ['H', 6, 3], ['H', 5, 3],
+    #               ['H', 5, 2], ['P', 4, 2], ['H', 4, 3], ['H', 4, 4]]  # List of positions
     number_of_things = 5
     start_temp = 160
     end_temp = 220
-    lattice_size = 10
+    lattice_size = 15
     guess_true_best = 0
     offset = 0
     time = 600
 
+    test_matrix1 = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 11, 12, 13, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 6, 7, 8, 9, 10, 0, 14, 0, 0, 0, 0],
+                            [0, 0, 0, 2, 5, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0],
+                            [0, 0, 0, 3, 4, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 19, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],])
+    sequence = 'PPPHHPHPPPPHHHHHPPHP'
+
+    positions1 = pivot_moves.matrix2positions(test_matrix1, sequence)
+
     replicas, true_best_energy, possibles = remc_complete(
         positions1, number_of_things, start_temp, end_temp, lattice_size, guess_true_best, offset, time)
-    print(f'Replicas: {replicas}')
+    # print(f'Replicas: {replicas}')
     print(f'True best energy: {true_best_energy}')
-    # convert every element in set to np array 
-    possibles = [num2HP_matrix(sequence, np.array(x)) for x in possibles]
-    print(f'Possibles: {possibles}')
+    # convert every element in set to np array
+    # print(f'Possibles before: {possibles}')
+    possibles = [np.array(x) for x in possibles]
+    # print(f'Possibles after: {possibles}')
+    for i in range(len(possibles)):
+        print(f'Possibility {i}: {num2HP_matrix(sequence, possibles[i])}')
+        print('    ----    ----    ----    ----    ----    ')
+

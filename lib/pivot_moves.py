@@ -18,7 +18,7 @@ def vsdh_move(seq, n, mat):
     # choose a random number between 1 to n inclusive
     random_number = np.random.randint(1, n+1)
     # random_number = 15
-    print(f'Random number chosen: {random_number}')
+    # print(f'Random number chosen: {random_number}')
     (total_rows, total_cols) = mat.shape
 
     new_mat = mat.copy()
@@ -28,28 +28,28 @@ def vsdh_move(seq, n, mat):
     # random_move = 4
     if random_move == 1:
         # call the end move function
-        print('End move chosen')
+        # print('End move chosen')
         new_mat = end_move(random_number, seq, n, new_mat,
                            total_rows, total_cols)
     elif random_move == 2:
         # call the corner_move function
-        print('Corner move chosen')
+        # print('Corner move chosen')
         new_mat = corner_move(random_number, seq, n,
                               new_mat, total_rows, total_cols)
     elif random_move == 3:
         # call the crankshaft_move function
-        print('Crankshaft move chosen')
+        # print('Crankshaft move chosen')
         new_mat = crankshaft_move(
             random_number, seq, n, new_mat, total_rows, total_cols)
     else:
         # call the pull_move function
-        print('Pull move chosen')
+        # print('Pull move chosen')
         new_mat = pull_move(random_number, seq, n, new_mat,
                             total_rows, total_cols)
 
     # check if the matrix has changed
     if np.array_equal(new_mat, mat):
-        print('No change made, returned original path')
+        # print('No change made, returned original path')
         pos = matrix2positions(mat, seq)
         return mat, pos
     else:
@@ -78,7 +78,7 @@ def end_move(rand_num, seq, n, mat, total_rows, total_cols):
 
         # if there are no free spaces, end move has failed
         if len(free_spaces) == 0:
-            print('End move failed')
+            # print('End move failed')
             return mat
         # if there are free spaces, complete end move
         else:
@@ -106,7 +106,7 @@ def end_move(rand_num, seq, n, mat, total_rows, total_cols):
 
         # if there are no free spaces, end move has failed
         if len(free_spaces) == 0:
-            print('End move failed')
+            # print('End move failed')
             return mat
         # if there are free spaces, complete end move
         else:
@@ -117,7 +117,7 @@ def end_move(rand_num, seq, n, mat, total_rows, total_cols):
             mat[row_end, col_end] = 0
             return mat
     else:
-        print('End move failed')
+        # print('End move failed')
         return mat
 
 # corner move
@@ -129,7 +129,7 @@ def corner_move(rand_num, seq, n, mat, total_rows, total_cols):
 
     # ensure it is not the first or last element of the sequence
     if rand_num == 1 or rand_num == n:
-        print('Corner move failed')
+        # print('Corner move failed')
         return mat
 
     # find the index of the element, the element before and the alement after it in the sequence in the matrix
@@ -162,7 +162,7 @@ def corner_move(rand_num, seq, n, mat, total_rows, total_cols):
                         & set(tuple(x) for x in free_spaces_aft))
 
     if len(common_space) == 0:
-        print('Corner move failed')
+        # print('Corner move failed')
         return mat
     else:
         # choose a random common free space
@@ -181,7 +181,7 @@ def crankshaft_move(rand_num, seq, n, mat, total_rows, total_cols):
 
     # ensure it is not the first or last element of the sequence
     if rand_num == 1 or rand_num == n:
-        print('Crankshaft move failed')
+        # print('Crankshaft move failed')
         return old_mat
 
     # find the index of the element, the element before and the element after
@@ -195,7 +195,7 @@ def crankshaft_move(rand_num, seq, n, mat, total_rows, total_cols):
 
     # fail if the next element is in the same direction
     if row_dir == row_aft - row_num and col_dir == col_aft - col_num:
-        print('Crankshaft move failed')
+        # print('Crankshaft move failed')
         return old_mat
 
     # find the next non zero element in the matrix in the direction of the current element
@@ -203,7 +203,7 @@ def crankshaft_move(rand_num, seq, n, mat, total_rows, total_cols):
     col_u = col_num + col_dir
     # check if row or column index is out of bounds
     if row_u < 0 or row_u > total_rows-1 or col_u < 0 or col_u > total_cols-1:
-        print('Crankshaft move failed')
+        # print('Crankshaft move failed')
         return old_mat
     
     while mat[row_u, col_u] == 0:
@@ -211,11 +211,11 @@ def crankshaft_move(rand_num, seq, n, mat, total_rows, total_cols):
         col_u += col_dir
         # check if row or column index is out of bounds
         if row_u < 0 or row_u > total_rows-1 or col_u < 0 or col_u > total_cols-1:
-            print('Crankshaft move failed')
+            # print('Crankshaft move failed')
             return old_mat
     u_num = mat[row_u, col_u]
     if u_num < rand_num:
-        print('Crankshaft move failed')
+        # print('Crankshaft move failed')
         return old_mat
     # print(f'u_num = {u_num}, row_u = {row_u}, col_u = {col_u}')
 
@@ -236,17 +236,17 @@ def crankshaft_move(rand_num, seq, n, mat, total_rows, total_cols):
 
         # check if new position is out of bounds or if it is already occupied
         if new_pos[0] < 0 or new_pos[0] > total_rows-1 or new_pos[1] < 0 or new_pos[1] > total_cols-1:
-            print('Crankshaft move failed')
+            # print('Crankshaft move failed')
             return old_mat
         elif mat[new_pos[0], new_pos[1]] != 0:
-            print('Crankshaft move failed')
+            # print('Crankshaft move failed')
             return old_mat 
         else:
             mat[new_pos[0], new_pos[1]] = num
             mat[row, col] = 0
         num += 1
-        print(f'mat = {mat}')
-        print(f'old_mat = {old_mat}')
+        # print(f'mat = {mat}')
+        # print(f'old_mat = {old_mat}')
     return mat
 
 # pull move
@@ -255,7 +255,7 @@ def crankshaft_move(rand_num, seq, n, mat, total_rows, total_cols):
 def pull_move(rand_num, seq, n, mat, total_rows, total_cols):
     # ensure it is not the first or last element of the sequence
     if rand_num == 1 or rand_num == n:
-        print('Pull move failed')
+        # print('Pull move failed')
         return mat
 
     # find the index of the element, the next element, and the element before in the sequence in the matrix
@@ -282,7 +282,7 @@ def pull_move(rand_num, seq, n, mat, total_rows, total_cols):
 
     # choose a random free space
     if len(free_spaces) == 0:
-        print('Pull move failed')
+        # print('Pull move failed')
         return mat
     else:
         random_space = np.random.randint(0, len(free_spaces))
@@ -312,7 +312,7 @@ def pull_move(rand_num, seq, n, mat, total_rows, total_cols):
         if row_num+row_dir >= 0 and row_num+row_dir < total_rows and col_num+col_dir >= 0 and col_num+col_dir < total_cols: # check if the move is out of bounds
             # check if the move is blocked by another element and if the current element is the next element or is trying to replacing an element smaller than it
             if mat[row_num+row_dir, col_num+col_dir] != 0 and (i == rand_num+1 or i > mat[row_num+row_dir, col_num+col_dir]):
-                print('Pull move failed')
+                # print('Pull move failed')
                 return old_mat
             
             elif mat[row_num+row_dir, col_num+col_dir] != 0 and (i < mat[row_num+row_dir, col_num+col_dir]):
@@ -324,7 +324,7 @@ def pull_move(rand_num, seq, n, mat, total_rows, total_cols):
             if mat[row_num, col_num] == i:
                 mat[row_num, col_num] = 0
         else:
-            print('Pull move failed')
+            # print('Pull move failed')
             return old_mat
     return mat
 
