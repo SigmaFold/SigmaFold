@@ -1,6 +1,7 @@
 from copy import deepcopy
 import math
 import random
+import heapq
 import numpy as np
 import native_fold
 import pivot_moves
@@ -27,6 +28,21 @@ def num_matrix(positions, matrix):
         graphic_matrix[positions[i][1]][positions[i][2]] = i + 1
     return graphic_matrix
 
+def num2H1P2_matrix(sequence, matrix):
+    '''This function takes a list of sequence positions and a numerical path matrix and returns a matrix with the positions of the list marked on the matrix as H or P.
+    The positions list is a list of lists containing the amino acid, the x coordinate and the y coordinate of the amino acid.
+    The format is [['H', 4, 5], ['P', 5, 5], ['H', 6, 5]]
+    The numpy matrix acts as a background for the positions.'''
+    graphic_matrix = matrix.copy()
+    for i in range(len(sequence)):
+        if sequence[i] == 'H':
+            graphic_matrix[graphic_matrix == i+1] = 1
+        elif sequence[i] == 'P':
+            graphic_matrix[graphic_matrix == i+1] = 2
+        else:
+            pass 
+    return graphic_matrix
+
 
 def num2HP_matrix(sequence, matrix):
     '''This function takes a list of sequence positions and a numerical path matrix and returns a matrix with the positions of the list marked on the matrix as H or P.
@@ -37,6 +53,14 @@ def num2HP_matrix(sequence, matrix):
     for i in range(len(sequence)):
         graphic_matrix[graphic_matrix == str(i+1)] = sequence[i]
     return graphic_matrix
+
+def remove0colrows(matrix):
+    '''This function takes a matrix and removes all rows and columns that are all zeros.'''
+    # remove all rows that are all zeros
+    matrix = matrix[~np.all(matrix == 0, axis=1)]
+    # remove all columns that are all zeros
+    matrix = matrix[:, ~np.all(matrix == 0, axis=0)]
+    return matrix
 
 
 def positions2path(positions):
@@ -223,39 +247,79 @@ if __name__ == "__main__":
     number_of_things = 5
     start_temp = 160
     end_temp = 220
-    lattice_size = 15
+    lattice_size = 8
     guess_true_best = 0
     offset = 0
-    time = 600
+    time = 1000
 
-    test_matrix1 = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 11, 12, 13, 0, 0, 0, 0],
-                            [0, 0, 0, 1, 6, 7, 8, 9, 10, 0, 14, 0, 0, 0, 0],
-                            [0, 0, 0, 2, 5, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0],
-                            [0, 0, 0, 3, 4, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 19, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],])
-    sequence = 'PPPHHPHPPPPHHHHHPPHP'
+    # test_matrix12 = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 11, 12, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 1, 6, 7, 8, 9, 10, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 2, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],])
+    
+    test_matrix12 = np.array([[0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 0, 0, 0, 0, 11, 12],
+                              [0, 1, 6, 7, 8, 9, 10, 0],
+                              [0, 2, 5, 0, 0, 0, 0, 0],
+                              [0, 3, 4, 0, 0, 0, 0, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0]])
 
-    positions1 = pivot_moves.matrix2positions(test_matrix1, sequence)
+    sequence12 = 'HPPHHPHPPPHH'
+    
+    # test_matrix20 = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 11, 12, 13, 0, 0, 0, 0],
+    #                         [0, 0, 0, 1, 6, 7, 8, 9, 10, 0, 14, 0, 0, 0, 0],
+    #                         [0, 0, 0, 2, 5, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0],
+    #                         [0, 0, 0, 3, 4, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 19, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    #                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],])
+    # sequence20 = 'PPPHHPHPPPPHHHHHPPHP'
+
+    # Forward fold this using native fold algorithm
+    paths = native_fold.fold_n(len(sequence12))
+    heap = native_fold.compute_energy(paths, sequence12)
+    # pop from heap until energy changes
+    energy = heap[0][0]
+    print(len(sequence12))
+    best_paths = []
+    while heap[0][0] == energy:
+        path = heapq.heappop(heap)
+        best_paths.append(path[1])
+    print(f'Best energy native fold: {energy}')
+    print(f'Number of folds: {len(best_paths)}')
+    print(f'Best paths native fold: {best_paths}')
+    
+    
+    positions1 = pivot_moves.matrix2positions(test_matrix12, sequence12)
 
     replicas, true_best_energy, possibles = remc_complete(
         positions1, number_of_things, start_temp, end_temp, lattice_size, guess_true_best, offset, time)
     # print(f'Replicas: {replicas}')
     print(f'True best energy: {true_best_energy}')
     # convert every element in set to np array
-    # print(f'Possibles before: {possibles}')
     possibles = [np.array(x) for x in possibles]
-    # print(f'Possibles after: {possibles}')
     for i in range(len(possibles)):
-        print(f'Possibility {i}: {num2HP_matrix(sequence, possibles[i])}')
+        print(f'Possibility {i}: {remove0colrows(num2H1P2_matrix(sequence12, possibles[i]))}')
         print('    ----    ----    ----    ----    ----    ')
 
