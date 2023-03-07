@@ -87,8 +87,6 @@ def generate_random_shape(n):
                 last_x, last_y = 0, 1
                 loop = 0
 
-
-            print("loop", loop, "len(path)", len(path), "max_loop_iteration", max_loop_iteration)
             x, y = last_x, last_y
             # choose a dir 
             dir_choice = rnd.choice(dirs)
