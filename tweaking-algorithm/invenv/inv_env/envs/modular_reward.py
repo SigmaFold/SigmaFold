@@ -20,11 +20,15 @@ sys.path.append(
     os.path.dirname(
     os.path.abspath(__file__)))))))
 
-import inv_env.envs.aux_functions as aux
 import library.native_fold as nf
-from inv_env.envs import data_functions as dtf
-import library.tweaking_toolkit as ttk
+from library import tweaking_toolkit as ttk
 import library.db_toolkit as dbtk
+
+from inv_env.envs import tweak_env as twenv
+import inv_env.envs.modular_spaces as msp
+from inv_env.envs import data_functions as dtf
+import inv_env.envs.aux_functions as aux
+
 
 class legacy_tweaking_reward(gym.Wrapper):
     """
@@ -117,11 +121,15 @@ class legacy_tweaking_reward(gym.Wrapper):
         reward = reward_dev + reward_degen
         return reward
     
-class RankingReward(gym.Wrapper):
+class RankingReward(twenv.TweakingInverse):
 
-    def __init__(self, env: gym.Env, seq_length):
-        super().__init__(env)
-        self.seq_length = seq_length
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        # Modular Gym spaces
+        spaces_struct = msp.ranking_space(self.seq_length, self.base_num)
+        self.action_space, self.observation_space, self._get_obs = spaces_struct
+        self.rank = int()
+        self.step = float()
 
     def reset(self, **kwargs):
         checked = None
@@ -129,9 +137,22 @@ class RankingReward(gym.Wrapper):
             matrix, id = ttk.get_shape(self.seq_length)
             checked = dbtk.check_shape(id)
         self.sub_db = dbtk.db_energy_function(id)
-        self.target_shape
+        self.target_shape = matrix
+        self.rank = max(self.sub_db) # TODO: initialise rank
+        self.step = idk # TODO: finish here
 
         return super().reset(**kwargs)
     
-    def step(self, action):
-        return super().step(action)
+    def compute_reward(self):
+        # Get sequence id
+        # Get rank
+        next_rank = 10
+        delta = next_rank - self.rank
+        reward = delta * self.step
+        self.rank = next_rank
+        done = (self.rank == 1)
+        return reward, done, {}
+
+
+
+

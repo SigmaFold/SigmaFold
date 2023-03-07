@@ -12,7 +12,7 @@ import pandas as pd
 from tabulate import tabulate
 
 # COMMENT LINE BELOW OUT - FOR TESTING PURPOSES ONLY
-from tweaking_toolkit import get_shape
+
 
 load_dotenv()
 
@@ -122,6 +122,7 @@ def db_energy_function(shape_mapping):
 
 
 if __name__ == "__main__":
+    from tweaking_toolkit import get_shape
     # testing the energy function
     # print(db_energy_function(-5985573905669293688))
    
