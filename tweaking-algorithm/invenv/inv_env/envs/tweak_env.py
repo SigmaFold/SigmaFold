@@ -127,9 +127,9 @@ class TweakingInverse(gym.Env):
         self.sequence_list[index] = amino_code
         self.sequence_int = self._encode(self.sequence_list)
         
-        reward, done, info = self.compute_reward(self)
-        obs = self.get_obs(self)
-        info['seq_list': self.sequence_list]
+        reward, done, info = self.compute_reward()
+        obs = self.get_obs()
+        info['seq_list'] = self.sequence_list
 
         return obs, reward, done, info
     

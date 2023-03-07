@@ -129,17 +129,17 @@ class RankingReward(twenv.TweakingInverse):
         spaces_struct = msp.ranking_space(self.seq_length, self.base_num)
         self.action_space, self.observation_space, self._get_obs = spaces_struct
         self.rank = int()
-        self.step = float()
+        self.step_rank = float()
 
     def reset(self, **kwargs):
         checked = None
         while checked is None:
             matrix, id = ttk.get_shape(self.seq_length)
             checked = dbtk.check_shape(id)
-        self.sub_db = dbtk.db_energy_function(id)
+        self.df = dbtk.db_energy_function(id)
         self.target_shape = matrix
-        self.rank = max(self.sub_db) # TODO: initialise rank
-        self.step = idk # TODO: finish here
+        self.rank = max(self.df["ranking"]) 
+        self.step_rank = 100/self.rank 
 
         return super().reset(**kwargs)
     
@@ -148,7 +148,7 @@ class RankingReward(twenv.TweakingInverse):
         # Get rank
         next_rank = 10
         delta = next_rank - self.rank
-        reward = delta * self.step
+        reward = delta * self.step_rank
         self.rank = next_rank
         done = (self.rank == 1)
         return reward, done, {}

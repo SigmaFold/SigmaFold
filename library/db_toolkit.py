@@ -128,12 +128,15 @@ if __name__ == "__main__":
     # print(db_energy_function(-5985573905669293688))
    
     # testing the check shape function in conjuction with the get_shape from tweaking_toolkit
-    flag = False
-    while not flag:
-        flag = check_shape(get_shape(15)[1])
-        if flag:
+    shape_id = False
+    while not shape_id:
+        shape_id = check_shape(get_shape(15)[1])
+        if shape_id:
             print("Shape in database")
         else:
             print("Shape not in database")
+    df = db_energy_function(shape_id)
+    print(max(df["ranking"]))
+    
     
     

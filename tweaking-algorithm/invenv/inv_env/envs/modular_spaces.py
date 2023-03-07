@@ -87,10 +87,11 @@ def ranking_space(seq_length, base_num):
 
 class ClassicDictSpace:
     """
-    Default space, where observations consist of 
+    Default space, where observations consist of three elements:
         - Sequence: as an integer (not optimal)
         - Target: its shape, as a numpy array
         - Reward breakdown
+    This will be fed into a MultiInputPolicy network
     """
     def __init__(self, base_num, seq_length):
         obs_struct = {
