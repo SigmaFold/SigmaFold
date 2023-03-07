@@ -106,7 +106,6 @@ class TweakingInverse(gym.Env):
         self.base_num = base_num
         self.amino_code_table = amino_code_table
         self.upper_encoding_bound = seq_length * base_num
-        self.paths = nf.fold_n(self.seq_length)
 
         # Dynamic core attributes
         self.sequence_int = 8
@@ -124,7 +123,8 @@ class TweakingInverse(gym.Env):
         self.action_space, self.observation_space, self._get_obs = spaces_struct
 
         # Modular Reward code
-        self._routine = None
+        self.pre_routine, self.compute_reward = mrew.ranking_reward(self)
+
     def reset(self, options=None,seed=None):
         self.target_shape = aux.generate_shape(self.seq_length)
         self.sequence_str = heuristics(self.target_shape)
@@ -138,8 +138,6 @@ class TweakingInverse(gym.Env):
         degen /= 2 # Halve degen because of refelections
         self.current_degeneracy = degen
         obs = self.get_obs()
-        # info = self._get_info()
-        print("New version!")
         return obs
 
     def step(self, action):
@@ -150,16 +148,19 @@ class TweakingInverse(gym.Env):
         self.sequence_int = self._encode(self.sequence_list)
         
         # folding the sequence and getting the degeneracy
-        heap = nf.compute_energy(
-            self.paths,
-            dtf.seq_list2str(self.sequence_list))
-        folds, degen = nf.native_fold(heap)
-        folds = [dtf.fold_list2matrix(fold, self.seq_length) for fold in folds]
+        # heap = nf.compute_energy(
+        #     self.paths,
+        #     dtf.seq_list2str(self.sequence_list))
+        # folds, degen = nf.native_fold(heap)
+        # folds = [dtf.fold_list2matrix(fold, self.seq_length) for fold in folds]
         
         # the folds + degeneracy are fed to reward function
-        reward, info = mrew.legacy_tweaking_reward(self,
-            folds, self.target_shape, degen, self.seq_length, 
-            self.current_degeneracy, self.current_deviation)
+        # reward, info = mrew.legacy_tweaking_reward(self,
+        #     folds, self.target_shape, degen, self.seq_length, 
+        #     self.current_degeneracy, self.current_deviation)
+
+        reward, info = self.compute_reward(self)
+
         self.current_degeneracy = info['degen']
         self.current_deviation = info['corr']
         # done = (deviation == self._min_conv) # TODO: add 5% threshold
