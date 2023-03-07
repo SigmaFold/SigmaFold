@@ -17,8 +17,6 @@ import library.native_fold as nf
 import inv_env.envs.aux_functions as aux
 import inv_env.envs.data_functions as dtf
 from heursitics_algorithm.heuristics import heuristics
-import inv_env.envs.modular_spaces as msp
-import inv_env.envs.modular_reward as mrew
 
 class TweakingInverse(gym.Env):
     """
@@ -88,6 +86,7 @@ class TweakingInverse(gym.Env):
     2) Warning from package: unconventional shape (is it a big deal?)
 
     3) Must switch to new step API to account for truncation vs termination
+        -> DONE
     """
 
     DEFAULT_HP_TABLE = {
@@ -99,47 +98,26 @@ class TweakingInverse(gym.Env):
         base_num=2,
         seq_length=10,
         amino_code_table=DEFAULT_HP_TABLE) -> None:
-        print('Starting creation process')
         super().__init__()
 
         # Static Attributes
         self.seq_length = seq_length
         self.base_num = base_num
         self.amino_code_table = amino_code_table
-        self.upper_encoding_bound = seq_length * base_num
 
         # Dynamic core attributes
         self.sequence_int = 8
         self.sequence_list = list()
         self.sequence_str = str()
         self.target_shape = np.ndarray(shape=None) # TODO: improve init shape
-        self.fold = np.ndarray(shape=None)
-
-        # ??
-        self.current_degeneracy = 100
-        self.current_deviation = 0
-        
-        # Modular Gym spaces
-        spaces_struct = msp.debug_no_text_space(seq_length, base_num)
-        self.action_space, self.observation_space, self._get_obs = spaces_struct
-
-        # Modular Reward code
-        self.pre_routine, self.compute_reward = mrew.ranking_reward(self)
-        print('creation process is finished')
         
     def reset(self, options=None,seed=None):
-        self.target_shape = aux.generate_shape(self.seq_length)
+        # Stuff must happen here
+
         self.sequence_str = heuristics(self.target_shape)
         self.sequence_int = self._encode(dtf.seq_heur2env(seq=self.sequence_str))
         self.sequence_list = self._decode(self.sequence_int)
-        
-        heap = nf.compute_energy(
-            self.paths,
-            self.sequence_str)
-        _, degen = nf.native_fold(heap)
-        degen /= 2 # Halve degen because of refelections
-        self.current_degeneracy = degen
-        obs = self.get_obs()
+        obs = self._get_obs(self)
         return obs
 
     def step(self, action):
@@ -149,28 +127,11 @@ class TweakingInverse(gym.Env):
         self.sequence_list[index] = amino_code
         self.sequence_int = self._encode(self.sequence_list)
         
-        # folding the sequence and getting the degeneracy
-        # heap = nf.compute_energy(
-        #     self.paths,
-        #     dtf.seq_list2str(self.sequence_list))
-        # folds, degen = nf.native_fold(heap)
-        # folds = [dtf.fold_list2matrix(fold, self.seq_length) for fold in folds]
-        
-        # the folds + degeneracy are fed to reward function
-        # reward, info = mrew.legacy_tweaking_reward(self,
-        #     folds, self.target_shape, degen, self.seq_length, 
-        #     self.current_degeneracy, self.current_deviation)
+        reward, done, info = self.compute_reward(self)
+        obs = self.get_obs(self)
+        info['seq_list': self.sequence_list]
 
-        reward, info = self.compute_reward(self)
-
-        self.current_degeneracy = info['degen']
-        self.current_deviation = info['corr']
-        # done = (deviation == self._min_conv) # TODO: add 5% threshold
-
-        terminated = (self.current_deviation == 0) & (self.current_degeneracy < 6)
-        obs = self.get_obs()
-
-        return obs, reward, terminated, {'seq_list': self.sequence_list}
+        return obs, reward, done, info
     
     def render(self):
         return None
@@ -181,17 +142,6 @@ class TweakingInverse(gym.Env):
         the neural network.
         """
         return self._get_obs(self)
-    
-    def _init_sequence(self):
-        """
-        Method used when initialising the state of the environment. Returns an
-        encoded integer and decoded list
-        """
-        # TODO: max range is now 2^length... is it correct?
-        encoded_sequence = rnd.randint(0, self.base_num**self.seq_length)
-        decoded_list = self._decode(encoded_sequence)
-
-        return encoded_sequence, decoded_list
 
     def _decode(self, number) -> list:
         """
@@ -228,9 +178,6 @@ class TweakingInverse(gym.Env):
             enumerate(split_num)])
 
         return result
-    
-    def _get_info(self):
-        info = (self.sequence_list, )
 
     def _parse_action(self, action):
         index = action // self.base_num

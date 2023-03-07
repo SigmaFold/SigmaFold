@@ -61,3 +61,53 @@ def debug_no_text_space(seq_length, base_num):
 
     
     return action_space, observation_space, _get_obs 
+
+def ranking_space(seq_length, base_num):
+    obs_struct = {
+        'sequence_int': spaces.Discrete(2**seq_length), 
+        'target_folded': spaces.Box(
+        low=0, high=1, shape=(25, 25), dtype=np.uint8),
+        'reward_breakdown': spaces.Box(
+        low=-100, high=100, shape=(1,), dtype=np.int32),
+    }
+
+    action_space = spaces.Discrete(base_num*seq_length)
+    observation_space = spaces.Dict(obs_struct)
+    
+    def _get_obs(self):
+        obs_struct = {
+            'sequence_int': self.sequence_int, 
+            'target_folded': self.target_shape,
+            'reward_breakdown': np.array([self.rank], dtype=np.int32),
+        }
+    
+        return obs_struct
+    
+    return action_space, observation_space, _get_obs, 
+
+class ClassicDictSpace:
+    """
+    Default space, where observations consist of 
+        - Sequence: as an integer (not optimal)
+        - Target: its shape, as a numpy array
+        - Reward breakdown
+    """
+    def __init__(self, base_num, seq_length):
+        obs_struct = {
+            'sequence_int': spaces.Discrete(2**seq_length), 
+            'target_folded': spaces.Box(
+            low=0, high=1, shape=(25, 25), dtype=np.uint8),
+            'reward_breakdown': spaces.Box(
+            low=-100, high=100, shape=(1,), dtype=np.int32),
+        }
+        self.action_space = spaces.Discrete(base_num*seq_length)
+        self.observation_space = spaces.Dict(obs_struct)
+
+    def get_obs(self):
+        obs_struct = {
+            'sequence_int': self.sequence_int, 
+            'target_folded': self.target_shape,
+            'reward_breakdown': np.array([self.rank], dtype=np.int32),
+        }
+    
+        return obs_struct

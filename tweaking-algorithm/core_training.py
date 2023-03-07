@@ -2,9 +2,6 @@ import numpy as np
 import gym
 from  invenv.inv_env import register
 from stable_baselines3 import DQN, PPO
-from gym.wrappers import TimeLimit
-
-from inv_env.envs import modular_reward as mrew
 
 # Global Parameters
 models_dir = "saved_weights"
@@ -19,18 +16,17 @@ def training_main(limit=False):
     """
 
     # Setup
-    timed_env = gym.make('inv_fold/TweakWorld-v0', 
+    timed_env = gym.make('inv_fold/RankTweakWorld-v0', 
                          max_episode_steps=5_000, 
                          apply_api_compatibility=True,
                          disable_env_checker=False)
     
-    full_env = mrew.legacy_tweaking_reward(
-        env=timed_env, seq_length=10)
-    full_env.reset()
+ 
+    timed_env.reset()
 
     # Instantiate the agent
-    model = PPO('MultiInputPolicy', full_env, learning_rate=1e-3, verbose=1)
-    iters = 1 
+    model = PPO('MultiInputPolicy', timed_env, learning_rate=1e-3, verbose=1)
+    iters = 0 
     is_learning = True
     print('going into learning')
     
