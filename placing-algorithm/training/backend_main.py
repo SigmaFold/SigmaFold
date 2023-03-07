@@ -41,6 +41,7 @@ def exploitLength(length):
     if os.path.exists(f"data/folds/fold_{length}.json"):
         with open(f"data/folds/fold_{length}.json", "r") as f:
             paths = json.load(f)
+            print("Loaded paths from json file")
     else:       
         paths = fold_n(length)  # Get all the possible paths for a given length 
         # Save the paths to a json file
@@ -122,7 +123,7 @@ def save_and_upload(n, shape_list, seq_list):
 
 if __name__ == '__main__':
     set_limit = 17
-    n =14
+    n =15
     execution_time = {}
     while n <= set_limit:
         print("Adding data for length: ", n)

@@ -21,9 +21,10 @@ def cartesian_to_matrix(path):
         """
         # generate a 25 by 25 matrix in numpy
         matrix = np.zeros((25, 25))
+
+
         for x, y in path:
-            matrix[y + 13, x + 13] = 1
-        
+            matrix[y + 13, x + 13] = True
         return matrix
 
 def matrix_to_shape_id(matrix):
@@ -50,6 +51,7 @@ def get_shape(n=10, random=True, from_input=False):
 
     :returns: a shape
     """
+    print("called get_shape")
     if from_input:
         return generate_shape_from_input(from_input)
     return generate_random_shape(n)
@@ -61,28 +63,50 @@ def generate_random_shape(n):
 
     :returns: a shape id
     """
+    print("Calling generate_random_shape")
     dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
     cap_x = math.ceil(n / 2) - 1
-
+    
     def generate_random_path():
-        path = [(0, 0), (0, 1)]
-        visited = {(0, 1), (0, 0)}
+        """Generate a random path with no duplicate coordinates"""
+        path = set([(0, 0), (0, 1)])
+        visited = set()
+        visited.add((0, 0))
+        visited.add((0, 1))
+
+        last_x, last_y = 0, 1
+        max_loop_iteration = n * 6
+        loop = 0
         while len(path) < n:
-            dir = rnd.choice(dirs)
-            new_x = path[-1][0] + dir[0]
-            new_y = path[-1][1] + dir[1]
-            cap_y = math.ceil((n / (abs(new_x) + 1)) - 1) if abs(new_x) > 0 else cap_x
+            loop += 1
+            if loop > max_loop_iteration:
+                # reset the path, visited and start again. Algo got stuck in a loop
+                path = set([(0, 0), (0, 1)])
+                visited = set([(0, 0), (0, 1)])
+                x, y = 0, 1
+                last_x, last_y = 0, 1
+                loop = 0
 
-            if abs(new_y) > cap_y or abs(new_x) > cap_x:
-                continue
 
-            elif (new_x, new_y) not in visited:
-                visited.add((new_x, new_y))
-                path.append((new_x, new_y))
-
-        return path
+            print("loop", loop, "len(path)", len(path), "max_loop_iteration", max_loop_iteration)
+            x, y = last_x, last_y
+            # choose a dir 
+            dir_choice = rnd.choice(dirs)
+            x += dir_choice[0]
+            y += dir_choice[1]
+            if (x, y) not in visited:
+                visited.add((x, y))
+                cap_y = math.ceil((n / (abs(x) + 1)) - 1) if abs(x) > 0 else cap_x
+                if abs(x) > cap_x or abs(y) > cap_y:
+                    continue
+                else:
+                    path.add((x, y))
+                    last_x, last_y = x, y
+        return list(path)
     
     path = generate_random_path()
+    print("Generated random path", path)
+
     matrix = cartesian_to_matrix(path)
     shape_id = matrix_to_shape_id(matrix)
     return matrix, shape_id
@@ -119,7 +143,12 @@ def generate_shape_from_input(from_input):
 
 
 if __name__ == "__main__":
-    print(get_shape(random=True))
+    shape = get_shape(random=True)[0]
+    # plot the shape 
+    import matplotlib.pyplot as plt
+    plt.imshow(shape)
+    plt.show()
+
     # input_shape = [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [1, 7], [1, 6], [1, 5], [1, 4], [2, 4], [2, 3], [3, 3]]
     # # convert interior to tuples
     # input_shape = [tuple(x) for x in input_shape]

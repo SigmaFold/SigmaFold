@@ -85,11 +85,12 @@ def check_shape(shape_mappings):
     """
     Checks if a shape is already in the database. If the input is a list, check each mapping sequentially and return the first match. If the input is a single mapping, return the first match
     """
-    
+    print("Called Check Shape")
     if type(shape_mappings) == int:
         shape_mappings = [shape_mappings]
     db = SupabaseDB()
     for shape_mapping in shape_mappings:
+        print("Checking shape: ", shape_mapping)
         shape = db.supabase.table("Sequences").select("*").eq("shape_mapping", shape_mapping).execute().data
         if shape:
             return shape_mapping
@@ -126,7 +127,8 @@ if __name__ == "__main__":
     # print(db_energy_function(-5985573905669293688))
    
     # testing the check shape function in conjuction with the get_shape from tweaking_toolkit
-    for i in range(10):
+    flag = False
+    while not flag:
         flag = check_shape(get_shape(15)[1])
         if flag:
             print("Shape in database")
