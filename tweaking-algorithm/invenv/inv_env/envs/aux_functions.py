@@ -111,45 +111,6 @@ def orient_image(image, m_c, n_c):
     return eig_val, eig_vect
 
 
-def generate_shape(n):
-    dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-    cap_x = math.ceil(n / 2) - 1
-
-    def generate_random_path():
-        path = [(0, 0), (0, 1)]
-        visited = {(0, 1), (0, 0)}
-        while len(path) < n:
-            dir = rnd.choice(dirs)
-            new_x = path[-1][0] + dir[0]
-            new_y = path[-1][1] + dir[1]
-            cap_y = math.ceil((n / (abs(new_x) + 1)) - 1) if abs(new_x) > 0 else cap_x
-
-            if abs(new_y) > cap_y or abs(new_x) > cap_x:
-                continue
-
-            elif (new_x, new_y) not in visited:
-                visited.add((new_x, new_y))
-                path.append((new_x, new_y))
-
-        return path
-    
-    def cartesian2matrix(path, return_matrix=False):
-        """Function that encodes a cartesian set of coordinates into a matrix"""
-        # generate a 25 by 25 matrix in numpy
-        matrix = np.zeros((25, 25))
-        for x, y in path:
-            matrix[y + 13, x + 13] = 1
-        # Array hashing
-        matrix.flags.writeable = False
-        curr_shape_id = mmh3.hash64(str(matrix), signed=True)[0]
-        if return_matrix:
-            return curr_shape_id, matrix
-        
-        return curr_shape_id
-    
-    path = generate_random_path()
-   
-    return path, cartesian2matrix(path)
     
 
 if __name__ == "__main__":

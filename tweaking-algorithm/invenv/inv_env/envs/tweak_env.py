@@ -99,6 +99,7 @@ class TweakingInverse(gym.Env):
         base_num=2,
         seq_length=10,
         amino_code_table=DEFAULT_HP_TABLE) -> None:
+        print('Starting creation process')
         super().__init__()
 
         # Static Attributes
@@ -124,7 +125,8 @@ class TweakingInverse(gym.Env):
 
         # Modular Reward code
         self.pre_routine, self.compute_reward = mrew.ranking_reward(self)
-
+        print('creation process is finished')
+        
     def reset(self, options=None,seed=None):
         self.target_shape = aux.generate_shape(self.seq_length)
         self.sequence_str = heuristics(self.target_shape)

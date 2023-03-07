@@ -22,25 +22,42 @@ sys.path.append(
 
 import inv_env.envs.aux_functions as aux
 import library.native_fold as nf
-def ranking_reward():
-    pass
+from inv_env.envs import data_functions as dtf
+import library.tweaking_toolkit as ttk
+import library.db_toolkit as dbtk
 
 class legacy_tweaking_reward(gym.Wrapper):
     """
-    Old function that uses 
+    Old way of finding reward
     """
+
+    def __init__(self, env, seq_length):
+        super().__init__(env)
+        self.paths = nf.fold_n(seq_length)
+
+    def step(self, action):
+        obs, reward, terminated, truncated, info = self.env.step(action)
+
+        heap = nf.compute_energy(
+            self.env.paths,
+            dtf.seq_list2str(self.env.sequence_list))
+        folds, degen = nf.native_fold(heap)
+        folds = [dtf.fold_list2matrix(fold, self.env.seq_length) for fold in folds]
+
+        reward = self._compute_reward(self.env, degen, folds)
+        return obs, reward, terminated, truncated, info
     
-    def initial_data(env):
-        env.paths = nf.fold_n(env.seq_length)
+    def reset(self, **kwargs):
+        return super().reset(**kwargs)
         
-    def compute_reward(folds: list, target, degen: int, seq_length: int, curr_degen, curr_corr):
-        half_bound = int(math.ceil(seq_length/2))
+    def _compute_reward(env, degen, folds):
+        half_bound = int(math.ceil(env.seq_length/2))
         bound = 2*half_bound+1
         
         # Short-circuit the func is too much degen anyway
         if degen > 5_000:
             degen /= 4 # quick removal of inflation due to rotation
-            diff_degen = curr_degen - degen
+            diff_degen = env.curr_degen - degen
             reward_degen = (diff_degen)**2 * np.sign(diff_degen)
             return reward_degen, {'trunc': True}
         
@@ -81,10 +98,8 @@ class legacy_tweaking_reward(gym.Wrapper):
                 res_list = []
                 for i in range(4):    
                     fold = np.rot90(fold, 1)
-                    # plt.figure()
-                    # plt.imshow(fold)
-                    target = aux.align_matrix(target, fold)
-                    result = np.abs(np.subtract(fold, target)) * weight_matrix
+                    target = aux.align_matrix(env.target, fold)
+                    result = np.abs(np.subtract(fold, env.target)) * weight_matrix
                     result = np.sum(result)
                     res_list.append(result)
                 result = min(res_list)
@@ -94,29 +109,29 @@ class legacy_tweaking_reward(gym.Wrapper):
         min_corr = min(result_dict.values())
         degen = len(result_dict.keys())
 
-        info = {
-            'degen': degen,
-            'corr': min_corr - 1, # to remove the "2" error cause by displaying yellow pixel for center
-        }
-        print(info)
-        weight_degen = 1 if (curr_degen > 50) else curr_degen/50
-        diff_dev = curr_corr - min_corr # positive (good) if deviation has decreased
-        diff_degen = curr_degen - degen  # positive (good) if degeneracy has decreased
+        weight_degen = 1 if (env.curr_degen > 50) else env.curr_degen/50
+        diff_dev = env.curr_corr - min_corr # positive (good) if deviation has decreased
+        diff_degen = env.curr_degen - degen  # positive (good) if degeneracy has decreased
         reward_dev = (1-weight_degen) * (diff_dev)**2 * np.sign(diff_dev)
         reward_degen = weight_degen * (diff_degen)**2 * np.sign(diff_degen)
         reward = reward_dev + reward_degen
-        print(f'Reward is {reward} !')
-        return reward, info
-
-    return initial_data, compute_reward
+        return reward
     
-def ranking_reward(env):
+class RankingReward(gym.Wrapper):
 
-    def init_data(env):
-        shape = env.target_shape
-        env.dataframe = 
+    def __init__(self, env: gym.Env, seq_length):
+        super().__init__(env)
+        self.seq_length = seq_length
 
-    def compute_reward(**inputs):
-        compute compute_reward
+    def reset(self, **kwargs):
+        checked = None
+        while checked is None:
+            matrix, id = ttk.get_shape(self.seq_length)
+            checked = dbtk.check_shape(id)
+        self.sub_db = dbtk.db_energy_function(id)
+        self.target_shape
 
-    return init_data, compute_reward
+        return super().reset(**kwargs)
+    
+    def step(self, action):
+        return super().step(action)
