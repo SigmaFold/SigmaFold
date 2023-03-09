@@ -64,7 +64,7 @@ def debug_no_text_space(seq_length, base_num):
 
 def ranking_space(seq_length, base_num):
     obs_struct = {
-        'sequence_int': spaces.Discrete(2**seq_length), 
+        'sequence_str': spaces.Box(low=0, high=1, shape=(1, seq_length)), # String
         'target_folded': spaces.Box(
         low=0, high=1, shape=(25, 25), dtype=np.uint8),
         'reward_breakdown': spaces.Box(
@@ -73,10 +73,10 @@ def ranking_space(seq_length, base_num):
 
     action_space = spaces.Discrete(base_num*seq_length)
     observation_space = spaces.Dict(obs_struct)
-    
+
     def _get_obs(self):
         obs_struct = {
-            'sequence_int': self.sequence_int, 
+            'sequence_str': self.sequence_list, 
             'target_folded': self.target_shape,
             'reward_breakdown': np.array([self.rank], dtype=np.int32),
         }

@@ -28,98 +28,6 @@ from inv_env.envs import tweak_env as twenv
 import inv_env.envs.modular_spaces as msp
 from inv_env.envs import data_functions as dtf
 import inv_env.envs.aux_functions as aux
-
-
-class legacy_tweaking_reward(gym.Wrapper):
-    """
-    Old way of finding reward
-    """
-
-    def __init__(self, env, seq_length):
-        super().__init__(env)
-        self.paths = nf.fold_n(seq_length)
-
-    def step(self, action):
-        obs, reward, terminated, truncated, info = self.env.step(action)
-
-        heap = nf.compute_energy(
-            self.env.paths,
-            dtf.seq_list2str(self.env.sequence_list))
-        folds, degen = nf.native_fold(heap)
-        folds = [dtf.fold_list2matrix(fold, self.env.seq_length) for fold in folds]
-
-        reward = self._compute_reward(self.env, degen, folds)
-        return obs, reward, terminated, truncated, info
-    
-    def reset(self, **kwargs):
-        return super().reset(**kwargs)
-        
-    def _compute_reward(env, degen, folds):
-        half_bound = int(math.ceil(env.seq_length/2))
-        bound = 2*half_bound+1
-        
-        # Short-circuit the func is too much degen anyway
-        if degen > 5_000:
-            degen /= 4 # quick removal of inflation due to rotation
-            diff_degen = env.curr_degen - degen
-            reward_degen = (diff_degen)**2 * np.sign(diff_degen)
-            return reward_degen, {'trunc': True}
-        
-        # align all folds into one stack
-        fold_stack = np.zeros((degen, bound, bound))
-        for i, fold in enumerate(folds):
-            # find centroid
-            m_c, n_c = aux.find_centroids(fold) # need to round centroids here
-            fold[m_c, n_c] = 2
-
-            # add image to stack
-            fold_stack[i,:,:] = fold[m_c-half_bound:m_c+half_bound+1, 
-                                    n_c-half_bound:n_c+half_bound+1]
-        
-        # orientation invariant screening
-        shape_set = set()
-        result_dict = {}
-        for fold in fold_stack:
-            m_c, n_c = aux.find_centroids(fold)
-            eig_val, eig_vect = aux.orient_image(fold, m_c, n_c)
-            temp_list = []
-            for val in eig_val:
-                temp_list.append(np.abs(val))
-            for vect in eig_vect:
-                for val in vect:
-                    temp_list.append(np.abs(val))
-            test_fset = frozenset(temp_list)
-                
-            # weight matrix
-            weight_matrix = np.zeros(shape=(bound, bound))
-            centroid = (half_bound, half_bound)
-            for index in np.ndindex(np.shape(weight_matrix)):
-                distance = np.linalg.norm(np.subtract(centroid,index))
-                weight_matrix[index] = distance+1
-
-            if test_fset not in shape_set:
-                shape_set.add(test_fset)
-                res_list = []
-                for i in range(4):    
-                    fold = np.rot90(fold, 1)
-                    target = aux.align_matrix(env.target, fold)
-                    result = np.abs(np.subtract(fold, env.target)) * weight_matrix
-                    result = np.sum(result)
-                    res_list.append(result)
-                result = min(res_list)
-                result_dict[test_fset.__hash__()] = result
-        
-        # calculating the reward
-        min_corr = min(result_dict.values())
-        degen = len(result_dict.keys())
-
-        weight_degen = 1 if (env.curr_degen > 50) else env.curr_degen/50
-        diff_dev = env.curr_corr - min_corr # positive (good) if deviation has decreased
-        diff_degen = env.curr_degen - degen  # positive (good) if degeneracy has decreased
-        reward_dev = (1-weight_degen) * (diff_dev)**2 * np.sign(diff_dev)
-        reward_degen = weight_degen * (diff_degen)**2 * np.sign(diff_degen)
-        reward = reward_dev + reward_degen
-        return reward
     
 class RankingReward(twenv.TweakingInverse):
 
@@ -130,27 +38,79 @@ class RankingReward(twenv.TweakingInverse):
         self.action_space, self.observation_space, self._get_obs = spaces_struct
         self.rank = int()
         self.step_rank = float()
+        self.i = 0
+        self.previous_sequence = str()
 
     def reset(self, **kwargs):
+        print("===============================================================")
         checked = None
         while checked is None:
             matrix, id = ttk.get_shape(self.seq_length)
             checked = dbtk.check_shape(id)
         self.df = dbtk.db_energy_function(id)
         self.target_shape = matrix
-        self.rank = max(self.df["ranking"]) 
-        self.step_rank = 100/self.rank 
 
+        self.default_rank = max(self.df["ranking"]) + 1
+        self.rank = self.default_rank
+        self.step_rank = 100/(self.rank - 1)
+        print(f'Meilleur rang: {self.default_rank}')
+        self.i = 0
         return super().reset(**kwargs)
     
+    def step(self, action):
+        self.previous_sequence = self.sequence_str
+        return super().step(action)
+    
+    # def compute_reward(self):
+    #     self.i += 1        
+    #     # check if the shape is in the dataframe if not, set reward to -100
+    #     if self.sequence_str in self.df["sequence"].values:
+    #         next_rank = self.df[self.df["sequence"] == self.sequence_str]["ranking"].values[0]
+    #         delta = self.rank - next_rank
+    #         reward = delta * self.step_rank
+    #         self.rank = next_rank
+    #         done = (self.rank == 1)
+    #         print(f'Rank is {self.rank} | Reward is {reward} | Done? {done}')
+    #         if done:
+    #             print('YOUHOU', self.i)
+
+    #         # print(f'Reward is {reward} | Done? {done} | Rank is {self.rank}')
+    #     else:
+    #         reward = -100
+    #         self.rank = self.default_rank
+    #         done = False
+        
+        
+    #     return reward, done, {}
+    
     def compute_reward(self):
-        # Get sequence id
-        # Get rank
-        next_rank = 10
-        delta = next_rank - self.rank
-        reward = delta * self.step_rank
-        self.rank = next_rank
-        done = (self.rank == 1)
+        """
+        n this new approach, every time the agent makes a tweak, we want to find whether the tweak has a similarity with any of the folds above it in the ranking. If it does, we want to reward the agent for that. If it doesn't, we want to penalize the agent for that.
+        """
+        self.i += 1
+        done = False
+        # check if the shape is in the dataframe if not, set reward to -100
+        if self.sequence_str in self.df["sequence"].values:
+            # check if current sequence is identical to one of the best sequences
+            if self.sequence_str in self.df[self.df["ranking"] == 1]["sequence"].values:
+                reward = 1
+                done = True
+                print('YOUHOU', self.i)
+            else: 
+                reward = 0
+        else:
+            index = [i for i in range(len(self.sequence_str)) if self.sequence_str[i] != self.previous_sequence[i]][0]
+            # get the value of the first difference$
+            value = self.sequence_str[index]
+
+            # Check if any of the best sequences have that value at that index
+            best_sequences = self.df[self.df["ranking"] == 1]["sequence"].values
+            best_sequences = [seq for seq in best_sequences if seq[index] == value]
+            if len(best_sequences) > 0:
+                reward = 100
+            else:
+                reward = -100
+            
         return reward, done, {}
 
 

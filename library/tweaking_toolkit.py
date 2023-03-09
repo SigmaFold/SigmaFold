@@ -9,6 +9,7 @@ import numpy as np
 import random as rnd
 from typing import List, Tuple
 import mmh3
+import json 
 
 # =============================== Helper Functions ================================
 def cartesian_to_matrix(path):
@@ -51,10 +52,39 @@ def get_shape(n=10, random=True, from_input=False):
 
     :returns: a shape
     """
-    print("called get_shape")
     if from_input:
         return generate_shape_from_input(from_input)
     return generate_random_shape(n)
+    #return sample_from_json(n)
+
+def sample_from_json(n):
+    """
+    Opens the fold json and truncates every path inside the list to the given n. Then, samples one path from the list. Converts it into a shape, returns the matrix and the shape id.
+
+    """
+    with open(f"data/folds/fold_16.json", "r") as f:
+        fold = json.load(f)
+        print("Parsed Fold")
+    #convert each coordinate in path and each path in fold to a tuple
+    for i in range(len(fold)):
+        for j in range(len(fold[i])):
+            fold[i][j] = tuple(fold[i][j])
+    # Truncate each path to n ensuring there are no duplicates
+    for i in range(len(fold)):
+        path = fold[i]
+        path = path[:n]
+        path = list(set(path))
+        fold[i] = path
+
+    
+    # Sample one path from the list
+    path = rnd.choice(fold)
+    # Convert the path into a matrix
+    matrix = cartesian_to_matrix(path)
+    # Convert the matrix into a shape id
+    shape_id = matrix_to_shape_id(matrix)
+
+    return matrix, shape_id
 
 
 def generate_random_shape(n):
@@ -63,7 +93,6 @@ def generate_random_shape(n):
 
     :returns: a shape id
     """
-    print("Calling generate_random_shape")
     dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
     cap_x = math.ceil(n / 2) - 1
     
@@ -103,7 +132,6 @@ def generate_random_shape(n):
         return list(path)
     
     path = generate_random_path()
-    print("Generated random path", path)
 
     matrix = cartesian_to_matrix(path)
     shape_id = matrix_to_shape_id(matrix)
@@ -150,7 +178,7 @@ if __name__ == "__main__":
     # input_shape = [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [1, 7], [1, 6], [1, 5], [1, 4], [2, 4], [2, 3], [3, 3]]
     # # convert interior to tuples
     # input_shape = [tuple(x) for x in input_shape]
-    # print(get_shape(from_input=input_shape))
+    # (get_shape(from_input=input_shape))
 
 
     

@@ -4,8 +4,10 @@ from  invenv.inv_env import register
 from stable_baselines3 import DQN, PPO
 
 # Global Parameters
+
 models_dir = "saved_weights"
-TIMESTEPS_SAVE = 50
+model_path = f"{models_dir}/6610000"
+TIMESTEPS_SAVE = 100000
 iters = 0 # change initial value to latest iters to avoid overwriting files
 
 def training_main(limit=False):
@@ -17,18 +19,18 @@ def training_main(limit=False):
 
     # Setup
     timed_env = gym.make('inv_fold/RankTweakWorld-v0', 
-                         max_episode_steps=5_000, 
+                         max_episode_steps=50_000, 
                          apply_api_compatibility=True,
                          disable_env_checker=False)
     
- 
+    model = PPO.load(model_path, env=timed_env)
     timed_env.reset()
 
     # Instantiate the agent
-    model = PPO('MultiInputPolicy', timed_env, learning_rate=1e-3, verbose=1)
+    model = PPO('MultiInputPolicy', timed_env, learning_rate=1e-5, verbose=1)
     iters = 0 
     is_learning = True
-    print('going into learning')
+    print('Going into learning')
     
     # Train the agent
     while is_learning:
@@ -37,4 +39,4 @@ def training_main(limit=False):
         model.save(f'{models_dir}/{TIMESTEPS_SAVE*iters}')
         is_learning = (iters < limit) if limit is not False else True
         
-training_main(50)
+training_main(9999)

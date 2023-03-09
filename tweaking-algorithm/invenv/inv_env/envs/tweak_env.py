@@ -13,8 +13,6 @@ sys.path.append(
     os.path.abspath(__file__)))))))
 
 # Custom libraries
-import library.native_fold as nf
-import inv_env.envs.aux_functions as aux
 import inv_env.envs.data_functions as dtf
 from heursitics_algorithm.heuristics import heuristics
 
@@ -96,7 +94,7 @@ class TweakingInverse(gym.Env):
 
     def __init__(self,
         base_num=2,
-        seq_length=10,
+        seq_length=15,
         amino_code_table=DEFAULT_HP_TABLE) -> None:
         super().__init__()
 
@@ -110,7 +108,7 @@ class TweakingInverse(gym.Env):
         self.sequence_list = list()
         self.sequence_str = str()
         self.target_shape = np.ndarray(shape=None) # TODO: improve init shape
-        
+
     def reset(self, options=None,seed=None):
         # Stuff must happen here
 
@@ -124,9 +122,14 @@ class TweakingInverse(gym.Env):
         index, amino_code = self._parse_action(action)
         
         # updating everything
+        if self.sequence_list[index] == amino_code:
+            amino_code = int(not amino_code)
+        
         self.sequence_list[index] = amino_code
         self.sequence_int = self._encode(self.sequence_list)
+        self.sequence_str = dtf.seq_list2str(self.sequence_list)
         
+        # print(self.sequence_str)
         reward, done, info = self.compute_reward()
         obs = self.get_obs()
         info['seq_list'] = self.sequence_list
