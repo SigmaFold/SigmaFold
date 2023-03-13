@@ -74,7 +74,6 @@ class QShape():
 
         # new state
         self.state = (nrow, ncol, nmode)
-        print(self.state)
     def check_win(self):
         """
         In our implementation of the maze the AI wins if its successully painted all the maze
@@ -86,11 +85,11 @@ class QShape():
         nrows, ncols = self._shape.shape
         # if win, reward is 1
         if self.check_win():
-            return - self.min_reward + 1
+            return 1
         if mode == 'blocked':
-            return self.min_reward - 1
+            return -1
         if mode == 'invalid':
-            return self.min_reward - 1
+            return -1
         if mode == 'valid':
             return 0.125
     
@@ -100,7 +99,6 @@ class QShape():
         valid = []
         nrows, ncols = self._shape.shape
         rat_row, rat_col, _ = cell
-        print("rat_row:", rat_row, "rat_col:", rat_col)
         # Check edges, but also check if the cell is a wall, it is a wall if it is 0 in that case it is not a valid action. Also check if the cell is already visited
         if rat_row > 0 and self._shape[rat_row - 1, rat_col] > 0.0 and (rat_row - 1, rat_col) not in self.visited:
             valid.append(UP)
