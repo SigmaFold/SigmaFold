@@ -47,7 +47,7 @@ class PrimitiveInverseEnv(gym.Env):
 		'H': 0
 	}
 
-	def __init__(self, base_num=2, seq_length=10, amino_table=default_hp) -> None:
+	def __init__(self, base_num=2, seq_length=15, amino_table=default_hp) -> None:
 		super().__init__()
 
 		# Static attributes

@@ -96,10 +96,15 @@ pip install -r requirements.txt
 
 <!-- CONTACT -->
 ## Contact
+Nabeel Azuhar-Mohammed: na2919@ic.ac.uk,  
+Mateusz Chodowski: mc2620@ic.ac.uk,  
+Nicolas Dehandschoewercker: njd20@ic.ac.uk / https://www.linkedin.com/in/nicolasdhnr/,  
+Alexandre Yann Péré: ayp120@ic.ac.uk,  
+Gloria Sun: gs320@ic.ac.uk,  
+Joshua Tsai: jtt19@ic.ac.uk.  
 
-Nicolas: njd20@ic.ac.uk / https://www.linkedin.com/in/nicolasdhnr/, feel free to send me an email if you have any suggerstions or are interested in contributing!
+Feel free to send us an email if you have any suggerstions or are interested in contributing!
 
-Other Contributors: Gloria, Alex, Joshua, Nabeel, Mateusz from the Imperial College London Department of Bioengineering.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

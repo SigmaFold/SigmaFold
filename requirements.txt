@@ -13,7 +13,10 @@ mmh3
 python-dotenv # handes .env files
 supabase # database
 
-# Profiler
-cProfile
-pstats
-io
+# DeepRL
+stable-baselines3
+gym >= 0.26.0
+# will also need to run the following command
+# cd tweaking-algorithm
+# pip install -e invenv
+

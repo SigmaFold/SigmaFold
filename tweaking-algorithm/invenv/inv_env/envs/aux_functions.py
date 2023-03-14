@@ -1,12 +1,25 @@
+"""
+Collection of functions used by 
+"""
+
+# TODO: do not check deviation if degen > 5000000
+
 import numpy as np
 import random as rnd
 import scipy as sc
+import matplotlib.pyplot as plt
+import math
+import mmh3
 
-def generate_shape(seq_len=int(10)):
+# ==================== MONKE (LEGACY)====================
+def legacy_generate_shape(seq_len=int(10)):
 
     # maximum dimension
     half_len = int(round(seq_len/2))
 
+    # from another piece of code
+    half_bound = int(math.ceil(seq_len/2))
+    bound = 2*half_bound+1
     # compute triangle constraint
     bounds = np.tril(np.ones([half_len, half_len], dtype=int), 0) # boundary for reference
     shape = np.zeros([half_len, half_len], dtype=int) # shape for output
@@ -51,138 +64,56 @@ def generate_shape(seq_len=int(10)):
         path_len = np.count_nonzero(shape)
 
     # print(f"monke got stuck {monke_stupid_index} times")
-    return shape
+    aligned_target = align_target(shape, bound, half_bound)
+    return aligned_target
+    
+def align_matrix(og_shape, template):
+    template_c = find_centroids(template) # centroids of template
+    # print(f"centroids of template is {template_c}")
+    og_c = find_centroids(og_shape) # centroids of og shape
+    new_shape = np.zeros(np.shape(template)) # new shape same dimension as template
+    diff = np.subtract(template_c, og_c) # difference to align centers
 
-def primitive_fold(sequence):
+    # iterate through each element in original shape
+    for index in np.ndindex(np.shape(og_shape)):
+        if og_shape[index[0]][index[1]] == 1:
+            new_coord = index + diff
+            new_shape[new_coord[0]][new_coord[1]] = 1
 
-    input_sequence = sequence
-    print(input_sequence)
+    return new_shape
 
-    origin = (0, 0)
-    dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # right, down, left, up
-    visited = set()
+def align_target(target, bound, half_bound):
+    template = np.zeros(shape=(bound, bound), dtype=np.uint8)
+    target_centroids = find_centroids(target)
+    diff = np.subtract([half_bound,half_bound], list(target_centroids))
+    for index in np.ndindex(np.shape(target)):
+        new_coord = index + diff
+        template[new_coord[0], new_coord[1]] = target[index] # transformed matrix for comparison
+    return template
 
-    # generate every possible path of length n going through coordinates x,y
-    paths = []
-    n = len(input_sequence)
+def find_centroids(image):
+    """Returns centroids of int"""
+    zeroth_neutral = np.sum(image)
+    zeroth_moments = [np.sum(x) for x in np.nonzero(image)]
+    m_centroid, n_centroid = (np.array(zeroth_moments)/zeroth_neutral)
+    m_centroid = math.floor(m_centroid)
+    n_centroid = math.floor(n_centroid)
+    return m_centroid, n_centroid
 
+def orient_image(image, m_c, n_c):
+    µ_20 = np.sum((np.nonzero(image)[0] - m_c)**2)
+    µ_02 = np.sum((np.nonzero(image)[1] - n_c)**2)
+    µ_11 = np.sum(
+        (np.nonzero(image)[0] - m_c)*(np.nonzero(image)[1] - n_c))
+    µ_matrix = np.array([[µ_20, µ_11], [µ_11, µ_02]])
+    eig_val, eig_vect = np.linalg.eig(µ_matrix)
 
-    def generate_paths(x, y, visited, path):
-        if len(path) < n:
-            if origin not in path:
-                path.append(origin)
-                visited.add(origin)
-            for dir in dirs:
-                new_x = x + dir[0]
-                new_y = y + dir[1]
-                if (new_x, new_y) not in visited:
-                    visited.add((new_x, new_y))
-                    generate_paths(new_x, new_y, visited, path + [(new_x, new_y)])
-                    visited.remove((new_x, new_y))
-        else:
-            paths.append(path)
+    return eig_val, eig_vect
 
-
-    generate_paths(0, 0, visited, [])
-    # print("Total Possible Paths ====  > ", len(paths))
-
-    # map each element in each path to the corresponding element in the input sequence
-    paths = [list(zip(path, input_sequence)) for path in paths]
-
-    # Define densitu as the number of neighbours between points within a path. sum 1 for each neighbour
-    def get_neighbours(x, y):
-        neighbours = []
-        # create list of directions with diagonals
-        dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # right, down, left, up
-        for dir in dirs:
-            new_x = x + dir[0]
-            new_y = y + dir[1]
-            neighbours.append((new_x, new_y))
-        return neighbours
-
-
-    # sum all neighbours where second element of tuple is H
-    def get_energy(path):
-        energy = 0
-        for idx, point in enumerate(path):
-            if point[1] == 'H':
-                for neighbour in get_neighbours(point[0][0], point[0][1]):
-                    index = path.index((neighbour, 'H')) if (neighbour, 'H') in path else -1
-                    if index != -1 and index not in range(idx - 1, idx + 2):
-                        energy -= 1
-
-        return energy/2 # divide by 2 to avoid double counting
-
-
-    # add energies to paths
-    paths = [(get_energy(path), path) for path in paths]
-    # print("Paths with energies ====> ", paths)
-
-    # isolate all paths with minimum energy
-    min_energy = min([path[0] for path in paths])
-    # print("Minimum energy is ====> ", min_energy)
-    min_energy_paths = [path for path in paths if path[0] == min_energy]
-
-    return min_energy, min_energy_paths
-
-def get_reward(sequence, target, log=0):
-	"""Function that gets a sequence as a string and ouputs the corresponding score
-	Log: 0 to hide everthing, 1 to show everything, 2 to only show final result
-	"""
-
-	# Fold the input sequence
-	_, opt_path = primitive_fold(sequence)
-	degeneracy = len(opt_path)
-	prim_fold = opt_path[0][1]
-
-	# print(prim_fold)	
-
-	# Analyse target shape
-	n, m = np.shape(target)
-
-	# Convert fold to matrix for further analysis
-	template = np.zeros((n,m))
-	yoffset = round(n/2)-1
-	xoffset = round(m/2)-1
-
-	for base in prim_fold:
-		full_coord = base[0]
-
-		template[full_coord[0]+yoffset, full_coord[1]+xoffset] = 1
-
-	template = template.astype(int)
-
-	if log == 1:
-		print("Template:")
-		print(template)
-		print()
-		print("Target:")
-		print(target)
-		print(f'\nDegeneracy is {degeneracy}')
-
-	# Clunky implementation of Kullback-Leiber divergence but why not
-	divergence = 0
-	A = np.sum(target)
-	B = np.sum(template)
-	for i in range(n):
-		for j in range(m):
-			divergence += target[i,j]*(np.log10((template[i,j]+10)/(target[i,j]+10)))
-
-	# Reward: low degeneracy and low divergence are rewarded
-	reward = 1/degeneracy*1/divergence
-
-	if log == 1:
-		print(f'Divergence from target shape: {divergence}\n')
-
-	if log > 0:
-		print(f'Final Reward: {reward}\n')
-
-	a = sc.signal.convolve(template, target)
-	print(a)
-	print(np.mean(a))
 
     
-	return reward, deviation, degen
 
-if __name__ == '__main__':
-    print(generate_shape())
+if __name__ == "__main__":
+    print(generate_shape(10))
+  
+

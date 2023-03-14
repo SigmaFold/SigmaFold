@@ -1,114 +1,135 @@
-# from sqlalchemy.sql import Values
-from lib.generate_permutations import *
-from fold_seq import primitive_fold
-import pandas as pd  # t pédé ou quoi
+import sys
+import os
+# Set current working directory to be 3 levels above the current file
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))  # THI
+
+from library.generate_permutations import *
+from library.native_fold import *
+from library.db_toolkit import *
+import pandas as pd
 import numpy as np
 import mmh3
 import tabulate
+import json
+# from lib.tools import profile
+import time
 
-
-# from supabase import create_client, Client
-
-
-def cartesian2matrix(path):
+def cartesian2matrix(path, return_matrix=False):
     """Function that encodes a cartesian set of coordinates into a matrix"""
-    x_array = [node[0] for node in path]
-    y_array = [node[1] for node in path]
-    n = 2 * (max(np.absolute(x_array)) + 1) - 1  # number of columns
-    m = 2 * (max(np.absolute(y_array)) + 1) - 1  # number of rows
-    template = np.zeros([m, n]).astype(int)
-    i_offset = int((m + 1) / 2)
-    j_offset = int((n + 1) / 2)
-    node_order = 0
-    for node in path:
-        i = node[1] - i_offset
-        j = node[0] - j_offset
-        template[i, j] = node_order
-        node_order += 1
-    template = np.flipud(template)  # vertical flip to put it correctly
+    # generate a 25 by 25 matrix in numpy
+    matrix = np.zeros((25, 25))
+    for x, y in path:
+        matrix[y + 13, x + 13] = 1
+    # Array hashing
+    matrix.flags.writeable = False
+    curr_shape_id = mmh3.hash64(str(matrix), signed=True)[0]
+    if return_matrix:
+        return curr_shape_id, matrix
+    return curr_shape_id
 
-    # Remove zero-padding
-    template = template[~np.all(template == 0, axis=1)]
-    idx = np.argwhere(np.all(template[..., :] == 0, axis=0))
-    template = np.delete(template, idx, axis=1)
-    # print(template)
-    return (template)
 
 
 def exploitLength(length):
-    # Initialise the Dataframes
-    seq_list = []  # Where we will store the dictonaries of data
+    # Where we will store the dictionaries of data
+    seq_list = []
     shape_list = []
-
-    seq_dict = {"shape_id": [], "sequence_string": [], "degeneracy": []}
-
     seen_shapes = set()
-    shape_df = pd.DataFrame(columns=["shape_id", "degeneracies", "min_degeneracy"])
+    seq_df = pd.DataFrame(columns=["sequence_id", "sequence", "degeneracy", "length", "energy", "shape_mapping"])
+    shape_df = pd.DataFrame(columns=["shape_id", "min_degeneracy", "length", "min_energy"])
 
-    comb_array = perm_gen(length)  # List with all the possible combinations for the given n
+    # NEW SPEEDUP TO AVOID REPEATED COMPUTATIONS
+    if os.path.exists(f"data/folds/fold_{length}.json"):
+        with open(f"data/folds/fold_{length}.json", "r") as f:
+            paths = json.load(f)
+            print("Loaded paths from json file")
+    else:       
+        paths = fold_n(length)  # Get all the possible paths for a given length 
+        # Save the paths to a json file
+        with open(f"data/folds/fold_{n}", "w") as f:
+            json.dump(paths, f)
+
+    comb_array = perm_gen(length, 2)  # Get all the possible sequences for a given length
 
     # Iterate over all the possible combinations
     for sequence in comb_array:
-        _, folds, degeneracy = primitive_fold(sequence)  # Get all the low-energy folds for a given sequence
-        if degeneracy > 100:  # Skip deg>100 cause that's useless anyway
+        
+        energy_heap = compute_energy(paths, sequence)  # Compute the energy of all the possible paths
+        folds_heap, degeneracy, energy = native_fold(energy_heap, return_energy=True)  # Get all the low-energy folds for a given sequence
+
+        if degeneracy > 100:  # Skip deg>100 cause that's useless    anyway
             continue
         # For each possible folds of the current sequence
-        for fold in folds:
-            matrix_repr = cartesian2matrix(
-                [real_fold[0] for real_fold in fold[1]])  # Generate matrix representation of fold
-            print(matrix_repr)
-            # Array hashage
-            matrix_repr.flags.writeable = False
-            curr_shape_id = mmh3.hash64(str(matrix_repr), signed=False)[0]  # Hash the matrix representation
+        for _, fold in folds_heap:
 
-            # For each fold create a dictionary with its shape_id, sequence_id and degeneracy
-
-            if curr_shape_id not in seen_shapes:  # Will run if shape has not yet been added to database
-                seen_shapes.add(curr_shape_id)
-                # add new shape to shape_df
-                shape_df = shape_df.append({"shape_id": curr_shape_id, "degeneracies": [degeneracy],
-                                            "min_degeneracy": degeneracy}, ignore_index=True)
-
-
-
+            shape_id, matrix = cartesian2matrix(fold, return_matrix=True) 
+            seq_hash = mmh3.hash64(sequence + str(shape_id), signed=True)[0]  # Hash the sequence
+            seq_df.loc[len(seq_df)] = [seq_hash, sequence, degeneracy, length, energy, shape_id]  # Add the sequence to the sequence_df
+            
+            # For each fold update the shape_df
+            if shape_id not in seen_shapes:  # Will run if shape has not yet been added to database
+                seen_shapes.add(shape_id)
+                # add new shape to shape_df without using append
+                shape_df.loc[len(shape_df)] = [shape_id, degeneracy, length, energy]
             else:
-                print(f"Seen this shape before!")
-            # Append degeneracy to shape_df column with corresponding shape id
-            shape_df.loc[shape_df["shape_id"] == curr_shape_id, "degeneracies"].iloc[0].append(degeneracy)
-            # Update min_degeneracy if necessary
-            if degeneracy < shape_df.loc[shape_df["shape_id"] == curr_shape_id, "min_degeneracy"].iloc[0]:
-                shape_df.loc[shape_df["shape_id"] == curr_shape_id, "min_degeneracy"] = degeneracy
+                # Update min_degeneracy if necessary
+                if degeneracy < shape_df.loc[shape_df["shape_id"] == shape_id, "min_degeneracy"].iloc[0]:
+                    shape_df.loc[shape_df["shape_id"] == shape_id, "min_degeneracy"] = degeneracy
 
-            # Add sequence to sequence_df
-            seq_dict["sequence_string"] = sequence
-            seq_dict["degeneracy"] = degeneracy
-            seq_dict["sequence_id"] = mmh3.hash64(str(curr_shape_id) + sequence, signed=False)[0]
-            seq_dict["shape_id"] = curr_shape_id
-            seq_list.append(seq_dict.copy())  # this is the list of stuff that needs to go into the database
-            # commit new sequence to database here
-    # Print df without the degeneracies column
-    # Drop degeneracies column
-    shape_df = shape_df.drop(columns=["degeneracies"])
-    # Print df
+                # Update min_energy if necessary
+                if energy < shape_df.loc[shape_df["shape_id"] == shape_id, "min_energy"].iloc[0]:
+                    shape_df.loc[shape_df["shape_id"] == shape_id, "min_energy"] = energy
+  
+    # remove all sequences with shape_mapping 0 
+    seq_df = seq_df[seq_df["shape_mapping"] != 0]
+
+    # Get datatypes right in the dataframe
+    seq_df = seq_df.astype({"sequence_id": int, "degeneracy": int, "length": int, "shape_mapping": int})
+    shape_df = shape_df.astype({"shape_id": int, "min_degeneracy": int, "length": int})
+
+    # Remove all duplicates from each dataframe
+    seq_df = seq_df.drop_duplicates()
+    shape_df = shape_df.drop_duplicates()
+
     print(tabulate.tabulate(shape_df, headers="keys", tablefmt="psql"))
 
-    # Package eqch row of shqpe_df into a dict and add to list
     for _, row in shape_df.iterrows():
         shape_list.append(row.to_dict())
+    # Package each row of seq_df into a dict and add to list
+    for _, row in seq_df.iterrows():
+        seq_list.append(row.to_dict())
 
-    print(shape_list)
-    return seq_list, shape_list
+    return shape_list, seq_list
 
 
-def commit_to_supabase():
-    pass
+def save_and_upload(n, shape_list, seq_list):
+    """ Adds all the data to the database asynchronously"""
+
+    # Create a client
+    with open(f"data/{n}/seq_{n}.json", "w") as f:
+        json.dump(seq_list, f)
+    with open(f"data/{n}/shape_{n}.json", "w") as f:
+        json.dump(shape_list, f)
+    try:
+        upload_data(n)
+    except Exception as e:
+        print(e)
+        print("Data unsuccesfully uploaded to supabase. Do this manually later.")
+        return
+    print("Data saved to json files")
+    return
+    
+
 
 
 if __name__ == '__main__':
-    set_limit = 7
-    n = 7
+    set_limit = 17
+    n =15
+    execution_time = {}
     while n <= set_limit:
-        exploitLength(n)
-        n += 1
-
-# TODO: Optimize by keeping the array of degeneracies as a min heap.
+        print("Adding data for length: ", n)
+        time_start = time.time()
+        save_and_upload(n, *exploitLength(n))
+        time_end = time.time()
+        execution_time[n] = time_end - time_start
+        print("Time taken: ", time_end - time_start)
+        n += 1 
