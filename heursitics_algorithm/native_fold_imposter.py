@@ -129,32 +129,35 @@ def generateWalks(n):
     
     return G
 
-# if __name__ == "__main__":
-#     # x = 0
-#     # y = 0
-#     # # G = generateWalks(n)
-#     # sequence ="HPHPHHPHPHHH"
+if __name__ == "__main__":
+    x = 0
+    y = 0
+    # G = generateWalks(n)
+    sequence ="HPHHPPHHHPPH"
 
 
-#     # n = len(sequence)
-#     # paths = native_fold(n)
-#     # heap = compute_energy(paths, sequence)
-#     # # pop from heap until energy changes
-#     # energy = heap[0][0]
-#     # count = 0
-#     # while heap[0][0] == energy:
-#     #     path = heapq.heappop(heap)
-#     #     # plot the path 
-#     #     x = [coord[0] for coord in path[1]]
-#     #     y = [coord[1] for coord in path[1]]
-#     #     # print h and p on graph
-#     #     for i in range(n):
-#     #         if sequence[i] == 'H':
-#     #             plt.text(x[i], y[i], 'H')
-#     #         else:
-#     #             plt.text(x[i], y[i], 'P')
-#     #     plt.plot(x, y, 'ro')
-#     #     plt.plot(x, y)
-#     #     plt.show()
-#     #     count += 1
-#     # print(count)
+    
+
+
+    n = len(sequence)
+    paths = native_fold(n)
+    heap = compute_energy(paths, sequence)
+    # pop from heap until energy changes
+    energy = heap[0][0]
+    count = 0
+    while heap[0][0] == energy:
+        path = heapq.heappop(heap)
+        # plot the path 
+        x = [coord[0] for coord in path[1]]
+        y = [coord[1] for coord in path[1]]
+        # print h and p on graph
+        for i in range(n):
+            if sequence[i] == 'H':
+                plt.text(x[i], y[i], 'H')
+            else:
+                plt.text(x[i], y[i], 'P')
+        plt.plot(x, y, 'ro')
+        plt.plot(x, y)
+        plt.show()
+        count += 1
+    print(count)
