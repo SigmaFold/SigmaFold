@@ -13,7 +13,7 @@ from tabulate import tabulate
 import sys 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from library.tweaking_toolkit import get_shape, sample_from_json
+from library.tweaking_helper import get_shape, sample_from_json
 # COMMENT LINE BELOW OUT - FOR TESTING PURPOSES ONLY
 
 

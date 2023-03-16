@@ -16,6 +16,9 @@ supabase # database
 # DeepRL
 stable-baselines3
 gym >= 0.26.0
+keras
+tensorflow
+
 # will also need to run the following command
 # cd tweaking-algorithm
 # pip install -e invenv

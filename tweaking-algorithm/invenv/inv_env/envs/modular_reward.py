@@ -21,8 +21,8 @@ sys.path.append(
     os.path.abspath(__file__)))))))
 
 import library.native_fold as nf
-from library import tweaking_toolkit as ttk
-import library.db_toolkit as dbtk
+from library import tweaking_helper as ttk
+import library.db_helper as dbtk
 
 from inv_env.envs import tweak_env as twenv
 import inv_env.envs.modular_spaces as msp
