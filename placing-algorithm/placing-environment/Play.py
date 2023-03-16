@@ -1,54 +1,44 @@
-from Qshape import QShape
-import numpy as np
-import os, sys, time, datetime, json, random
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import numpy as np
+
+# Model stuff
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation
 from keras.optimizers import SGD , Adam, RMSprop
 from keras.layers import PReLU
+
+# Plotting
 import matplotlib.pyplot as plt
+
+# Agent
 from Experience import Experience
+from Qshape import QShape
+
+# Misc
 import signal
 from copy import deepcopy
 import time 
+from settings import * # imports all the variables like the action space etc.
+import os, sys, time, datetime, json, random
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # get current directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from library.tweaking_toolkit import get_shape
+from library.db_toolkit import get_random_shape_in_db
 
-
+# This is so that the program can be stopped with ctrl+c
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-# Exploration factor
-epsilon = 0.6
-
-LEFT = 0
-UP = 1
-RIGHT = 2
-DOWN = 3
-
-# Actions dictionary
-actions_dict = {
-    LEFT: 'left',
-    UP: 'up',
-    RIGHT: 'right',
-    DOWN: 'down',
-}
-
-num_actions = len(actions_dict)
 
 class Play:
+    """
+    The Play class is used to train the model and play the game.
+    """
     def __init__(self, maze, rat=(0,0), model=None):
         self.maze = maze
         self.qshape = QShape(maze, rat)
         self.rat = rat
         self.model = model
-        # self.qshape.learn()
 
     def play(self):
         self.qshape.reset(self.rat)
@@ -65,10 +55,24 @@ class Play:
             elif game_status == 'lose':
                 return False
 
-def qtrain(model, maze,rat, **opt):
+def qtrain(model, shape,rat, **opt):
+    """
+    Main loop for training of the model. Takes the following arguments:
+
+    :params:
+    model: the model to train, generate it using buildmodel()
+    rat: the starting rat position, if any.
+    shape: the maze shape. Should be a 25x25 numpy array with 1.0 for free cells and 0.0 for walls.
     
-    # TODO this has "maze" thingies
-    global epsilon
+    :options:
+    opt: options dictionary. Possible options are:
+        n_epoch: number of epochs to train for. Default is 3000.
+        max_memory: maximum number of experiences to store in memory. Default is 1000.
+        data_size: size of batch when learning. Default is 50.
+        weights_file: if you want to continue training from a previous model, just supply the h5 file name to weights_file option. Default is "".
+        name: name of the model. Used to save weights after each epoch. Default is "model".
+    """
+    
     n_epoch = opt.get('n_epoch', 3000)
     max_memory = opt.get('max_memory', 1000)
     data_size = opt.get('data_size', 50)
@@ -84,23 +88,21 @@ def qtrain(model, maze,rat, **opt):
         time.sleep(1)
     # Construct environment/game from numpy array: maze (see above)
     # deepcopy maze to avoid mutating it 
-    maze_input = deepcopy(maze)
-    qmaze = QShape(maze_input, (13,13) )
+    maze_input = deepcopy(shape)
+    qmaze = QShape(maze_input, rat )
 
     # Initialize experience replay object
     experience = Experience(model, max_memory=max_memory)
 
+    # Keep track of useful statistics
     win_history = []   # history of win/lose game
-    n_free_cells = len(qmaze.free_cells)
-    hsize = qmaze._shape.size//2   # history window size
-    win_rate = 0.0
-    imctr = 1
-    maze_input = deepcopy(maze)
+    maze_input = deepcopy(shape)
     n_wins = 0
+
     for epoch in range(n_epoch):
-        
         loss = 0.0
-        rat_cell = (13,13)
+        # choose a cell available cell to start - for now hard coded
+        rat_cell = (0,0)
         qmaze.reset(maze_input, rat_cell)
         game_over = False
         # get initial envstate (1d flattened canvas)
@@ -145,24 +147,23 @@ def qtrain(model, maze,rat, **opt):
                 targets,
                 epochs=8,
                 batch_size=16,
-                verbose=0,
+                verbose=2, # Minimum verbosity level.
             )
             loss = model.evaluate(inputs, targets, verbose=0)
 
         if win:
-            print("win, new _maze? ")
-            maze_input, _ = get_shape(n=15)
+            print("Game won! Generating a new shape to nail it!")
             # convert to float 
-            maze_input = maze_input.astype('float32')
-            qmaze.reset(maze_input, rat_cell)
+            # maze_input = maze_input.astype('float32')
+            # qmaze.reset(maze_input, rat_cell) # uncimennt once ive figured out shape sampling.
+            # TODO: Add metrics for the current game, then add metrics for all games.
             win_history = []
-            n_episodes = 0
-            epsilon = 0.6
             n_wins += 1
             win = False
             h5file = name + ".h5"
             json_file = name + ".json"
             model.save_weights(h5file, overwrite=True)
+
             with open(json_file, "w") as outfile:
                 json.dump(model.to_json(), outfile)
 
@@ -170,12 +171,11 @@ def qtrain(model, maze,rat, **opt):
         t = format_time(t.total_seconds())
         win_rate = 0
         template = "Epoch {:03d}/{:03d} | Loss {:.4f} | Episodes {:03d} | Win count {:03d} | Win rate {:.2f} | Time {}"
-        print(template.format(epoch, n_epoch-1, loss, n_episodes, n_wins , win_rate, t))
+        print(template.format(epoch, n_epoch-1, loss, n_episodes, n_wins , n_wins/len(win_history), t))
         
 
     # Save trained model weights and architecture, this will be used by the visualization code
-    
-    end_time = datetime.datetime.now()
+
     dt = datetime.datetime.now() - start_time
     seconds = dt.total_seconds()
     t = format_time(seconds)
@@ -183,6 +183,8 @@ def qtrain(model, maze,rat, **opt):
     print("n_epoch: %d, max_mem: %d, data: %d, time: %s" % (epoch, max_memory, data_size, t))
     return seconds
 
+
+# =========================== Helper Functions ===========================
 # This is a small utility for printing readable time strings:
 def format_time(seconds):
     if seconds < 400:
@@ -195,10 +197,12 @@ def format_time(seconds):
         h = seconds / 3600.0
         return "%.2f hours" % (h,)
     
+
+# This is what builds the NNs.
 def build_model(maze, lr=0.001):
     model = Sequential()
     model.add(Dense(maze.size, input_shape=(maze.size,)))
-    model.add(PReLU())
+    model.add(PReLU()) # activation function
     model.add(Dense(maze.size))
     model.add(PReLU())
     model.add(Dense(num_actions))
@@ -209,8 +213,8 @@ if __name__ ==  "__main__":
     shape = np.array([
         [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
         [1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
-         [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-         [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -219,15 +223,19 @@ if __name__ ==  "__main__":
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ])
 
-    shape, _ = get_shape(n=15)
-    print(shape)
     # change to float
     shape = shape.astype(float)
+    # Select choose a pair of coordinates
+    available_cells = np.argwhere(shape == 1.0)
+    rat_cell = (0,0)
+    
+    # convert to tuple
+    rat_cell = tuple(rat_cell)
+    print("rat_cell: ", rat_cell)
 
-    qshape = QShape(shape, (13,13))
-    # show(qshape)
+    qshape = QShape(shape, rat_cell)
+    # qshape.show()
     model = build_model(shape)
-    print("13th element", shape[13,13])
     # cut off sides of matrix until 0 padding is reached
-    player = Play(shape, (13,13), model)
-    qtrain(model, shape, (13,13), epochs=20, max_memory=8*shape.size, data_size=32, name="model", json_file="model.json", h5file="model.h5")
+    player = Play(shape, rat_cell, model)
+    qtrain(model, shape, rat_cell, epochs=20, max_memory=8*shape.size, data_size=32, name="model", json_file="model.json", h5file="model.h5")

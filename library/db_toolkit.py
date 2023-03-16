@@ -10,7 +10,10 @@ from random import randint
 import json 
 import pandas as pd
 from tabulate import tabulate
+import sys 
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from library.tweaking_toolkit import get_shape, sample_from_json
 # COMMENT LINE BELOW OUT - FOR TESTING PURPOSES ONLY
 
 
@@ -81,7 +84,7 @@ def commit_to_supabase(shape_list, seq_list, retries = 0):
 
 # ========================= Tweaking Algorithm Queries =========================
 
-def check_shape(shape_mappings):
+def check_shape(shape_mappings, matrix=False):
     """
     Checks if a shape is already in the database. If the input is a list, check each mapping sequentially and return the first match. If the input is a single mapping, return the first match
     """
@@ -90,9 +93,22 @@ def check_shape(shape_mappings):
     db = SupabaseDB()
     for shape_mapping in shape_mappings:
         shape = db.supabase.table("Sequences").select("*").eq("shape_mapping", shape_mapping).execute().data
-        if shape:
+        if shape and matrix:
             return shape_mapping
     return None
+
+def get_random_shape_in_db(n):
+    shape_id = False
+    print("Getting random shape from database...")
+    while not shape_id:
+        matrix, shape_id = sample_from_json(n)
+        shape_id = check_shape(shape_id)
+    print("Shape found!")
+    return matrix
+
+
+
+
 
         
     
@@ -114,28 +130,22 @@ def db_energy_function(shape_mapping):
     df["ranking"] =df["degeneracy"].rank(ascending=True, method="dense")
     return df
 
+# ========================= Adding a new column to the DB (disregard this) =========================
 
+# This section is for adding the new "path"column to the database. 
 
     
 
 
 
 if __name__ == "__main__":
-    from tweaking_toolkit import get_shape
     # testing the energy function
     # print(db_energy_function(-5985573905669293688))
-   
-    # testing the check shape function in conjuction with the get_shape from tweaking_toolkit
-    shape_id = False
-    while not shape_id:
-        shape_id = check_shape(get_shape(15)[1])
-        if shape_id:
-            print("Shape in database")
-        else:
-            print("Shape not in database")
-    df = db_energy_function(shape_id)
-    print(tabulate(df, headers="keys", tablefmt="psql"))
-    print(max(df["ranking"]))
+    import time
+    import matplotlib.pyplot as plt
+    import numpy as np
+    # Get the sequences that fold into the given shape
+
     
     
     

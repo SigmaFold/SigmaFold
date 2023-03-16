@@ -55,7 +55,6 @@ def get_shape(n=10, random=True, from_input=False):
     if from_input:
         return generate_shape_from_input(from_input)
     return generate_random_shape(n)
-    #return sample_from_json(n)
 
 def sample_from_json(n):
     """
@@ -169,11 +168,8 @@ def generate_shape_from_input(from_input):
 
 
 if __name__ == "__main__":
-    shape = get_shape(random=True)[0]
-    # plot the shape 
-    import matplotlib.pyplot as plt
-    plt.imshow(shape)
-    plt.show()
+    shape = sample_from_json(15)
+    
 
     # input_shape = [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [1, 7], [1, 6], [1, 5], [1, 4], [2, 4], [2, 3], [3, 3]]
     # # convert interior to tuples

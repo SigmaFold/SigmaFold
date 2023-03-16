@@ -1,8 +1,12 @@
+"""
+This is where the weight updatign and predictions happen. Potentially where wer could add Monte-carlo tree search.
+"""
 import numpy as np
 
 
 class Experience(object):
-    def __init__(self, model, max_memory=100, discount=0.95):
+    def __init__(self, model, max_memory=1000, discount=0.8):
+        print(model)
         self.model = model
         self.max_memory = max_memory
         self.discount = discount
@@ -19,10 +23,7 @@ class Experience(object):
 
     def predict(self, envstate):
         # convert every element of envstate to int
-
         envstate = np.array(envstate, dtype=int)
-
-
         return self.model.predict(envstate)[0]
 
     def get_data(self, data_size=10):
@@ -31,6 +32,7 @@ class Experience(object):
         data_size = min(mem_size, data_size)
         inputs = np.zeros((data_size, env_size))
         targets = np.zeros((data_size, self.num_actions))
+
         for i, j in enumerate(np.random.choice(range(mem_size), data_size, replace=False)):
             envstate, action, reward, envstate_next, game_over = self.memory[j]
             inputs[i] = envstate
@@ -44,3 +46,5 @@ class Experience(object):
                 # reward + gamma * max_a' Q(s', a')
                 targets[i, action] = reward + self.discount * Q_sa
         return inputs, targets
+    
+

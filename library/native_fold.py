@@ -107,6 +107,14 @@ def native_fold(heap, return_energy=False):
         return folds, len(folds), energy
     return folds, len(folds)
 
+def serialise_fold(fold):
+    """Converts a fold into a string"""
+    serialised_fold = ""
+    for coord in fold:
+        serialised_fold += f"({coord[0]}, {coord[1]})"
+
+    return serialised_fold
+
 # ========================= Executing and Saving Folds =========================
 def execute_and_save_native_fold(n):
     fold = fold_n(n)
@@ -127,8 +135,10 @@ def read_fold_from_json(n):
 
 if __name__ == "__main__":
     # ----> Executing and saving a given fold <----
-    n = 20
-    execute_and_save_native_fold(20)
+    #n = 20
+    #execute_and_save_native_fold(20)
+
+    # ----> Testing the forward fold of a singular sequence <----
 
     # ----> Testing the forward fold of a singular sequence <---- [UNCOMMENT IF NEEDED]
     # sequence = "PHPPHPPH"
