@@ -22,7 +22,7 @@ class QShape():
             raise ValueError("Start position is not in free cells - check the input shape") # will be removed when algorithm starts deciding start position
         
         self.reset(shape, rat)
-        
+
 
     def reset(self, shape, rat):
         self.rat = rat
@@ -166,22 +166,29 @@ class QShape():
         return 'not_over'
 
     def show(self):
-        canvas = self.get_canvas()
-        # plot as matlotlib animation 
-        plt.imshow(canvas, interpolation='none', cmap='gray')
-        plt.xticks([])
-        plt.yticks([])
-        plt.show()
+        canvas = deepcopy(self.get_canvas())
+        # Change colour of current cell
+        canvas[self.state[0], self.state[1]] = 0.5
+        #
+        #
+
+        # show for 0.1 seconds
+        plt.imshow(canvas, cmap='gray', interpolation='none')
+        plt.show(block=False)
+        #plt.show()
+        plt.pause(0.1)
+        plt.close()
+
+
         
 
 
 
 if __name__ == "__main__":
     shape = QShape(np.array([
-        [1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -197,10 +204,14 @@ if __name__ == "__main__":
     print("Curent postion", shape.state)
     shape.show()
     shape.act(RIGHT)
-    shape.show()
-    shape.act(LEFT)
     print("Curent postion", shape.state)
     shape.show()
+    shape.act(RIGHT)
+    plt.show()
+    print("Curent postion", shape.state)
+    shape.act(DOWN)
+    print("Curent postion", shape.state)
+    plt.show()
 
     
 

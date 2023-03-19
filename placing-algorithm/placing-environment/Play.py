@@ -22,10 +22,6 @@ from settings import * # imports all the variables like the action space etc.
 import os, sys, time, datetime, json, random
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-# get current directory
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from library.db_helper import get_random_shape_in_db
-
 # This is so that the program can be stopped with ctrl+c
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
