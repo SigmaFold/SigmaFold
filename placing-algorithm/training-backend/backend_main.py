@@ -6,6 +6,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from library.permutations_helper import *
 from library.native_fold import *
 from library.db_helper import *
+from library.shape_helper import *
+
 import pandas as pd
 import numpy as np
 import mmh3
@@ -14,18 +16,6 @@ import json
 # from lib.tools import profile
 import time
 
-def cartesian2matrix(path, return_matrix=False):
-    """Function that encodes a cartesian set of coordinates into a matrix"""
-    # generate a 25 by 25 matrix in numpy
-    matrix = np.zeros((25, 25))
-    for x, y in path:
-        matrix[y + 13, x + 13] = 1
-    # Array hashing
-    matrix.flags.writeable = False
-    curr_shape_id = mmh3.hash64(str(matrix), signed=True)[0]
-    if return_matrix:
-        return curr_shape_id, matrix
-    return curr_shape_id
 
 
 
@@ -34,7 +24,7 @@ def exploitLength(length):
     seq_list = []
     shape_list = []
     seen_shapes = set()
-    seq_df = pd.DataFrame(columns=["sequence_id", "sequence", "degeneracy", "length", "energy", "shape_mapping"])
+    seq_df = pd.DataFrame(columns=["sequence_id", "sequence", "degeneracy", "length", "energy", "shape_mapping", "path"])
     shape_df = pd.DataFrame(columns=["shape_id", "min_degeneracy", "length", "min_energy"])
 
     # NEW SPEEDUP TO AVOID REPEATED COMPUTATIONS
@@ -56,14 +46,15 @@ def exploitLength(length):
         energy_heap = compute_energy(paths, sequence)  # Compute the energy of all the possible paths
         folds_heap, degeneracy, energy = native_fold(energy_heap, return_energy=True)  # Get all the low-energy folds for a given sequence
 
-        if degeneracy > 100:  # Skip deg>100 cause that's useless    anyway
+        if degeneracy > 150 :  # Skip deg>200 cause that's useless    anyway
             continue
         # For each possible folds of the current sequence
         for _, fold in folds_heap:
 
-            shape_id, matrix = cartesian2matrix(fold, return_matrix=True) 
+            matrix = path_to_shape(fold) 
+            shape_id  = serialize_shape(matrix)  # Get the shape_id of the current fold
             seq_hash = mmh3.hash64(sequence + str(shape_id), signed=True)[0]  # Hash the sequence
-            seq_df.loc[len(seq_df)] = [seq_hash, sequence, degeneracy, length, energy, shape_id]  # Add the sequence to the sequence_df
+            seq_df.loc[len(seq_df)] = [seq_hash, sequence, degeneracy, length, energy, shape_id, serialize_path(fold)]  # Add the sequence to the sequence_df
             
             # For each fold update the shape_df
             if shape_id not in seen_shapes:  # Will run if shape has not yet been added to database
@@ -83,14 +74,14 @@ def exploitLength(length):
     seq_df = seq_df[seq_df["shape_mapping"] != 0]
 
     # Get datatypes right in the dataframe
-    seq_df = seq_df.astype({"sequence_id": int, "degeneracy": int, "length": int, "shape_mapping": int})
-    shape_df = shape_df.astype({"shape_id": int, "min_degeneracy": int, "length": int})
+    seq_df = seq_df.astype({"sequence_id": int, "degeneracy": int, "length": int})
+    shape_df = shape_df.astype({ "min_degeneracy": int, "length": int})
 
     # Remove all duplicates from each dataframe
     seq_df = seq_df.drop_duplicates()
     shape_df = shape_df.drop_duplicates()
 
-    print(tabulate.tabulate(shape_df, headers="keys", tablefmt="psql"))
+    print(tabulate.tabulate(seq_df, headers="keys", tablefmt="psql"))
 
     for _, row in shape_df.iterrows():
         shape_list.append(row.to_dict())
@@ -122,8 +113,8 @@ def save_and_upload(n, shape_list, seq_list):
 
 
 if __name__ == '__main__':
-    set_limit = 17
-    n =15
+    set_limit =15
+    n = 10
     execution_time = {}
     while n <= set_limit:
         print("Adding data for length: ", n)

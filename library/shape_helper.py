@@ -9,7 +9,7 @@ def path_to_shape(path):
     grid = np.asarray([[0]*25]*25, dtype=int) # actual grid for mapping
     temp_grid = np.asarray([[0]*25]*25, dtype=int) # temp grid to hold the array before alignment
     for coord in path:
-        temp_grid[coord[0]+13][coord[1]+13] = 1 # path transferred onto grid but uncentered
+        temp_grid[coord[1]+13][coord[0]+13] = 1 # path transferred onto grid but uncentered
     temp_grid = np.pad(temp_grid, 1) # zero padding to avoid multiplying by 0 when calculating moments
 
     # find centroid of temp_grid
@@ -35,6 +35,8 @@ def path_to_shape(path):
     for i in range(len(coord_list[0])):
         grid[coord_list[0][i]+dev_m][coord_list[1][i]+dev_n] = 1
 
+    # add dev_n dev_m to path 
+    
     return grid
 
 
@@ -54,8 +56,6 @@ def serialize_shape(matrix):
     def encode_count(count):
         if count < 10:
             return str(count)
-        else:
-            print(count)
         return chr(count+87)
     # CLUNKY AND WILL BE IMPROVED - JUST A POC RN 
     for i in range(len(matrix)-1):
@@ -77,7 +77,7 @@ def deserialize_shape(string):
     Takes a string and decodes it into a matrix
     """
     matrix = np.array([])
-    count = 0
+
     def decode_count(char):
         if char.isdigit():
             return int(char)
@@ -87,13 +87,29 @@ def deserialize_shape(string):
         matrix = np.append(matrix, np.full(decode_count(string[i]), int(string[i+1])))
     return np.asarray(matrix).reshape(25, 25)
 
+"""
+The below functions allow us to convert between the database representation of a path and the actual path
+"""
+
+def serialize_path(path):
+    """
+    Store the path of tuples as a string in a way that can be easily decoded.
+    """
+    string = ""
+    for coord in path:
+        string += str(coord[0]) + "," + str(coord[1]) + " "
+    return string
+
+
+
+
+
+def deserialize_path(string):
+    pass
+
+
 
 if __name__ == "__main__":
-    # generate a random 25 by 25 matrix 
-    matrix = np.random.randint(2, size=(25, 25))
-    #print(matrix)
-    print(len(serialize_shape(matrix)))
-    deserialized = deserialize_shape(serialize_shape(matrix))
-    assert np.array_equal(matrix, deserialized)
-
-
+    path2 = [(0,0), (-1,0), (-1,-1), (-2,-1), (-2,0), (-2, 1), (-1, 1)]
+    matrix = path_to_shape(path2)
+    

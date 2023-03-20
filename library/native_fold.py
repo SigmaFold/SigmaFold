@@ -47,9 +47,7 @@ def compute_energy(paths, sequence):
         H-H bond = -1
         P-P bond = 0
     """
-
     # Create a heap to store the paths
-    # TODO: Optimise to to use the odd-even contact rule
     heap = []
     for path in paths:
         H_coords_even = []
@@ -133,33 +131,4 @@ def read_fold_from_json(n):
     return fold
 
 
-if __name__ == "__main__":
-    # ----> Executing and saving a given fold <----
-    #n = 20
-    #execute_and_save_native_fold(20)
 
-    # ----> Testing the forward fold of a singular sequence <----
-
-    # ----> Testing the forward fold of a singular sequence <---- [UNCOMMENT IF NEEDED]
-    # sequence = "PHPPHPPH"
-    # n = len(sequence)
-    # paths = fold_n(n)
-    # heap = compute_energy(paths, sequence)
-    # # pop from heap until energy changes
-    # energy = heap[0][0]
-    # # print(n)
-    # while heap[0][0] == energy:
-    #     path = heapq.heappop(heap)
-    #     # print(path)
-    #     # plot the path
-    #     x = [coord[0] for coord in path[1]]
-    #     y = [coord[1] for coord in path[1]]
-    #     # print h and p on graph
-    #     for i in range(n):
-    #         if sequence[i] == 'H':
-    #             plt.text(x[i], y[i], 'H')
-    #         else:
-    #             plt.text(x[i], y[i], 'P')
-    #     plt.plot(x, y, 'ro')
-    #     plt.plot(x, y)
-    #     plt.show()

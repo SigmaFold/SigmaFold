@@ -65,7 +65,7 @@ def commit_to_supabase(shape_list, seq_list, retries = 0):
     # Create a client
     db = SupabaseDB()
     # Add all the data to the database
-    if retries > 10:
+    if retries > 20:
         print("Too many retries, aborting")
         return
     
