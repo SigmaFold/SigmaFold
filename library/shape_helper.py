@@ -2,7 +2,7 @@
 Provides helper functions to help handdling shapes for various purposes (database storage, training etc.)
 """
 import numpy as np
-
+import math
 
 # Saving shapes based on their center of mass 
 def path2shape(path):
@@ -36,3 +36,69 @@ def path2shape(path):
         grid[coord_list[0][i]+dev_m][coord_list[1][i]+dev_n] = 1
 
     return grid
+
+
+def serialize_shape(matrix):
+    """
+    Flattens matrix then condenses its elements into a string. When an element is repeated, it'll encode the number of repeats as follows:
+    If its repeated 0-9 times it'll encode it as the count then the repeated digit 
+    for 10-36 it'll encode it as a letter in the alphabet then the repeated digit.
+    Beyond that, it'll just separate the repeated digit into 2 batches of 36 or less
+    
+    """
+
+    matrix = matrix.flatten()
+    string = ""
+    count = 1
+
+    def encode_count(count):
+        if count < 10:
+            return str(count)
+        else:
+            print(count)
+        return chr(count+87)
+    # CLUNKY AND WILL BE IMPROVED - JUST A POC RN 
+    for i in range(len(matrix)-1):
+        if matrix[i] == matrix[i+1]:
+            count += 1
+        else:
+            string += encode_count(count)
+            string += str(matrix[i])
+            count = 1
+
+    string += encode_count(count)
+    string += str(matrix[-1])
+
+    return string
+
+
+def deserialize_shape(string):
+    """
+    Takes a string and decodes it into a matrix
+    """
+    matrix = np.array([])
+    count = 0
+    def decode_count(char):
+        if char.isdigit():
+            return int(char)
+        return ord(char)-87
+    
+    for i in range(0,len(string), 2):
+        matrix = np.append(matrix, np.full(decode_count(string[i]), int(string[i+1])))
+
+    #print(matrix)
+    
+
+
+    return np.asarray(matrix).reshape(25, 25)
+
+
+if __name__ == "__main__":
+    # generate a random 25 by 25 matrix 
+    matrix = np.random.randint(2, size=(25, 25))
+    #print(matrix)
+    print(len(serialize_shape(matrix)))
+    deserialized = deserialize_shape(serialize_shape(matrix))
+    assert np.array_equal(matrix, deserialized)
+
+
