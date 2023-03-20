@@ -36,6 +36,7 @@ def path_to_shape(path):
         grid[coord_list[0][i]+dev_m][coord_list[1][i]+dev_n] = 1
 
     # add dev_n dev_m to path 
+    path = [(coord[0]+dev_n+13, coord[1]+13+dev_m) for coord in path]
     
     return grid
 
