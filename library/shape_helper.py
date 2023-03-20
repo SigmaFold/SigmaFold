@@ -5,10 +5,10 @@ import numpy as np
 import math
 
 # Saving shapes based on their center of mass 
-def path2shape(path):
+def path_to_shape(path):
     grid = np.asarray([[0]*25]*25, dtype=int) # actual grid for mapping
     temp_grid = np.asarray([[0]*25]*25, dtype=int) # temp grid to hold the array before alignment
-    for coord in test_path:
+    for coord in path:
         temp_grid[coord[0]+13][coord[1]+13] = 1 # path transferred onto grid but uncentered
     temp_grid = np.pad(temp_grid, 1) # zero padding to avoid multiplying by 0 when calculating moments
 
@@ -85,11 +85,6 @@ def deserialize_shape(string):
     
     for i in range(0,len(string), 2):
         matrix = np.append(matrix, np.full(decode_count(string[i]), int(string[i+1])))
-
-    #print(matrix)
-    
-
-
     return np.asarray(matrix).reshape(25, 25)
 
 
