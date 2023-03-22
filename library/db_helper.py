@@ -40,7 +40,12 @@ class SupabaseDB:
 
 # ========================= JSON Data Saving Toolkit =========================
 def upload_data(n):
-    """ Imports data from json files and returns lists of dicts"""
+    """ Imports data from json files and returns lists of dicts
+    PREQUESITE: You must have ran native_fold for your n of choice and have the json files in the data folder.
+    
+    :params
+    :int: n: the length of the sequences to be returned.
+    """
     with open(f"data/{n}/seq_{n}.json", "r") as f:
         seq_list = json.load(f)
         print("Parsed seq_list")

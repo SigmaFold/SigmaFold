@@ -6,13 +6,17 @@ from math import ceil
 import json
 import matplotlib.pyplot as plt
 
-def step_function(x):
-    """Returns 1 if x > 0, 0 otherwise"""
-    return 1 if x > 0 else 0
+# Brute Force Folding Functions
 
-# ========================= Brute Force Folding Functions =========================
 def fold_n(n):
-    """Returns all possible paths of length n starting at (0, 0)"""
+    """Exhaustively enumerates all possible paths of length n  starting at (0, 0)
+    
+    :params
+    n: the length of the path to be generated
+
+    :returns
+    paths: a list of all possible paths of length n
+    """
 
     dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)]
     paths = []  # new paths to be generated
@@ -46,7 +50,12 @@ def compute_energy(paths, sequence):
     """ Match the sequence to each paths and compute the energy. Return all minimum energy structures. Stores paths in a heap.
         H-H bond = -1
         P-P bond = 0
+
+        :param paths: list of paths that have been pre-computed by brute-force algorithm 
+        :param sequence: the sequence to be folded
+        :return: list of paths with minimum energy
     """
+
     # Create a heap to store the paths
     heap = []
     for path in paths:
@@ -95,7 +104,12 @@ def compute_energy(paths, sequence):
     return heap
 
 def native_fold(heap, return_energy=False):
-    """Returns all native folds and the degeneracy"""
+    """Returns all native folds and the degeneracy
+    
+    :param heap: heap of paths with minimum energy (input from compute_energy)
+    :param return_energy: if True, returns the energy of the native fold
+    :return: list of native folds, degeneracy, energy (if return_energy is True)
+    """
     energy = heap[0][0]
     folds = []
     while heap and heap[0][0] == energy:
@@ -105,13 +119,6 @@ def native_fold(heap, return_energy=False):
         return folds, len(folds), energy
     return folds, len(folds)
 
-def serialise_fold(fold):
-    """Converts a fold into a string"""
-    serialised_fold = ""
-    for coord in fold:
-        serialised_fold += f"({coord[0]}, {coord[1]})"
-
-    return serialised_fold
 
 # ========================= Executing and Saving Folds =========================
 def execute_and_save_native_fold(n):
