@@ -27,18 +27,16 @@ def path_to_shape(path):
     n_centroid = math.floor((m_10/m_00))
     m_centroid = math.floor((m_01/m_00))
     centroid = (m_centroid, n_centroid)
-
+    print("centroid ==>", centroid)
     # align temp_grid onto grid
     dev_m = 13-centroid[0]
     dev_n = 13-centroid[1]
     coord_list = np.nonzero(temp_grid)
+    print("centroid ==>", (dev_m, dev_n))
     for i in range(len(coord_list[0])):
         grid[coord_list[0][i]+dev_m][coord_list[1][i]+dev_n] = 1
-
-    # add dev_n dev_m to path 
-    path = [(coord[0]+dev_n+13, coord[1]+13+dev_m) for coord in path]
     
-    return grid
+    return grid, path
 
 
 def serialize_shape(matrix):
@@ -106,11 +104,31 @@ def serialize_path(path):
 
 
 def deserialize_path(string):
-    pass
+    """
+    Takes a string and decodes it into a path
+    """
+    path = []
+    for coord in string.split():
+        path.append(tuple(map(int, coord.split(","))))
+    return path
+
 
 
 
 if __name__ == "__main__":
-    path2 = [(0,0), (-1,0), (-1,-1), (-2,-1), (-2,0), (-2, 1), (-1, 1)]
-    matrix = path_to_shape(path2)
+    path2 = [(0,0), (-1,0), (-1,-1), (-1, -2), (0, -2), (0, -1), (1, -1)]
+    matrix, path = path_to_shape(path2)
+
+    # plot the matrix
+    import matplotlib.pyplot as plt
+    plt.imshow(matrix)
+
+    # plot the path 1 element pzer element at 1 secon dintervals 
+    for i in range(len(path)):
+        plt.scatter(path[i][0], path[i][1], c='r')
+        plt.pause(1)
+
+    
+    plt.show()
+
     

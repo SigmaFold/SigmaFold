@@ -1,8 +1,5 @@
 """
-Functions useful for the tweaking alogrithm.
-
-get_shape (random, or from_input): can be called to get a shape directly
-generate_random_shape: generates a random shape
+OBSOLETE - DO NOT TOUCH THES.
 """
 import math
 import numpy as np
@@ -17,7 +14,6 @@ def cartesian_to_matrix(path):
         
         :param path: a list of tuples of coordinates
         :param return_matrix: if True, returns the matrix corresponding to the shape as well. This is a binary matrix.
-        
         :returns: a shape id matching the ones on the database
         """
         # generate a 25 by 25 matrix in numpy
@@ -56,34 +52,7 @@ def get_shape(n=10, random=True, from_input=False):
         return generate_shape_from_input(from_input)
     return generate_random_shape(n)
 
-def sample_from_json(n):
-    """
-    Opens the fold json and truncates every path inside the list to the given n. Then, samples one path from the list. Converts it into a shape, returns the matrix and the shape id.
 
-    """
-    with open(f"data/folds/fold_16.json", "r") as f:
-        fold = json.load(f)
-        print("Parsed Fold")
-    #convert each coordinate in path and each path in fold to a tuple
-    for i in range(len(fold)):
-        for j in range(len(fold[i])):
-            fold[i][j] = tuple(fold[i][j])
-    # Truncate each path to n ensuring there are no duplicates
-    for i in range(len(fold)):
-        path = fold[i]
-        path = path[:n]
-        path = list(set(path))
-        fold[i] = path
-
-    
-    # Sample one path from the list
-    path = rnd.choice(fold)
-    # Convert the path into a matrix
-    matrix = cartesian_to_matrix(path)
-    # Convert the matrix into a shape id
-    shape_id = matrix_to_shape_id(matrix)
-
-    return matrix, shape_id
 
 
 def generate_random_shape(n):
