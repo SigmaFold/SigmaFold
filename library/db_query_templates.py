@@ -96,7 +96,10 @@ def check_shape(shape_mappings):
     return None
 
 if __name__ == "__main__":
-    seq = get_all_sequences_for_shape("Ŷ011o021o031k051l021Ń0")
+    
+    seq = get_perfect_shapes(11)
+    # seq = get_all_sequences_for_shape("Ŷ011o021o031k051l021Ń0")
     print(seq)
+    print(len(seq))
 
 

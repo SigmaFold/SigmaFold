@@ -6,7 +6,7 @@ from stable_baselines3 import DQN, PPO
 # Global Parameters
 
 models_dir = "saved_weights"
-model_path = f"{models_dir}/6610000"
+# model_path = f"{models_dir}/6610000"
 TIMESTEPS_SAVE = 100000
 iters = 0 # change initial value to latest iters to avoid overwriting files
 
@@ -23,7 +23,7 @@ def training_main(limit=False):
                          apply_api_compatibility=True,
                          disable_env_checker=False)
     
-    model = PPO.load(model_path, env=timed_env)
+    # model = PPO.load(model_path, env=timed_env)
     timed_env.reset()
 
     # Instantiate the agent
