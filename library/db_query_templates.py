@@ -5,8 +5,8 @@ Use this file if you want to write a query to do the database and don't know how
 
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from db_helper import SupabaseDB
-from shape_helper import *
+from library.db_helper import SupabaseDB
+from library.shape_helper import *
 import pandas as pd
 
 # Getting things out of the database
@@ -71,6 +71,42 @@ def get_all_sequences_for_shape(shape_id):
     sequences = pd.DataFrame(sequences.data)
 
     return sequences # return as list of np.arrays
+
+def get_all_shape_data(target_n):
+    """ Returns all shape data in the database at a target n
+
+    :params
+    :int: target_n: the length of the shape to be returned
+
+    :returns
+    :list: shapes: a list of all the shapes in the database
+    """
+    db = SupabaseDB()
+    # select all the shapes from the database where min_degeneracy = 2
+    shape_data = db.supabase.table("Shapes").select("*").eq("length", target_n).execute()
+    # convert to dataframe
+    shape_data = pd.DataFrame(shape_data.data)
+    
+    return shape_data
+
+
+def get_all_sequence_data(target_n):
+    """ Returns all sequence data in the database at a target n
+
+    :params
+    :int: target_n: the length of the shape to be returned
+
+    :returns
+    :list: sequences: a list of all the sequences in the database
+    """
+    db = SupabaseDB()
+    # select all the shapes from the database where min_degeneracy = 2
+    sequence_data = db.supabase.table("Sequences").select("*").eq("length", target_n).execute()
+
+    # convert to dataframe
+    sequence_data = pd.DataFrame(sequence_data.data)
+    
+    return sequence_data
 
 # Checking if things exist 
 

@@ -3,6 +3,7 @@ Provides a set of functions useful for saving, loading or manipulating data in t
 """
 
 from supabase import Client, create_client
+from supabase.lib.client_options import ClientOptions
 import os
 from dotenv import load_dotenv
 import numpy as np
@@ -36,7 +37,9 @@ class SupabaseDB:
 
     url: str = Config.URL
     key: str = Config.KEY
-    supabase: Client = create_client(url, key)
+    client_options = ClientOptions(postgrest_client_timeout=6000,storage_client_timeout=6000 )
+
+    supabase: Client = create_client(url, key, options=client_options)
 
 # ========================= JSON Data Saving Toolkit =========================
 def upload_data(n):

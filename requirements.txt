@@ -13,6 +13,12 @@ mmh3
 python-dotenv # handes .env files
 supabase # database
 
+# graph UI 
+plotly
+dash
+dash-bootstrap-components
+Pillow
+
 # DeepRL
 stable-baselines3
 gym >= 0.26.0
@@ -26,4 +32,5 @@ pytest
 # will also need to run the following command
 # cd tweaking-algorithm
 # pip install -e invenv
+
 
