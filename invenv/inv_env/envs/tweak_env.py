@@ -3,7 +3,6 @@ import numpy as np
 import random as rnd
 import sys, os
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(
     os.path.dirname(
     os.path.dirname(
@@ -12,9 +11,12 @@ sys.path.append(
     os.path.dirname(
     os.path.abspath(__file__)))))))
 
+print(sys.path)
+
 # Custom libraries
 import inv_env.envs.data_functions as dtf
-from heursitics_algorithm.heuristics import heuristics
+# from sigmafold.heuristics_algorithm.heuristics import heuristics
+from heuristics_algorithm import heuristics
 
 class TweakingInverse(gym.Env):
     """
