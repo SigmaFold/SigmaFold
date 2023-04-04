@@ -49,6 +49,7 @@ if os.path.exists(graph_pickle_path):
     with open(graph_pickle_path, 'rb') as f:
         G = pickle.load(f)
 else:
+    G = nx.Graph()
 
     for shape_id in shapes_df['shape_id']:
         if len(shape_id) >= 2:
