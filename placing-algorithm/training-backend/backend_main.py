@@ -113,8 +113,8 @@ def save_and_upload(n, shape_list, seq_list):
 
 
 if __name__ == '__main__':
-    set_limit =15
-    n = 12
+    set_limit =20
+    n = 14
     execution_time = {}
     while n <= set_limit:
         print("Adding data for length: ", n)
