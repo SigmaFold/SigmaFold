@@ -1,17 +1,20 @@
+import sys
+sys.path.append('c:\\users\\ec_pe\\onedrive - imperial college london\\dapp 3\\sigmafold')
+
 import gym
 import numpy as np
 import random as rnd
 import sys, os
 
-sys.path.append(
-    os.path.dirname(
-    os.path.dirname(
-    os.path.dirname(
-    os.path.dirname(
-    os.path.dirname(
-    os.path.abspath(__file__)))))))
+# sys.path.append(
+#     os.path.dirname(
+#     os.path.dirname(
+#     os.path.dirname(
+#     os.path.dirname(
+#     os.path.dirname(
+#     os.path.abspath(__file__)))))))
 
-print(sys.path)
+# print(sys.path)
 
 # Custom libraries
 import inv_env.envs.data_functions as dtf

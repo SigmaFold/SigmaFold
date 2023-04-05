@@ -7,7 +7,7 @@ import matplotlib
 # from gym import envs
 # print(envs.registry.keys())
 
-def benchmark(model, baseline, episodes_nb=100_000, metrics='default'):
+def benchmark(model, baseline='sigma_env/RAND', episodes_nb=100_000, metrics='default'):
     """
     Function that plots the learning curve of a tested model against a baseline
     model (by default, the RAND model). 
@@ -27,11 +27,13 @@ def benchmark(model, baseline, episodes_nb=100_000, metrics='default'):
     baseline_env.reset()
 
     benchmarked_model = DQN('MultiInputPolicy', benchmarked_env,
-                             learning_rate=1e-5, verbose=1)
+                             learning_rate=1e-5, verbose=1, 
+                             tensorboard_log="./log/")
     baseline_model = DQN('MultiInputPolicy', baseline_env,
-                             learning_rate=1e-5, verbose=1)
+                             learning_rate=1e-5, verbose=1,
+                             tensorboard_log="./log/")
 
-    for episode in range(episodes_nb):
-        benchmarked_model.learn()
+    benchmarked_model.learn(total_timesteps=episodes_nb)
+    baseline_model.learn(total_timesteps=episodes_nb)
 
-    
+benchmark(model='??')
