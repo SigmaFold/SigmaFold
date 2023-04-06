@@ -3,7 +3,7 @@ import gym
 import numpy as np
 from gym import spaces
 import os, sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 from library.db_query_templates import get_random_shape
 
 class SAW(gym.Env):
@@ -26,7 +26,9 @@ class SAW(gym.Env):
 
         # Dynamic attributes
         self.starting_pos = np.ndarray(shape=(2,))
-        self.current_pos = tuple()
+        # declare current position as a numpy row vector
+        self.current_pos = np.ndarray(shape=(2,))
+
         self.folding_onehot = np.ndarray(shape=(4, length)) # one-hot encoding of the SAW
         self.folding_matrix = np.ndarray(shape=(25, 25)) # as a visual matrix
         self.curr_length = int()
@@ -50,7 +52,12 @@ class SAW(gym.Env):
         self.target_shape = get_random_shape(self.length)
         self.folding_onehot = np.zeros((4, self.length)) # initialise the one-hot encoding to 0 for all actions
         self.folding_matrix = np.zeros((25, 25))
-        self.starting_pos = np.ndarray(shape=(2,)) # Here: put Josh's algo
+
+        # start in a posoition that is a 1 in the target shape matrix
+        #TODO: Add Josh's algo here.
+        self.starting_pos = np.where(self.target_shape == 1)
+        self.starting_pos = np.array([self.starting_pos[0][0], self.starting_pos[1][0]])
+        self.folding_matrix[self.starting_pos[1], self.starting_pos[0]] += 1
         self.curr_length = 0
         self.current_pos = tuple(self.starting_pos)
         return self._get_obs()
@@ -61,8 +68,6 @@ class SAW(gym.Env):
         # self.folding_onehot[4, self.curr_length] = 0
         self.curr_length += 1
         obs = self._get_obs()
-
-        
         action_to_move = {
             0: (0, 1),
             1: (0, -1),
@@ -70,10 +75,8 @@ class SAW(gym.Env):
             3: (1,0 ),
         }
         self.current_pos = tuple(np.add(self.current_pos, action_to_move[action]))
-        self.folding_matrix[self.current_pos] = 1
-
-        
-
+        print("Current Pos", self.current_pos)
+        self.folding_matrix[self.current_pos[1], self.current_pos[0]] += 1
 
         # done = True if (self.curr_lengt == self.length) else False
         reward, done = self.compute_reward()
@@ -110,7 +113,7 @@ class SAW(gym.Env):
             reward = 1
             done = True
         
-        elif np.any(self.folding_matrx > 1):
+        elif np.any(self.folding_matrix > 1):
             reward = -1
             done = True
 
