@@ -56,6 +56,24 @@ def get_random_shape(target_n=10):
 
     return random_shape, shape_id
 
+def get_random_shape_id(target_n=10):
+    """ Returns a random shape id from the database
+    PREQUESITE: You must have a .env file in the root directory with the following variables:
+    URL: the url of the database
+    KEY: the secret key for the database
+
+    :params
+    :int: target_n: the length of the shape to be returned
+
+    :returns
+    :string: random_shape_id: a random shape from the database
+    """
+    db = SupabaseDB()
+    # select a random element from the database
+    random_shape = db.supabase.table("random_shape").select("*").eq("length", target_n).limit(1).execute()
+
+    return random_shape # return as list of strings
+
 
 def get_all_sequences_for_shape(shape_id):
     """ Returns all sequences for a given shape and their data.
@@ -134,8 +152,23 @@ def check_shape(shape_mappings):
     return None
 
 if __name__ == "__main__":
-    seq = get_all_sequences_for_shape("Ɛ011n041l041l041Ł0")
-    print(seq)
+    sequences = get_all_sequences_for_shape("Ɛ011n041l041l041Ł0")
+
+    # sort sequences by degenracy in an ascending order and save the first one in a variable
+    sequences = sequences.sort_values(by=["degeneracy"], ascending=True)
+    best_sequence = sequences.iloc[0]
+    sequence = best_sequence["sequence"]
+    path = best_sequence["path"]
+    print(path)
+    # separate the path into a list of nodes
+    path = path.split(" ")
+    path.remove("")
+    print(path)
+    path = [tuple(map(int, node.split(","))) for node in path]
+    print(path)
+
+
+
     # import matplotlib.pyplot as plt
 
 

@@ -3,7 +3,7 @@ import gym
 import numpy as np
 from gym import spaces
 import os, sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 from library.db_query_templates import *
 from library.shape_helper import *
 

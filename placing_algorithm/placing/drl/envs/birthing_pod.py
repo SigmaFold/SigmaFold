@@ -8,11 +8,11 @@ class RootInverse(gym.Env):
 
         # Static attributes
         self.seq_length = seq_length
-        self.base_num = base_num
+        self.base_num = base_num    # number of bases (H or P)
 
         # Dynamic attributes
-        self.sequence = np.array((2, seq_length))
-        self.target = np.array((25, 25))
+        # self.sequence = np.array((2, seq_length))
+        self.target = np.array((25, 25))    # target shape
 
         # Environment attributes
         low = np.array([0, 0, 0], dtype=np.float64)
@@ -22,4 +22,4 @@ class RootInverse(gym.Env):
         self.observation_space = spaces.Box(low=low, high=high, dtype=np.float64)
 
         # Reward related attributes
-        self.divergence = 10 # number of different bases
+        # self.divergence = 10 # number of different bases
