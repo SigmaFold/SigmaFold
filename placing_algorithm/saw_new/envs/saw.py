@@ -1,11 +1,12 @@
 import sys # stoopid
 import gym
 import numpy as np
+import pandas as pd
 from gym import spaces
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 from library.db_query_templates import get_random_shape, get_all_sequences_for_shape
-from library.shape_helper import 
+from library.shape_helper import path_to_shape_numbered, deserialize_path
 
 class SAW(gym.Env):
     """
@@ -48,24 +49,24 @@ class SAW(gym.Env):
         self.action_space = spaces.Discrete(4) # {0, 1, 2}
         self.observation_space = spaces.Dict(observation_dict)
 
-    @staticmethod
-    def get_best_starting_point(shape_id):
+
+    def get_best_starting_point(self, shape_id):
         sequences = get_all_sequences_for_shape(shape_id)
-        # sort by degeneracy column ``
-        sequences = sequences.sortby('degeneracy', ascending=False)
+        # sort df by degeneracy
+        sequences = sequences.sort_values(by=['degeneracy'], ascending=False)
         # get the first row
-        best_sequence = sequences.iloc[0]
-        
+        best_sequence = sequences.iloc[0]    
         # get the path of the first row 
         path = best_sequence['path']
-        # get the starting point of the first row
+        # convert path to list of tuples
+        path = deserialize_path(path)
+        _, path = path_to_shape_numbered(path)
+        # get the starting point of the path
         starting_point = path[0]
+        # convert to ndarray
+        starting_point = np.array(starting_point)
         return starting_point
-
-
-
-
-
+    
 
     def reset(self, options=None, seed=None):
         self.target_shape, shape_id = get_random_shape(self.length)
@@ -75,6 +76,7 @@ class SAW(gym.Env):
         self.folding_matrix = np.zeros((25, 25))
 
         # start in a posoition that is a 1 in the target shape matrix
+        self.starting_pos = self.get_best_starting_point(shape_id)
         
 
 
@@ -93,7 +95,7 @@ class SAW(gym.Env):
             0: (0, 1),
             1: (0, -1),
             2: (-1, 0),
-            3: (1,0 ),
+            3: (1,0),
         }
         self.current_pos = tuple(np.add(self.current_pos, action_to_move[action]))
         self.folding_matrix[self.current_pos[1], self.current_pos[0]] += 1
@@ -144,5 +146,3 @@ class SAW(gym.Env):
         
         
         
-        
-

@@ -3,7 +3,7 @@ import numpy as np
 from gym import spaces
 
 class RootInverse(gym.Env):
-    def __init__(self, base_num=2, seq_length=15) -> None:
+    def __init__(self, base_num=4, seq_length=15) -> None:
         super().__init__()
 
         # Static attributes

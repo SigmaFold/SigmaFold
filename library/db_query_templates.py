@@ -48,11 +48,10 @@ def get_random_shape(target_n=10):
     db = SupabaseDB()
     # select a random element from the database
     random_shape = db.supabase.table("random_shape").select("*").eq("length", target_n).limit(1).execute()
-
-    # deserialize it 
-    random_shape = deserialize_shape(random_shape.data[0]["shape_id"])
-
     shape_id = random_shape.data[0]["shape_id"]
+    random_shape = deserialize_shape(random_shape.data[0]["shape_id"])
+    print(random_shape)
+    
 
     return random_shape, shape_id
 

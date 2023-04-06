@@ -15,12 +15,12 @@ def test_saw():
     test_reset()
 
 def test_reset():
-    env = SAW(length=5)
+    env = SAW(length=10)
     obs = env.reset()
     print("Observation:", obs)
     assert obs["target"].shape == (25, 25)
     assert obs["starting_pos"].shape == (2,)
-    assert obs["folding_onehot"].shape == (4, 5)
+    assert obs["folding_onehot"].shape == (4,10)
     assert obs["folding_onehot"].sum() == 0
 
 def test_step():
@@ -56,4 +56,4 @@ def test_step():
 
 
 if __name__ == "__main__":
-    test_step()
+    test_reset()
