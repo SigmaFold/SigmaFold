@@ -132,10 +132,12 @@ def check_shape(shape_mappings):
     return None
 
 if __name__ == "__main__":
-    
-    seq = get_perfect_shapes(11)
-    # seq = get_all_sequences_for_shape("Ŷ011o021o031k051l021Ń0")
+    seq = get_all_sequences_for_shape("Ɛ011n041l041l041Ł0")
     print(seq)
-    print(len(seq))
+    # import matplotlib.pyplot as plt
 
 
+    # seqs = get_perfect_shapes(16)
+    # print(len(seqs))
+    # plt.matshow(seqs[0])
+    # plt.show()
