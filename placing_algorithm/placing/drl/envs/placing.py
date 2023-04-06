@@ -40,16 +40,8 @@ class Placing(gym.Env):
         self.observation_space = spaces.Dict(observation_dict)
 
 
-    def reset(self, options=None, seed=None):
-        self.target_shape = get_random_shape(self.length)
-        self.folding_onehot = np.tile(np.array([[0,0,0,1]]).transpose(), (1, self.length))
-        self.folding_matrix = np.zeros((25, 25))
-        self.starting_pos = np.ndarray(shape=(2,)) # Here: put Josh's algo
-        self.curr_length = 0
-        return self._get_obs()
-    
     def generate_path(self):
-        shape_id = get_random_shape_id(self.length)
+        _, shape_id = get_random_shape(self.length)
         sequences = get_all_sequences_for_shape(shape_id)
 
         # sort sequences by degeneracy in an ascending order and save the first one's sequence and path
@@ -65,10 +57,14 @@ class Placing(gym.Env):
         # convert the strings in path to tuples seperated by commas
         path = [tuple(map(int, node.split(","))) for node in path]
 
-        path_mat = path_to_shape(path, self.length)
-
-
-        # convert the path into a 
+        path_mat = path_to_shape_numbered(path, self.length)
+        return path_mat
+    
+    
+    def reset(self, options=None, seed=None):
+        self.target_shape = get_random_shape(self.length)
+        self.path_shape = self.generate_path()
+        return self._get_obs()
         
 
     def step(self, action):
