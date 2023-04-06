@@ -19,7 +19,7 @@ import sys, os
 # Custom libraries
 import inv_env.envs.data_functions as dtf
 # from sigmafold.heuristics_algorithm.heuristics import heuristics
-from heuristics_algorithm import heuristics
+from library import heuristics
 
 class TweakingInverse(gym.Env):
     """

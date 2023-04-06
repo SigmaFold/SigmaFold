@@ -17,6 +17,10 @@ supabase # database
 plotly
 dash
 dash-bootstrap-components
+dash-core-components
+dash-html-components
+gunicorn
+plotly
 Pillow
 
 # DeepRL
