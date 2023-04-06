@@ -52,7 +52,9 @@ def get_random_shape(target_n=10):
     # deserialize it 
     random_shape = deserialize_shape(random_shape.data[0]["shape_id"])
 
-    return random_shape # return as list of np.arrays
+    shape_id = random_shape.data[0]["shape_id"]
+
+    return random_shape, shape_id
 
 
 def get_all_sequences_for_shape(shape_id):

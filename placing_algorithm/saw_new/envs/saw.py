@@ -4,7 +4,8 @@ import numpy as np
 from gym import spaces
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-from library.db_query_templates import get_random_shape
+from library.db_query_templates import get_random_shape, get_all_sequences_for_shape
+from library.shape_helper import 
 
 class SAW(gym.Env):
     """
@@ -47,16 +48,36 @@ class SAW(gym.Env):
         self.action_space = spaces.Discrete(4) # {0, 1, 2}
         self.observation_space = spaces.Dict(observation_dict)
 
+    @staticmethod
+    def get_best_starting_point(shape_id):
+        sequences = get_all_sequences_for_shape(shape_id)
+        # sort by degeneracy column ``
+        sequences = sequences.sortby('degeneracy', ascending=False)
+        # get the first row
+        best_sequence = sequences.iloc[0]
+        
+        # get the path of the first row 
+        path = best_sequence['path']
+        # get the starting point of the first row
+        starting_point = path[0]
+        return starting_point
+
+
+
+
+
 
     def reset(self, options=None, seed=None):
-        self.target_shape = get_random_shape(self.length)
+        self.target_shape, shape_id = get_random_shape(self.length)
+        
+
         self.folding_onehot = np.zeros((4, self.length)) # initialise the one-hot encoding to 0 for all actions
         self.folding_matrix = np.zeros((25, 25))
 
         # start in a posoition that is a 1 in the target shape matrix
-        #TODO: Add Josh's algo here.
-        self.starting_pos = np.where(self.target_shape == 1)
-        self.starting_pos = np.array([self.starting_pos[0][0], self.starting_pos[1][0]])
+        
+
+
         self.folding_matrix[self.starting_pos[1], self.starting_pos[0]] += 1
         self.curr_length = 0
         self.current_pos = tuple(self.starting_pos)
@@ -75,7 +96,6 @@ class SAW(gym.Env):
             3: (1,0 ),
         }
         self.current_pos = tuple(np.add(self.current_pos, action_to_move[action]))
-        print("Current Pos", self.current_pos)
         self.folding_matrix[self.current_pos[1], self.current_pos[0]] += 1
 
         # done = True if (self.curr_lengt == self.length) else False
