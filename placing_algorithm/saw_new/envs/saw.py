@@ -59,11 +59,13 @@ class SAW(gym.Env):
         sequences = sequences.sort_values(by=['degeneracy'], ascending=True)
         # get the first row
         best_sequence = sequences.iloc[0]    
+        # get the sequence of the first row 
+        sequence = best_sequence['sequence']
         # get the path of the first row 
         path = best_sequence['path']
         # convert path to list of tuples
         path = deserialize_path(path)
-        _, path = path_to_shape_numbered(path)
+        _, _, path = path_to_shape_numbered(path, sequence)
         # get the starting point of the path
         starting_point = path[0]
         # convert to ndarray
