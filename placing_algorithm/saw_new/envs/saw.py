@@ -119,12 +119,14 @@ class SAW(gym.Env):
         # self.folding_onehot[4, self.curr_length] = 0
         self.curr_length += 1
         obs = self._get_obs()
+
         action_to_move = {
             0: (0, 1),
             1: (0, -1),
             2: (-1, 0),
             3: (1,0),
         }
+        
         self.current_pos = tuple(np.add(self.current_pos, action_to_move[action]))
         self.folding_matrix[self.current_pos[1], self.current_pos[0]] += 1
         self.render()
@@ -134,19 +136,25 @@ class SAW(gym.Env):
                 
 
     def render(self):
+        """
+        Render the environment to the screen.
+        """
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-        
 
         # render the current pos as a green square overwriting the target shape
         pygame.draw.rect(self.shape_surface, (0,255,0), (self.current_pos[0]*self.cell_size, self.current_pos[1]*self.cell_size, self.cell_size, self.cell_size))
         self.screen.blit(self.shape_surface, (0,0))      
         time.sleep(3)
         pygame.display.flip()
+
     def _get_obs(self):
+        """
+        Get the observation of the environment.
+        """
         obs = {
             'target': self.target_shape,
             'folding_onehot': self.folding_onehot,
@@ -156,6 +164,7 @@ class SAW(gym.Env):
 
     def compute_reward(self):
         """
+        Reward Function.
         If the folding matrix is the same as the target shape, then reward is 1.
         Else, reward is 0.
         """
