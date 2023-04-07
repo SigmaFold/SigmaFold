@@ -42,8 +42,7 @@ class SAW(gym.Env):
         # Spaces
         observation_dict = {
             'target': spaces.Box(0, 1, shape=(25,25), dtype=np.uint8),
-            'starting_pos': spaces.Box(0, 25, shape=(2,), dtype=np.uint8),
-            'folding_onehot': spaces.Box(0, 1, shape=(4,self.length), dtype=np.uint8),
+            'folding_onehot': spaces.Box(0, 1, shape=(4,self.length), dtype=np.uint8)
         }
 
         action_dict = {
@@ -52,7 +51,7 @@ class SAW(gym.Env):
         } 
         self.action_space = spaces.Discrete(4) # {0, 1, 2, 3}
         self.observation_space = spaces.Dict(observation_dict)
-
+        print(self.observation_space)
 
     def get_best_starting_point(self, shape_id):
         sequences = get_all_sequences_for_shape(shape_id)
@@ -69,7 +68,6 @@ class SAW(gym.Env):
         starting_point = path[0]
         # convert to ndarray
         starting_point = np.array(starting_point)
-        print(starting_point)
 
         # check if the starting point is valid
         if self.target_shape[starting_point[1], starting_point[0]] == 0:
@@ -81,7 +79,7 @@ class SAW(gym.Env):
     def reset(self, options=None, seed=None):
         self.target_shape, shape_id = get_random_shape(self.length)
         
-
+        
         self.folding_onehot = np.zeros((4, self.length)) # initialise the one-hot encoding to 0 for all actions
         self.folding_matrix = np.zeros((25, 25))
 
@@ -90,7 +88,8 @@ class SAW(gym.Env):
         self.folding_matrix[self.starting_pos[1], self.starting_pos[0]] += 1
         self.curr_length = 0
         self.current_pos = np.copy(self.starting_pos)
-        print(self.target_shape)
+
+     
         if self.render_mode == "human":
             pygame.init()
             self.screen_size = (500, 500)
@@ -155,11 +154,13 @@ class SAW(gym.Env):
         """
         Get the observation of the environment.
         """
+        # IMPORTANT, SET THE DATATYPE TO BE CORRECT HERE !
         obs = {
-            'target': self.target_shape,
-            'folding_onehot': self.folding_onehot,
-            'starting_pos': self.starting_pos,
+            'target': self.target_shape.astype(np.uint8),
+            'folding_onehot': self.folding_onehot.astype(np.uint8),
+            #TODO temporarily removed the starting pos from the observation in case its not relevant. add and compare results
         }
+        print("obs", obs)
         return obs
 
     def compute_reward(self):

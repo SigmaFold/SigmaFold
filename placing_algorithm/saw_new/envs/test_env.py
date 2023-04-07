@@ -1,13 +1,10 @@
-import tensorflow as tf
+from stable_baselines3.common.env_checker import check_env
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+from placing_algorithm.saw_new.envs.baseline import SAW
 
-cifar = tf.keras.datasets.cifar100
-(x_train, y_train), (x_test, y_test) = cifar.load_data()
-model = tf.keras.applications.ResNet50(
-    include_top=True,
-    weights=None,
-    input_shape=(32, 32, 3),
-    classes=100,)
+env = SAW(length=10, render_mode="human")
+check_env(env, warn=True)
 
-loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-model.compile(optimizer="adam", loss=loss_fn, metrics=["accuracy"])
-model.fit(x_train, y_train, epochs=5, batch_size=64)
+# IMPORTANT: If you get an error saying gym has no GoalENv, comment out that line in the satble baselines code by pression control enter on the error.
+# This should run perfectly to ensure that your environment is working correctly.
