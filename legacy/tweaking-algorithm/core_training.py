@@ -2,7 +2,6 @@ import numpy as np
 import gym
 import pip
 from stable_baselines3 import DQN, PPO
-from inv_env import register
 
 # Global Parameters
 

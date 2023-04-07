@@ -5,6 +5,7 @@ import gym
 import numpy as np
 from gym import spaces
 import library
+
 class SAW(gym.Env):
     """
     In this env, we use 1-hot encoding.
@@ -15,7 +16,6 @@ class SAW(gym.Env):
     |  Left   |
     |  Right  |
     +---------+
-
     """
     def __init__(self, length) -> None:
         super().__init__()
