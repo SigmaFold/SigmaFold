@@ -16,7 +16,7 @@ class SAW(gym.Env):
     4 rows:
     +---------+
     |   Down  |
-    |  Up     |
+    |    Up   |
     |  Left   |
     |  Right  |
     +---------+
@@ -52,7 +52,6 @@ class SAW(gym.Env):
         } 
         self.action_space = spaces.Discrete(4) # {0, 1, 2, 3}
         self.observation_space = spaces.Dict(observation_dict)
-        print(self.observation_space)
 
     def get_best_starting_point(self, shape_id):
         sequences = get_all_sequences_for_shape(shape_id)
@@ -173,7 +172,7 @@ class SAW(gym.Env):
         If the folding matrix is the same as the target shape, then reward is 1.
         Else, reward is 0.
         """
-        reward = 0
+        reward = 0.1*self.curr_length
         done = False
         # TODO : Final path similarity reward
         diff_matrix  = self.target_shape - self.folding_matrix

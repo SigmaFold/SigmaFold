@@ -14,10 +14,10 @@ python-dotenv # handes .env files
 supabase # database
 pygame
 Pillow
-
+setuptools==65.5.0
 # DeepRL
 stable-baselines3
-gym >= 0.26.0
+gym ==0.21.0
 keras # really?
 sb3-contrib
 #tensorflow
