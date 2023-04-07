@@ -7,8 +7,8 @@ from stable_baselines3 import DQN
 from invenv.inv_env import register
 
 # To test Gym registration
-# from gym import envs
-# print(envs.registry.keys())
+from gym import envs
+print(envs.registry.keys())
 
 def comparative_benchmark(model, baseline='sigma_env/RAND', episodes_nb=100_000, metrics='default'):
     """
@@ -39,8 +39,23 @@ def comparative_benchmark(model, baseline='sigma_env/RAND', episodes_nb=100_000,
     benchmarked_model.learn(total_timesteps=episodes_nb)
     baseline_model.learn(total_timesteps=episodes_nb)
 
-def single_benchmark():
-    pass
+def standard_benchmark(
+        benchmarked_env,
+        agent,
+        net_arch,
+        net_params,
+        training_length=100_000,
+        name='auto'
+        ):
+    env = gym.make(id=benchmarked_env)
+    model = agent(net_arch, env, **net_params, tensorboard_log=f"./logs/{name}")
+    model.learn(training_length)
 
-if __name__ == '__main__':
-    env = gym.make('inv_fold/TweakWorld-v0')
+# if __name__ == '__main__':
+    # # env = gym.make('sigma_env/TweakWorld-v0')
+    # default_params = {
+    #     "learning_rate": 1e-5,
+    #     "verbose": 1,
+    # }
+    # standard_benchmark('sigma_env/TweakWorld-v0', DQN, 'MultiInputPolicy', default_params, )
+    

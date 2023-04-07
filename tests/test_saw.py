@@ -1,6 +1,7 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from placing_algorithm.saw_new.envs.saw import SAW
+# from placing_algorithm.saw_new.envs.saw import SAW
+from invenv.inv_env.envs.saw import SAW
 import matplotlib.pyplot as plt
 
 
