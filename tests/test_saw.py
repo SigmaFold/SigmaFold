@@ -29,9 +29,6 @@ def test_step():
     actions = [0, 1, 0, 2] # should fail at 3rd step
     # display the target shape, overlay the folding matrix
     # uncomment if you want to see the folding matrix at each step
-    plt.imshow(env.target_shape, cmap="gray")
-    plt.imshow(env.folding_matrix, cmap="jet", alpha=0.3)
-    plt.show()
     for action in actions:
         obs, reward, done, info = env.step(action)
         print("Action:", action)
@@ -41,10 +38,7 @@ def test_step():
         print("Reward:", reward)
         print("Done:", done)
         print("------")
-        # uncomment if you want to see the folding matrix at each step
-        plt.imshow(env.target_shape, cmap="gray")
-        plt.imshow(env.folding_matrix, cmap="jet", alpha=0.5)
-        plt.show()
+    
     assert env.curr_length == 4
     assert done == True
     

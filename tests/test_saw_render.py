@@ -7,10 +7,10 @@ from placing_algorithm.saw_new.envs.baseline import RANDSAW, SAW
 
 
 def test_render():
-    env = SAW(length=10, render_mode="human")
+    env = SAW(length=10, render_mode=None)
     actions = [0, 2, 1, 3]
     obs = env.reset()
-    env.render()
+    # env.render()
 
     done = False
     step_count = 0
