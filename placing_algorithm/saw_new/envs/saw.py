@@ -16,7 +16,7 @@ class SAW(gym.Env):
     4 rows:
     +---------+
     |   Down  |
-    | Up      |
+    |  Up     |
     |  Left   |
     |  Right  |
     +---------+
@@ -43,6 +43,7 @@ class SAW(gym.Env):
         observation_dict = {
             'target': spaces.Box(0, 1, shape=(25,25), dtype=np.uint8),
             'folding_onehot': spaces.Box(0, 1, shape=(4,self.length), dtype=np.uint8)
+            #TODO: add starting position
         }
 
         action_dict = {
@@ -120,7 +121,7 @@ class SAW(gym.Env):
         # self.folding_onehot[4, self.curr_length] = 0
         self.curr_length += 1
         obs = self._get_obs()
-
+        #TODO: change back to tbd one hot
         action_to_move = {
             0: (0, 1),
             1: (0, -1),
@@ -130,7 +131,8 @@ class SAW(gym.Env):
         
         self.current_pos = tuple(np.add(self.current_pos, action_to_move[action]))
         self.folding_matrix[self.current_pos[1], self.current_pos[0]] += 1
-        self.render()
+        if self.render_mode == "human":
+            self.render()
         # done = True if (self.curr_lengt == self.length) else False
         reward, done = self.compute_reward()
         return obs, reward, done, {}
@@ -140,7 +142,6 @@ class SAW(gym.Env):
         """
         Render the environment to the screen.
         """
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -149,7 +150,7 @@ class SAW(gym.Env):
         # render the current pos as a green square overwriting the target shape
         pygame.draw.rect(self.shape_surface, (0,255,0), (self.current_pos[0]*self.cell_size, self.current_pos[1]*self.cell_size, self.cell_size, self.cell_size))
         self.screen.blit(self.shape_surface, (0,0))      
-        time.sleep(3)
+        time.sleep(0.5)
         pygame.display.flip()
 
     def _get_obs(self):
@@ -163,7 +164,7 @@ class SAW(gym.Env):
             #TODO temporarily removed the starting pos from the observation in case its not relevant. add and compare results
             #TODO: Shoild we add the folding matrix to the observation?
         }
-        print("obs", obs)
+        # print("obs", obs)
         return obs
 
     def compute_reward(self):
@@ -174,7 +175,7 @@ class SAW(gym.Env):
         """
         reward = 0
         done = False
-
+        # TODO : Final path similarity reward
         diff_matrix  = self.target_shape - self.folding_matrix
         
         # if any element is equal to -1 then something was placed out of bounds 

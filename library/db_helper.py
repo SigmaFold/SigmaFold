@@ -37,7 +37,7 @@ class SupabaseDB:
 
     url: str = Config.URL
     key: str = Config.KEY
-    client_options = ClientOptions(postgrest_client_timeout=6000,storage_client_timeout=6000 )
+    client_options = ClientOptions(postgrest_client_timeout=600.0)
 
     supabase: Client = create_client(url, key, options=client_options)
 
