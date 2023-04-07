@@ -26,7 +26,8 @@ Pillow
 # DeepRL
 stable-baselines3
 gym >= 0.26.0
-keras
+keras # really?
+sb3-contrib
 #tensorflow
 
 # Unit testing 

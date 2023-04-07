@@ -15,3 +15,7 @@ register(
     entry_point="inv_env.envs:RankingReward",
 )
 
+register(
+    id="sigma_env/SAW-v0",
+    entry_point="inv_env.envs:SAW"
+)
