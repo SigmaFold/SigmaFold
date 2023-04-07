@@ -16,7 +16,7 @@ def test_run_random_agent_episodes():
         while not done:
             action = env.action_space.sample()  # Sample a random action
             obs, reward, done, info = env.step(action)
-            print("Obbservation:", obs)
+            print("Observation:", obs)
 
             total_reward += reward
             num_steps += 1

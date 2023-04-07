@@ -27,7 +27,7 @@ Pillow
 stable-baselines3
 gym >= 0.26.0
 keras
-tensorflow
+#tensorflow
 
 # Unit testing 
 pytest
