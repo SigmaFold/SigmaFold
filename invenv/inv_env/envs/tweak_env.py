@@ -1,27 +1,18 @@
 import sys
-sys.path.append('c:\\users\\ec_pe\\onedrive - imperial college london\\dapp 3\\sigmafold')
+sys.path.append('c:/Users/ec_pe/OneDrive - Imperial College London/DAPP3/SigmaFold/')
 
 import gym
 import numpy as np
 import random as rnd
 import sys, os
 
-# sys.path.append(
-#     os.path.dirname(
-#     os.path.dirname(
-#     os.path.dirname(
-#     os.path.dirname(
-#     os.path.dirname(
-#     os.path.abspath(__file__)))))))
-
-# print(sys.path)
-
 # Custom libraries
-import inv_env.envs.data_functions as dtf
-# from sigmafold.heuristics_algorithm.heuristics import heuristics
-from library import heuristics
+from library.heuristics import heuristics
+from library import db_query_templates as query
+from inv_env.envs import modular_spaces as msp # o/m, s, t, mus, tis, nt
+from inv_env.envs import modular_reward as mre # mgsv?
 
-class TweakingInverse(gym.Env):
+class TweakingInverse(gym.Env, msp.ClassicDictSpace):
     """
     Final class for the implementation of the learning environment for the 
     tweaking algorthm
@@ -92,7 +83,12 @@ class TweakingInverse(gym.Env):
         -> DONE
     """
 
-    DEFAULT_HP_TABLE = {
+    HP_FORWARD = {
+        1: 'H',
+        0: 'P',
+    }
+
+    HP_BACKWARD = {
         'H': 1,
         'P': 0,
     }
@@ -108,33 +104,33 @@ class TweakingInverse(gym.Env):
         self.base_num = base_num
         self.amino_code_table = amino_code_table
 
-        # Dynamic core attributes
-        self.sequence_int = 8
+        # Dynamic attributes
         self.sequence_list = list()
-        self.sequence_str = str()
-        self.target_shape = np.ndarray(shape=None) # TODO: improve init shape
+        self.sequence_1hot = np.ndarray(shape=(2, self.seq_length))
+        self.target_shape = np.ndarray(shape=(25, 25))
 
     def reset(self, options=None,seed=None):
         # Stuff must happen here
+        self.target_shape, _ = query.get_random_shape(self.seq_length)
+        self.sequence_list = list(heuristics(self.target_shape))
+        self.sequence_1hot = np.zeros((self.base_num, self.seq_length))
+        for index, amino in enumerate(self.sequence_list):
+            self.sequence_1hot[amino, index] = 1
 
-        self.sequence_str = heuristics(self.target_shape)
-        self.sequence_int = self._encode(dtf.seq_heur2env(seq=self.sequence_str))
-        self.sequence_list = self._decode(self.sequence_int)
-        obs = self._get_obs(self)
+        obs = self.get_obs(self)
         return obs
 
     def step(self, action):
         index, amino_code = self._parse_action(action)
         
-        # updating everything
-        if self.sequence_list[index] == amino_code:
-            amino_code = int(not amino_code)
-        
-        self.sequence_list[index] = amino_code
-        self.sequence_int = self._encode(self.sequence_list)
-        self.sequence_str = dtf.seq_list2str(self.sequence_list)
-        
-        # print(self.sequence_str)
+        # Update sequence + make sure action does have an impact
+        # if self.sequence_list[index] == amino_code:
+        #     amino_code = int(not amino_code)
+
+        self.sequence_list[index] = self.amino_code_table[amino_code] 
+        self.sequence_1hot[:,index] = np.array([[0, 0]]).transpose()
+        self.sequence_1hot[amino_code, index] = 1     
+
         reward, done, info = self.compute_reward()
         obs = self.get_obs()
         info['seq_list'] = self.sequence_list
@@ -143,53 +139,11 @@ class TweakingInverse(gym.Env):
     
     def render(self):
         return None
-    
-    def get_obs(self):
-        """
-        Important method that controls the flux of information towards
-        the neural network.
-        """
-        return self._get_obs(self)
-
-    def _decode(self, number) -> list:
-        """
-        Method to convert a base10 number into a baseX number (ie, decoding)
-        Ex:
-            154 --> 010011010
-        There is 0-padding on the left.
-        """
-        digit_list = list()
-
-        b = self.base_num
-        
-        while number:
-            digit_list.append(number % b)
-            number = number // b
-        while len(digit_list) < self.seq_length:
-            digit_list.insert(0, 0)
-
-        return digit_list
-
-    def _encode(self, number: list[int]) -> int:
-        """
-        Method to convert a baseX number into a base10 number (ie, encoding)
-        Ex:
-               010011010 --> 154
-        HP model (base2) --> Neural Network compatible value
-        """
-
-        split_num = number
-        b = self.base_num
-        i = len(split_num) - 1 # TODO: is there really a -1 ?
-
-        result = sum([int(digit)*(b**(i-index)) for index, digit in 
-            enumerate(split_num)])
-
-        return result
 
     def _parse_action(self, action):
         index = action // self.base_num
         amino_code = action % self.base_num
         
         return index, amino_code
+    
     

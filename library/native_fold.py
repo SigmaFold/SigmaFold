@@ -1,11 +1,14 @@
 """
 Provides a set a function to find and compute the energy of all possible paths with speedups where possible.
 """
+import sys
+sys.path.append('c:/Users/ec_pe/OneDrive - Imperial College London/DAPP3/SigmaFold/')
+
 import heapq
 from math import ceil
 import json
 import matplotlib.pyplot as plt
-import permutations_helper as ph
+# import permutations_helper as ph
 
 # Brute Force Folding Functions
 

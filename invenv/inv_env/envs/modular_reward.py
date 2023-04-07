@@ -8,18 +8,9 @@ import scipy as sc
 import matplotlib.pyplot as plt
 import math
 import sys
-import os
 import gym
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(
-    os.path.dirname(
-    os.path.dirname(
-    os.path.dirname(
-    os.path.dirname(
-    os.path.dirname(
-    os.path.abspath(__file__)))))))
-
+sys.path.append('c:/Users/ec_pe/OneDrive - Imperial College London/DAPP3/SigmaFold/')
 import library.native_fold as nf
 from legacy import tweaking_helper as ttk
 import library.db_helper as dbtk

@@ -93,7 +93,7 @@ class ClassicDictSpace:
         - Reward breakdown
     This will be fed into a MultiInputPolicy network
     """
-    def __init__(self, base_num, seq_length):
+    def __init__(self, base_num=2, seq_length=10):
         obs_struct = {
             'sequence_int': spaces.Discrete(2**seq_length), 
             'target_folded': spaces.Box(
