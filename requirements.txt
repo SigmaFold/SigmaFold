@@ -12,15 +12,7 @@ tabulate # prints tables nice and sexy
 mmh3
 python-dotenv # handes .env files
 supabase # database
-
-# graph UI 
-plotly
-dash
-dash-bootstrap-components
-dash-core-components
-dash-html-components
-gunicorn
-plotly
+pygame
 Pillow
 
 # DeepRL
