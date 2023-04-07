@@ -159,6 +159,7 @@ class SAW(gym.Env):
             'target': self.target_shape.astype(np.uint8),
             'folding_onehot': self.folding_onehot.astype(np.uint8),
             #TODO temporarily removed the starting pos from the observation in case its not relevant. add and compare results
+            #TODO: Shoild we add the folding matrix to the observation?
         }
         print("obs", obs)
         return obs
