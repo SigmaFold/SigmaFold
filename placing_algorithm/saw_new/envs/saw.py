@@ -147,10 +147,11 @@ class SAW(gym.Env):
                 sys.exit()
 
         # render the current pos as a green square overwriting the target shape
-        pygame.draw.rect(self.shape_surface, (0,255,0), (self.current_pos[0]*self.cell_size, self.current_pos[1]*self.cell_size, self.cell_size, self.cell_size))
-        self.screen.blit(self.shape_surface, (0,0))      
-        time.sleep(0.5)
-        pygame.display.flip()
+        if self.render_mode == "human":
+            pygame.draw.rect(self.shape_surface, (0,255,0), (self.current_pos[0]*self.cell_size, self.current_pos[1]*self.cell_size, self.cell_size, self.cell_size))
+            self.screen.blit(self.shape_surface, (0,0))      
+            time.sleep(0.5)
+            pygame.display.flip()
 
     def _get_obs(self):
         """
