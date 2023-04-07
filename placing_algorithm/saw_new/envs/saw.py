@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from gym import spaces
 import os, sys
+import pygame
+import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 from library.db_query_templates import get_random_shape, get_all_sequences_for_shape
 from library.shape_helper import path_to_shape_numbered, deserialize_path
@@ -19,11 +21,13 @@ class SAW(gym.Env):
     |  Right  |
     +---------+
     """
-    def __init__(self, length) -> None:
+    def __init__(self, length, render_mode=None) -> None:
         super().__init__()
+        
 
         # Static attributes
         self.length = length
+        self.render_mode = render_mode # activates or deativates the UI. Activated if set to "human"
         self.target_shape = np.array((25, 25))
 
         # Dynamic attributes
@@ -67,7 +71,7 @@ class SAW(gym.Env):
         starting_point = np.array(starting_point)
         return starting_point
     
-
+    
     def reset(self, options=None, seed=None):
         self.target_shape, shape_id = get_random_shape(self.length)
         
@@ -77,12 +81,25 @@ class SAW(gym.Env):
 
         # start in a posoition that is a 1 in the target shape matrix
         self.starting_pos = self.get_best_starting_point(shape_id)
-        
-
-
         self.folding_matrix[self.starting_pos[1], self.starting_pos[0]] += 1
         self.curr_length = 0
         self.current_pos = tuple(self.starting_pos)
+
+        if self.render_mode == "human":
+            pygame.init()
+            self.screen_size = (500, 500)
+            self.screen = pygame.display.set_mode(self.screen_size)
+            pygame.display.set_caption('RANDSAW Visualization')
+            self.cell_size = 20
+            # Draw the target shape
+            self.shape_surface = pygame.Surface(self.screen_size)
+            self.shape_surface.fill((0,0,0))
+            self.shape_surface.set_colorkey((0,0,0))
+            for i in range(25):
+                for j in range(25):
+                    if self.target_shape[i, j] == 1:
+                        pygame.draw.rect(self.shape_surface, (255,255,255), (i*self.cell_size, j*self.cell_size, self.cell_size, self.cell_size))
+
         return self._get_obs()
         
 
@@ -106,8 +123,28 @@ class SAW(gym.Env):
                 
 
     def render(self):
-        return None
+        self.screen.fill((255, 255, 255))
 
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        
+
+        for y in range(self.target_shape.shape[0]):
+            for x in range(self.target_shape.shape[1]):
+                if self.target_shape[y, x] == 1:
+                    color = (0, 0, 255)
+                elif self.folding_matrix[y, x] > 0:
+                    color = (0, 255, 0)
+                else:
+                    continue
+                
+                pygame.draw.rect(self.screen, color, pygame.Rect(x * self.cell_size, y * self.cell_size, self.cell_size, self.cell_size))
+
+      
+        time.sleep(0.5)
+        pygame.display.flip()
     def _get_obs(self):
         obs = {
             'target': self.target_shape,

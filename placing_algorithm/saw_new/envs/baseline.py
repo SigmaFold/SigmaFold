@@ -7,8 +7,8 @@ from placing_algorithm.saw_new.envs.saw import SAW
 # Add your imports and paths here as needed
 
 class RANDSAW(SAW):
-    def __init__(self, length) -> None:
-        super().__init__(length)
+    def __init__(self, length, render_mode=None) -> None:
+        super().__init__(length, render_mode)
 
     def step(self, *args):
         action = self.action_space.sample()  # Choose a random action
