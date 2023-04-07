@@ -15,8 +15,8 @@ class SAW(gym.Env):
     In this env, we use 1-hot encoding.
     4 rows:
     +---------+
-    |   Up    |
-    | Down    |
+    |   Down  |
+    | Up      |
     |  Left   |
     |  Right  |
     +---------+
@@ -50,14 +50,14 @@ class SAW(gym.Env):
             'select_start': spaces.Box(0, 25, shape=(2,)),
             'move': spaces.Discrete(4)
         } 
-        self.action_space = spaces.Discrete(4) # {0, 1, 2}
+        self.action_space = spaces.Discrete(4) # {0, 1, 2, 3}
         self.observation_space = spaces.Dict(observation_dict)
 
 
     def get_best_starting_point(self, shape_id):
         sequences = get_all_sequences_for_shape(shape_id)
         # sort df by degeneracy
-        sequences = sequences.sort_values(by=['degeneracy'], ascending=False)
+        sequences = sequences.sort_values(by=['degeneracy'], ascending=True)
         # get the first row
         best_sequence = sequences.iloc[0]    
         # get the path of the first row 
@@ -69,6 +69,12 @@ class SAW(gym.Env):
         starting_point = path[0]
         # convert to ndarray
         starting_point = np.array(starting_point)
+        print(starting_point)
+
+        # check if the starting point is valid
+        if self.target_shape[starting_point[1], starting_point[0]] == 0:
+            raise Exception("The starting point is not valid.")
+        
         return starting_point
     
     
@@ -83,8 +89,8 @@ class SAW(gym.Env):
         self.starting_pos = self.get_best_starting_point(shape_id)
         self.folding_matrix[self.starting_pos[1], self.starting_pos[0]] += 1
         self.curr_length = 0
-        self.current_pos = tuple(self.starting_pos)
-
+        self.current_pos = np.copy(self.starting_pos)
+        print(self.target_shape)
         if self.render_mode == "human":
             pygame.init()
             self.screen_size = (500, 500)
@@ -94,12 +100,17 @@ class SAW(gym.Env):
             # Draw the target shape
             self.shape_surface = pygame.Surface(self.screen_size)
             self.shape_surface.fill((0,0,0))
-            self.shape_surface.set_colorkey((0,0,0))
             for i in range(25):
                 for j in range(25):
                     if self.target_shape[i, j] == 1:
-                        pygame.draw.rect(self.shape_surface, (255,255,255), (i*self.cell_size, j*self.cell_size, self.cell_size, self.cell_size))
+                        pygame.draw.rect(self.shape_surface, (255,0,0), (j*self.cell_size, i*self.cell_size, self.cell_size, self.cell_size))
 
+            
+            pygame.draw.rect(self.shape_surface, (255,0,0), (self.starting_pos[0]*self.cell_size, self.starting_pos[1]*self.cell_size, self.cell_size, self.cell_size))
+            pygame.display.flip()
+            self.screen.blit(self.shape_surface, (0,0))
+
+            
         return self._get_obs()
         
 
@@ -116,14 +127,13 @@ class SAW(gym.Env):
         }
         self.current_pos = tuple(np.add(self.current_pos, action_to_move[action]))
         self.folding_matrix[self.current_pos[1], self.current_pos[0]] += 1
-
+        self.render()
         # done = True if (self.curr_lengt == self.length) else False
         reward, done = self.compute_reward()
         return obs, reward, done, {}
                 
 
     def render(self):
-        self.screen.fill((255, 255, 255))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -131,19 +141,10 @@ class SAW(gym.Env):
                 sys.exit()
         
 
-        for y in range(self.target_shape.shape[0]):
-            for x in range(self.target_shape.shape[1]):
-                if self.target_shape[y, x] == 1:
-                    color = (0, 0, 255)
-                elif self.folding_matrix[y, x] > 0:
-                    color = (0, 255, 0)
-                else:
-                    continue
-                
-                pygame.draw.rect(self.screen, color, pygame.Rect(x * self.cell_size, y * self.cell_size, self.cell_size, self.cell_size))
-
-      
-        time.sleep(0.5)
+        # render the current pos as a green square overwriting the target shape
+        pygame.draw.rect(self.shape_surface, (0,255,0), (self.current_pos[0]*self.cell_size, self.current_pos[1]*self.cell_size, self.cell_size, self.cell_size))
+        self.screen.blit(self.shape_surface, (0,0))      
+        time.sleep(3)
         pygame.display.flip()
     def _get_obs(self):
         obs = {
