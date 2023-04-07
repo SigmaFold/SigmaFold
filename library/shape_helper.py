@@ -38,6 +38,50 @@ def path_to_shape(path):
     
     return grid, path
 
+def path_to_shape_numbered(path, sequence):
+    path_grid = np.asarray([[0]*25]*25, dtype=int) # actual path grid for mapping
+    HP_grid = np.asarray([[0]*25]*25, dtype=int) # actual HP grid for mapping
+    temp_path_grid = np.asarray([[0]*25]*25, dtype=int) # temp grid to hold the array before alignment
+    temp_HP_grid = np.asarray([[0]*25]*25, dtype=int) # temp grid to hold the array before alignment
+    # replace H with 1 and P with 2 in sequence
+    numbered_sequence = [1 if x=='H' else 2 for x in sequence]
+    for i, coord in enumerate(path):
+        temp_path_grid[coord[1]+13][coord[0]+13] = i+1 # path transferred onto grid but uncentered
+        temp_HP_grid[coord[1]+13][coord[0]+13] = numbered_sequence[i] # HP transferred onto grid but uncentered
+    temp_path_grid = np.pad(temp_path_grid, 1) # zero padding to avoid multiplying by 0 when calculating moments
+    temp_HP_grid = np.pad(temp_HP_grid, 1)
+
+    # find centroid of temp_path_grid
+    m_00 = len(path) # non-zero residues
+    m_01 = 0
+    for row_n, row in enumerate(temp_path_grid):
+        if np.any(row!=0):
+            m_01 += row_n * np.count_nonzero(row)
+    m_10 = 0
+    for col_n in range(np.shape(temp_path_grid)[1]):
+        if np.any(temp_path_grid[:, col_n]!=0):
+            m_10 += col_n *  np.count_nonzero(temp_path_grid[:, col_n])
+
+    # coordinates of centroid
+    n_centroid = math.floor((m_10/m_00))
+    m_centroid = math.floor((m_01/m_00))
+    centroid = (m_centroid, n_centroid)
+    # align temp_path_grid onto grid
+    dev_m = 13-centroid[0]
+    dev_n = 13-centroid[1]
+    coord_list = np.nonzero(temp_path_grid)
+    for i in range(len(coord_list[0])):
+        path_grid[coord_list[0][i]+dev_m][coord_list[1][i]+dev_n] = temp_path_grid[coord_list[0][i]][coord_list[1][i]]
+    for i in range(len(coord_list[0])):
+        HP_grid[coord_list[0][i]+dev_m][coord_list[1][i]+dev_n] = temp_HP_grid[coord_list[0][i]][coord_list[1][i]]
+    
+    # find element "1"
+    pos = np.where(path_grid == 1)
+    # add pos to each element of the path 
+    path  = [(path[i][0]+pos[1][0], path[i][1]+pos[0][0]) for i in range(len(path))]
+
+    return path_grid, HP_grid, path
+
 
 def serialize_shape(matrix):
     """
@@ -117,18 +161,10 @@ def deserialize_path(string):
 
 if __name__ == "__main__":
     path2 = [(0,0), (-1,0), (-1,-1), (-1, -2), (0, -2), (0, -1), (1, -1)]
-    matrix, path = path_to_shape(path2)
+    print("OG path", path2)
+    matrix, path = path_to_shape_numbered(path2)
 
-    # plot the matrix
-    import matplotlib.pyplot as plt
-    plt.imshow(matrix)
+    print(matrix)
+    print("New path", path)
 
-    # plot the path 1 element pzer element at 1 secon dintervals 
-    for i in range(len(path)):
-        plt.scatter(path[i][0], path[i][1], c='r')
-        plt.pause(1)
 
-    
-    plt.show()
-
-    
