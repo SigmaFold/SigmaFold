@@ -15,9 +15,9 @@ class SAW(gym.Env):
     In this env, we use 1-hot encoding.
     4 rows:
     +---------+
-    | Forward |
+    |  Right      | (because going up in cartesian coordinates is going down in the matrix)
     |  Left   |
-    |  Right  |
+    |  Forwa  |
       TBD     |
     +---------+
     """
@@ -40,7 +40,9 @@ class SAW(gym.Env):
         self.folding_onehot = np.ndarray(shape=(4, length-1)) # one-hot encoding of the SAW
         # Initialise fith row to be entirely ones 
         self.folding_onehot[3] = np.ones(shape=(length-1,))
-        # initilia
+        # Curent direction algo is facing 
+        self.current_direction = np.array([0, 1]) # start facing down 
+
 
         self.folding_matrix = np.ndarray(shape=(25, 25)) # as a visual matrix
         self.curr_length = 0
@@ -54,9 +56,9 @@ class SAW(gym.Env):
 
         action_dict = {
             'select_start': spaces.Box(0, 25, shape=(2,)),
-            'move': spaces.Discrete(4)
+            'move': spaces.Discrete(3)
         } 
-        self.action_space = spaces.Discrete(4) # {0, 1, 2, 3}
+        self.action_space = spaces.Discrete(3) # {0, 1, 2}
         self.observation_space = spaces.Dict(observation_dict)
 
     def get_best_starting_point(self, shape_id):
@@ -87,29 +89,29 @@ class SAW(gym.Env):
     
     
     def reset(self, options=None, seed=None):
-        if self.attempts >= self.max_attempts:
+        if self.attempts >= self.max_attempts or self.attempts == 0:
             self.target_shape, shape_id = get_random_shape(self.length)
             self.starting_pos = self.get_best_starting_point(shape_id)
             self.attempts = 0
         else:
             self.attempts += 1
-            self.folding_onehot = np.zeros((4, self.length-1)) # initialise the one-hot encoding to 0 for all actions
-            self.folding_onehot[3] = np.ones(shape=(self.length-1,)) # initialise the last row to be entirely ones
+        self.folding_onehot = np.zeros((4, self.length-1)) # initialise the one-hot encoding to 0 for all actions
+        self.folding_onehot[3] = np.ones(shape=(self.length-1,)) # initialise the last row to be entirely ones
 
-            self.folding_matrix = np.zeros((25, 25))
+        self.folding_matrix = np.zeros((25, 25))
 
-            # start in a posoition that is a 1 in the target shape matrix
-            
-            self.folding_matrix[self.starting_pos[1], self.starting_pos[0]] += 1
-            self.curr_length = 0
-            self.current_pos = np.copy(self.starting_pos)
+        # start in a posoition that is a 1 in the target shape matrix
+        
+        self.folding_matrix[self.starting_pos[1], self.starting_pos[0]] += 1
+        self.curr_length = 0
+        self.current_pos = np.copy(self.starting_pos)
 
      
         if self.render_mode == "human":
             pygame.init()
             self.screen_size = (500, 500)
             self.screen = pygame.display.set_mode(self.screen_size)
-            pygame.display.set_caption('RANDSAW Visualization')
+            pygame.display.set_caption('SAW Visualization')
             self.cell_size = 20
             # Draw the target shape
             self.shape_surface = pygame.Surface(self.screen_size)
@@ -131,18 +133,18 @@ class SAW(gym.Env):
     def step(self, action):
         self.folding_onehot[action, self.curr_length] = 1
         # set the bottom row of the one-hot encoding to 0 (TBD row) This supposedly gives the agent an understanding of how many moves it has left
-        self.folding_onehot[4, self.curr_length] = 0
+        self.folding_onehot[3, self.curr_length] = 0
         self.curr_length += 1
         obs = self._get_obs()
 
-        action_to_move = {
-            0: (0, 1),
-            1: (0, -1),
-            2: (-1, 0),
-            3: (1,0),
-        }
+        # This implements "real walking" in the environment. Facing right, left, and up, which avoids going back on yourself.
+        if action == 0:  # Turn RIGHT
+            self.current_direction = (-self.current_direction[1], self.current_direction[0])
+        elif action == 1:  # Turn LEFT
+            self.current_direction = (self.current_direction[1], -self.current_direction[0])
+        # If action == 2, move straight ahead (no need to update the direction)
         
-        self.current_pos = tuple(np.add(self.current_pos, action_to_move[action]))
+        self.current_pos = tuple(np.add(self.current_pos, self.current_direction))
         self.folding_matrix[self.current_pos[1], self.current_pos[0]] += 1
         if self.render_mode == "human":
             self.render()
@@ -196,7 +198,7 @@ class SAW(gym.Env):
         
         # if any element is equal to -1 then something was placed out of bounds 
         if np.any(diff_matrix < 0):
-            reward = -10
+            reward = -2
             done = True
         
         elif np.all(diff_matrix == 0):
@@ -204,7 +206,7 @@ class SAW(gym.Env):
             done = True
         
         elif np.any(self.folding_matrix > 1):
-            reward = -10
+            reward = -2
             done = True
 
         return reward, done

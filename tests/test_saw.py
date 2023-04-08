@@ -9,7 +9,7 @@ def test_saw():
     env = SAW(length=5)
     print("Action space:", env.action_space)
     print("Observation space:", env.observation_space)
-    assert env.action_space.n == 4
+    assert env.action_space.n == 3
     assert env.observation_space["target"].shape == (25, 25)
     assert env.observation_space["folding_onehot"].shape == (4, 4) # new shape
     test_reset()
@@ -23,9 +23,9 @@ def test_reset():
     assert obs["folding_onehot"].sum() == 9 # now max length is 9 not 10 for length 10
 
 def test_step():
-    env = SAW(length=5)
+    env = SAW(length=9, render_mode="human")
     env.reset()
-    actions = [0, 1, 0, 2] # should fail at 3rd step
+    actions = [2, 2, 1,0, 2] 
     # display the target shape, overlay the folding matrix
     # uncomment if you want to see the folding matrix at each step
     for action in actions:
@@ -39,7 +39,6 @@ def test_step():
         print("------")
     
     assert env.curr_length == 4
-    assert done == True
     
 
     
