@@ -163,7 +163,7 @@ class Placing(gym.Env):
         # if any element is equal to -1 then something was placed out of bounds
         if self.num_actions == self.length:
             reward_list = []
-            for correct_mat in self.correctHPassignments
+            for correct_mat in self.correctHPassignments:
                 diff_matrix = correct_mat - self.HPassignments
                 # sum absolute values of all the elements in diff_matrix and normalise it
                 sum = np.sum(abs(diff_matrix)) / self.length
