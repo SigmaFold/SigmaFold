@@ -28,12 +28,13 @@ class Placing(gym.Env):
         self.target_shape = deserialize_shape(shape_id)
         self.correct_sequence = sample.best_sequence.iloc[0]
         self.path = sample.optimal_path.iloc[0]
-        self.curr_sequence = []
+
+
+        self.curr_sequence = [] # where we will be storing hp assingments
 
 
         # Static attributes
         self.length = length
-        self.using_prev_agent = using_prev_agent
         self.max_attempts = max_attempts
         self.render_mode = render_mode  # activates or deativates the UI. Activated if set to "human"
         self.num_actions = 0
@@ -43,7 +44,7 @@ class Placing(gym.Env):
         #TODO: add one hot encoding for observation
 
         self.action_space = spaces.MultiBinary(2)
-        self.observation_space = spaces.MultiBinary(6) # 4 neighbours + 2 HP assignments
+        self.observation_space = spaces.MultiBinary(10) # 4 neighbours + 2 HP assignments
 
     # def generate_path(self, shape_id):
     #     #TODO: make it so this doesnt call db at every reset
@@ -105,7 +106,7 @@ class Placing(gym.Env):
         action = actions_dict[action]
         self.curr_sequence.append(action)
         idx  = len(self.curr_sequence) - 1
-        
+
         pos_action_row = self.path[idx][1]
         pos_action_col = self.path[idx][0]
         assign_action = self.curr_sequence[idx]
@@ -147,29 +148,29 @@ class Placing(gym.Env):
 
         return obs
 
-    def compute_reward(self, pos_action_row, pos_action_col):
+    def compute_reward(self):
         """
         If the folding matrix is the same as the target shape, then reward is 1.
         Else, reward is 0.
         """
         reward = 0
         done = False
+        # TODO: Compare the last element of the current sequence with the correct sequence
+        # # fail immediately if out of bounds
+        # if self.target_shape[pos_action_row, pos_action_col] == 0:
+        #     reward = -1
+        #     done = True
 
-        # fail immediately if out of bounds
-        if self.target_shape[pos_action_row, pos_action_col] == 0:
-            reward = -1
-            done = True
-
-        # if any element is equal to -1 then something was placed out of bounds
-        if self.num_actions == self.length:
-            reward_list = []
-            for correct_mat in self.correctHPassignments:
-                diff_matrix = correct_mat - self.HPassignments
-                # sum absolute values of all the elements in diff_matrix and normalise it
-                sum = np.sum(abs(diff_matrix)) / self.length
-                reward_list.append(((1-sum)-0.5)*2)
-            reward = max(reward_list)
-            done = True
+        # # if any element is equal to -1 then something was placed out of bounds
+        # if self.num_actions == self.length:
+        #     reward_list = []
+        #     for correct_mat in self.correctHPassignments:
+        #         diff_matrix = correct_mat - self.HPassignments
+        #         # sum absolute values of all the elements in diff_matrix and normalise it
+        #         sum = np.sum(abs(diff_matrix)) / self.length
+        #         reward_list.append(((1-sum)-0.5)*2)
+        #     reward = max(reward_list)
+        #     done = True
 
         return reward, done
 
