@@ -28,7 +28,7 @@ def saw_training(name='auto'):
         
         # Add other stuff, idk
     }
-    env = gym.make("SAW-v0", length=10, render_mode=None)
+    env = gym.make("SAW-v0", length=14, render_mode=None )
     model = RecurrentPPO("MultiInputLstmPolicy", env, tensorboard_log=f'./logs/{name}', **params)
     model.learn(10_000)
 

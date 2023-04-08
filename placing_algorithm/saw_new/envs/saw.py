@@ -19,9 +19,10 @@ class SAW(gym.Env):
     |    Up   |
     |  Left   |
     |  Right  |
+      TBD     |
     +---------+
     """
-    def __init__(self, length, render_mode=None) -> None:
+    def __init__(self, length, render_mode=None, max_attempts=100) -> None:
         super().__init__()
         
 
@@ -29,21 +30,26 @@ class SAW(gym.Env):
         self.length = length
         self.render_mode = render_mode # activates or deativates the UI. Activated if set to "human"
         self.target_shape = np.array((25, 25))
+        self.max_attempts = max_attempts # the maximum number of times the agent can attempt to place the shape
 
         # Dynamic attributes
         self.starting_pos = np.ndarray(shape=(2,))
-        # declare current position as a numpy row vector
         self.current_pos = np.ndarray(shape=(2,))
+        self.attempts = 0 # everyone deserves a second chance - this is the number of times the agent has attempted to place the shape
 
-        self.folding_onehot = np.ndarray(shape=(4, length)) # one-hot encoding of the SAW
+        # length is -1 because the starting position is already defined
+        self.folding_onehot = np.ndarray(shape=(5, length-1)) # one-hot encoding of the SAW
+        # Initialise fith row to be entirely ones 
+        self.folding_onehot[4] = np.ones(shape=(length-1,))
+
         self.folding_matrix = np.ndarray(shape=(25, 25)) # as a visual matrix
-        self.curr_length = int()
+        self.curr_length = 0
 
         # Spaces
         observation_dict = {
             'target': spaces.Box(0, 1, shape=(25,25), dtype=np.uint8),
-            'folding_onehot': spaces.Box(0, 1, shape=(4,self.length), dtype=np.uint8)
-            #TODO: add starting position
+            'folding_onehot': spaces.Box(0, 1, shape=(5,self.length - 1), dtype=np.uint8),
+            "folding_matrix": spaces.Box(0, 1, shape=(25,25), dtype=np.uint8)
         }
 
         action_dict = {
@@ -65,31 +71,38 @@ class SAW(gym.Env):
         path = best_sequence['path']
         # convert path to list of tuples
         path = deserialize_path(path)
-        _, _, path = path_to_shape_numbered(path, sequence)
+        _, shape , path = path_to_shape_numbered(path, sequence)
         # get the starting point of the path
-        starting_point = path[0]
         # convert to ndarray
-        starting_point = np.array(starting_point)
+        # get the position of the first 1 in the shape matrix
+        starting_point = np.argwhere(shape == 1)[0]
+        # flip to be cartesian coordinates
+        starting_point = np.flip(starting_point)
 
-        # check if the starting point is valid
-        if self.target_shape[starting_point[1], starting_point[0]] == 0:
-            raise Exception("The starting point is not valid.")
+        # check if the starting point is the position of a 1 in the "shape" matrix
+        if not shape[starting_point[1], starting_point[0]] == 1:
+            raise Exception("The starting point is not a 1 in the shape matrix")
         
         return starting_point
     
     
     def reset(self, options=None, seed=None):
-        self.target_shape, shape_id = get_random_shape(self.length)
-        
-        
-        self.folding_onehot = np.zeros((4, self.length)) # initialise the one-hot encoding to 0 for all actions
-        self.folding_matrix = np.zeros((25, 25))
+        if self.attempts >= self.max_attempts:
+            self.target_shape, shape_id = get_random_shape(self.length)
+            self.starting_pos = self.get_best_starting_point(shape_id)
+            self.attempts = 0
+        else:
+            self.attempts += 1
+            self.folding_onehot = np.zeros((5, self.length-1)) # initialise the one-hot encoding to 0 for all actions
+            self.folding_onehot[4] = np.ones(shape=(self.length-1,)) # initialise the last row to be entirely ones
 
-        # start in a posoition that is a 1 in the target shape matrix
-        self.starting_pos = self.get_best_starting_point(shape_id)
-        self.folding_matrix[self.starting_pos[1], self.starting_pos[0]] += 1
-        self.curr_length = 0
-        self.current_pos = np.copy(self.starting_pos)
+            self.folding_matrix = np.zeros((25, 25))
+
+            # start in a posoition that is a 1 in the target shape matrix
+            
+            self.folding_matrix[self.starting_pos[1], self.starting_pos[0]] += 1
+            self.curr_length = 0
+            self.current_pos = np.copy(self.starting_pos)
 
      
         if self.render_mode == "human":
@@ -117,10 +130,11 @@ class SAW(gym.Env):
 
     def step(self, action):
         self.folding_onehot[action, self.curr_length] = 1
-        # self.folding_onehot[4, self.curr_length] = 0
+        # set the bottom row of the one-hot encoding to 0 (TBD row) This supposedly gives the agent an understanding of how many moves it has left
+        self.folding_onehot[4, self.curr_length] = 0
         self.curr_length += 1
         obs = self._get_obs()
-        #TODO: change back to tbd one hot
+
         action_to_move = {
             0: (0, 1),
             1: (0, -1),
@@ -161,8 +175,7 @@ class SAW(gym.Env):
         obs = {
             'target': self.target_shape.astype(np.uint8),
             'folding_onehot': self.folding_onehot.astype(np.uint8),
-            #TODO temporarily removed the starting pos from the observation in case its not relevant. add and compare results
-            #TODO: Shoild we add the folding matrix to the observation?
+            'folding_matrix': self.folding_matrix.astype(np.uint8), # Temporarily added the folding matrix to the observation
         }
         # print("obs", obs)
         return obs
@@ -177,6 +190,9 @@ class SAW(gym.Env):
         done = False
         # TODO : Final path similarity reward
         diff_matrix  = self.target_shape - self.folding_matrix
+
+        if self.curr_length == self.length -1:
+            done = True
         
         # if any element is equal to -1 then something was placed out of bounds 
         if np.any(diff_matrix < 0):

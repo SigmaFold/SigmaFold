@@ -1,7 +1,7 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-# from placing_algorithm.saw_new.envs.saw import SAW
-from invenv.inv_env.envs.saw import SAW # new dir
+from placing_algorithm.saw_new.envs.saw import SAW
+
 import matplotlib.pyplot as plt
 
 
@@ -11,8 +11,7 @@ def test_saw():
     print("Observation space:", env.observation_space)
     assert env.action_space.n == 4
     assert env.observation_space["target"].shape == (25, 25)
-    assert env.observation_space["starting_pos"].shape == (2,)
-    assert env.observation_space["folding_onehot"].shape == (4, 5)
+    assert env.observation_space["folding_onehot"].shape == (5, 4) # new shape
     test_reset()
 
 def test_reset():
@@ -20,9 +19,8 @@ def test_reset():
     obs = env.reset()
     print("Observation:", obs)
     assert obs["target"].shape == (25, 25)
-    assert obs["starting_pos"].shape == (2,)
-    assert obs["folding_onehot"].shape == (4,10)
-    assert obs["folding_onehot"].sum() == 0
+    assert obs["folding_onehot"].shape == (5,9) # new shape
+    assert obs["folding_onehot"].sum() == 9 # now max length is 9 not 10 for length 10
 
 def test_step():
     env = SAW(length=5)
@@ -52,3 +50,5 @@ def test_step():
 
 if __name__ == "__main__":
     test_reset()
+    test_step()
+    test_saw()
