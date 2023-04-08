@@ -8,8 +8,8 @@ import time
 import math
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
-from library.shape_helper import path_to_shape_numbered, deserialize_path, find_HP_assignments
-from library.db_query_templates import get_random_shape, get_all_sequences_for_shape
+from library.shape_helper import path_to_shape_numbered, deserialize_path
+from library.db_query_templates import get_random_shape, get_all_sequences_for_shape, find_HP_assignments
 
 class Placing(gym.Env):
     """
@@ -124,10 +124,10 @@ class Placing(gym.Env):
         # render the current pos as a green square overwriting the target shape
         if assign_action == 0:
             pygame.draw.circle(self.shape_surface, (0, 255, 0), (
-                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/2)
+                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/4)
         else:
             pygame.draw.circle(self.shape_surface, (0, 0, 255), (
-                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/2)
+                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/4)
 
         self.screen.blit(self.shape_surface, (0, 0))
         time.sleep(2)

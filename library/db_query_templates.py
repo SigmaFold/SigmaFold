@@ -181,6 +181,60 @@ def check_shape(shape_mappings):
             return shape[0]["shape_id"]
     return None
 
+def find_HP_assignments(length, target_grid, path_grid):
+    """Returns a HP shape given a target shape and path shape
+
+    :param length: list of tuples containing coordinates of a folding path
+           target_grid: numpy array containing 1s for filled positions and 0s for empty positions
+           path_grid: numpy array containing numbers from 1 describing the path within the matrix
+    :return: sequence_list: list of string sequences that satisfy the conditions
+             HPassignment_list: list of numpy arrays corresponding to the satisfactory sequences where 0s are empty positions, 1s are Hs and 2s are Ps
+    """
+    # finding path from path_grid
+    path = [(0, 0)]
+    dir_dict = {
+        'up': (0, 1),
+        'down': (0, -1),
+        'left': (-1, 0),
+        'right': (1, 0),
+    }
+    for i in range(2, length+1):
+        current_idx = np.array(np.squeeze(np.where(path_grid == i)))
+        prev_idx = np.array(np.squeeze(np.where(path_grid == i-1)))
+        idx_dir = tuple(current_idx - prev_idx)
+        if idx_dir == (-1,0):
+            path.append(tuple([x + y for x, y in zip(path[-1], dir_dict['down'])]))
+        elif idx_dir == (1,0):
+            path.append(tuple([x + y for x, y in zip(path[-1], dir_dict['up'])]))
+        elif idx_dir == (0,-1):
+            path.append(tuple([x + y for x, y in zip(path[-1], dir_dict['left'])]))
+        elif idx_dir == (0,1):
+            path.append(tuple([x + y for x, y in zip(path[-1], dir_dict['right'])]))
+
+    # serialize the path
+    path_serialized = serialize_path(path)
+
+    # get the sequence for the target shape and given path
+    shape_serialized = serialize_shape(target_grid)
+    sequences = get_all_sequences_for_shape(shape_serialized)
+    sequence_list = sequences.loc[sequences['path'] == path_serialized, 'sequence'].tolist()
+    print(sequence_list)
+
+    HPassignment_list = []
+    # assign H and Ps according to the sequence to get correct HP assignment
+    for i in range(0, len(sequence_list)):
+        correctHPassignments = path_grid.copy()
+        for j in range(0, length):
+            if sequence_list[i][j] == 'H':
+                assign = 1
+            elif sequence_list[i][j] == 'P':
+                assign = 2
+            correctHPassignments[correctHPassignments == j+1] = assign
+        HPassignment_list.append(correctHPassignments)
+        
+    
+    return sequence_list, HPassignment_list
+
 if __name__ == "__main__":
     sequences = get_all_sequences_for_shape("Ɛ011n041l041l041Ł0")
 
