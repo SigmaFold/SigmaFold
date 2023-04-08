@@ -4,6 +4,7 @@ import gym
 import gym_registration
 import envs
 from envs.placing import Placing
+from stable_baselines3.common.env_checker import check_env
 from sb3_contrib import RecurrentPPO
 from gym import envs
 
@@ -29,10 +30,10 @@ def placing_training(name='auto'):
 
         # Add other stuff, idk
     }
-    env = gym.make("Placing-v0", length=14, render_mode=None)
+    env = gym.make("Placing-v0", length=14, render_mode="human")
     model = RecurrentPPO("MultiInputLstmPolicy", env,
-                         tensorboard_log=f'./logs/{name}', **params)
-    model.learn(10_000)
+                         tensorboard_log=f'./placing_algorithm/placing/drl/logs/{name}', **params)
+    model.learn(100_000)
 
 
 placing_training('first_test')

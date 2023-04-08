@@ -19,7 +19,7 @@ class SAW(gym.Env):
     Left 2 
     +---------+
     """
-    def __init__(self, length, render_mode=None, max_attempts=500) -> None:
+    def __init__(self, length, render_mode=None, max_attempts=1) -> None:
         super().__init__()
         
 
@@ -213,9 +213,13 @@ class SAW(gym.Env):
 
         boundary_vector = np.zeros((8,1), dtype=int)
    
-        # top left to bottom right dirs in cartesian coordinates
+         # top left to bottom right dirs in cartesian coordinates
         dirs = np.array([[1,-1], [0,1], [1,1], [1,0], [0,-1], [-1,-1], [-1,0], [-1,1]])
-        
+
+        # Rotate dirs array based on the agent's current direction
+        current_dir_idx = np.where((dirs == self.current_direction).all(axis=1))[0][0]
+        dirs = np.roll(dirs, -current_dir_idx, axis=0)
+            
         for i, direction in enumerate(dirs):
             # get the neighbour in the given direction
             neighbour = self.current_pos + direction
