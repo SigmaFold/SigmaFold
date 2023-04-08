@@ -53,7 +53,7 @@ class Placing(gym.Env):
             'assign': spaces.Discrete(2),
         }
 
-        self.action_space = spaces.Dict(action_dict)
+        self.action_space = spaces.Tuple([action_dict['select_position'], action_dict['assign']])
         self.observation_space = spaces.Dict(observation_dict)
 
     def generate_path(self, shape_id):
@@ -102,8 +102,8 @@ class Placing(gym.Env):
 
     def step(self, action):
         self.num_actions += 1
-        pos_action = action['select_position']
-        assign_action = action['assign']
+        pos_action, assign_action = action
+        print(pos_action, assign_action)
         pos_action = math.floor(pos_action[0]), math.floor(pos_action[1])
         self.HPassignments[pos_action[0], pos_action[1]] = assign_action + 1
         obs = self._get_obs()

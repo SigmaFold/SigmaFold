@@ -11,9 +11,7 @@ class RANDHP(Placing):
         super().__init__(length, render_mode)
 
     def step(self, *args):
-        pos_action = self.action_space['select_position'].sample()  # Choose a random position
-        assign_action = self.action_space['assign'].sample()  # Choose a random assignment
-        action = {'select_position': pos_action, 'assign': assign_action}
+        action = self.action_space.sample()  # Choose a random action
         return super().step(action)
 
     # You can override other methods as needed
