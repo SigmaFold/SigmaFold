@@ -124,10 +124,10 @@ class Placing(gym.Env):
         # render the current pos as a green square overwriting the target shape
         if assign_action == 0:
             pygame.draw.circle(self.shape_surface, (0, 255, 0), (
-                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/2)
+                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/4)
         else:
             pygame.draw.circle(self.shape_surface, (0, 0, 255), (
-                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/2)
+                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/4)
 
         self.screen.blit(self.shape_surface, (0, 0))
         time.sleep(2)
