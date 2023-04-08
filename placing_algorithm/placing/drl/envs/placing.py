@@ -64,7 +64,6 @@ class Placing(gym.Env):
     def reset(self, options=None, seed=None):
         # get the initial shape
         if self.attempts >= self.max_attempts:
-            self.shapes = get_all_random_shapes(self.length)
             sample = self.shapes.sample(1)
             shape_id = sample.shape_id.iloc[0]
             self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
@@ -201,3 +200,6 @@ class Placing(gym.Env):
 
 if __name__ == "__main__":
     env  = Placing(16)
+    print(env.path)
+    print(env.starting_pos)
+    print(env.starting_dir)

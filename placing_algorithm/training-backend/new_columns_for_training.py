@@ -45,7 +45,7 @@ def upload_best_starting_points(n=16):
     Uploads the best starting points for all shapes with min_degen less than 10.
     """
     # get all shapes with min_degen less than 10
-    shapes = get_all_random_shapes(n)
+    shapes = get_all_shape_data(n)
     print(shapes)
     db = SupabaseDB()
     # iterate over all shapes
@@ -64,5 +64,5 @@ def upload_best_starting_points(n=16):
         db.supabase.table("Shapes").insert(data, upsert=True).execute()
 
 if __name__ == "__main__":
-    upload_best_starting_points()
-
+    for n in range(14, 17):
+        upload_best_starting_points(n)
