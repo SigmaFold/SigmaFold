@@ -8,8 +8,8 @@ import time
 import math
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
-from library.shape_helper import path_to_shape_numbered, deserialize_path, find_HP_assignments
-from library.db_query_templates import get_random_shape, get_all_sequences_for_shape
+from library.shape_helper import path_to_shape_numbered, deserialize_path
+from library.db_query_templates import get_random_shape, get_all_sequences_for_shape, find_HP_assignments
 
 class Placing(gym.Env):
     """
