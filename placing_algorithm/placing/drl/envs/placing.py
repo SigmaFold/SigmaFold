@@ -9,7 +9,7 @@ import math
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
 from library.shape_helper import path_to_shape_numbered, deserialize_path
-from library.db_query_templates import get_random_shape, get_all_sequences_for_shape
+from library.db_query_templates import get_random_shape, get_all_sequences_for_shape, find_HP_assignments
 
 class Placing(gym.Env):
     """
@@ -21,7 +21,8 @@ class Placing(gym.Env):
 
         # Static attributes
         self.length = length
-        self.correctHPassignments = np.array((25, 25))
+        self.correct_sequences = []
+        self.correctHPassignments = []
         self.using_prev_agent = using_prev_agent
         
         # if inputs not received from previous RL agent
@@ -72,10 +73,11 @@ class Placing(gym.Env):
     def reset(self, options=None, seed=None):
         if not self.using_prev_agent:
             self.target_shape, shape_id = get_random_shape(self.length)
-            self.path_shape, self.correctHPassignments, _ = self.generate_path(
-                shape_id)
+            self.path_shape, correctHP, sequence = self.generate_path(shape_id)
+            self.correctHPassignments.append(correctHP)
+            self.correct_sequences.append(sequence)
         else:
-            pass
+            self.correct_sequences, self.correctHPassignments = find_HP_assignments(self.length, self.target_shape, self.path_shape)
 
         self.HPassignments = np.zeros((25, 25))
 
@@ -154,16 +156,19 @@ class Placing(gym.Env):
         done = False
 
         # fail immediately if out of bounds
-        if self.correctHPassignments[pos_action[0], pos_action[1]] == 0:
+        if self.target_shape[pos_action[0], pos_action[1]] == 0:
             reward = -1
             done = True
 
         # if any element is equal to -1 then something was placed out of bounds
         if self.num_actions == self.length:
-            diff_matrix = self.correctHPassignments - self.HPassignments
-            # sum absolute values of all the elements in diff_matrix and normalise it
-            sum = np.sum(abs(diff_matrix)) / self.length
-            reward = ((1-sum)-0.5)*2
+            reward_list = []
+            for correct_mat in self.correctHPassignments
+                diff_matrix = correct_mat - self.HPassignments
+                # sum absolute values of all the elements in diff_matrix and normalise it
+                sum = np.sum(abs(diff_matrix)) / self.length
+                reward_list.append(((1-sum)-0.5)*2)
+            reward = max(reward_list)
             done = True
 
         return reward, done
