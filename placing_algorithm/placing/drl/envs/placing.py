@@ -107,7 +107,8 @@ class Placing(gym.Env):
         pos_action = math.floor(pos_action[0]), math.floor(pos_action[1])
         self.HPassignments[pos_action[0], pos_action[1]] = assign_action + 1
         obs = self._get_obs()
-        self.render(pos_action, assign_action)
+        if self.render_mode == "human":
+            self.render(pos_action, assign_action)
         reward, done = self.compute_reward(pos_action)
         return obs, reward, done, {}
 
@@ -124,10 +125,10 @@ class Placing(gym.Env):
         # render the current pos as a green square overwriting the target shape
         if assign_action == 0:
             pygame.draw.circle(self.shape_surface, (0, 255, 0), (
-                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/4)
+                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/3)
         else:
             pygame.draw.circle(self.shape_surface, (0, 0, 255), (
-                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/4)
+                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/3)
 
         self.screen.blit(self.shape_surface, (0, 0))
         time.sleep(2)
