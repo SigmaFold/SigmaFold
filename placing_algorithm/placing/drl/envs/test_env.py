@@ -1,7 +1,7 @@
 from stable_baselines3.common.env_checker import check_env
 import os, sys
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
-from baseline import Placing
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
+from placing_algorithm.placing.drl.envs.baseline import Placing
 
 env = Placing(length=10, render_mode="human")
 check_env(env, warn=True)
