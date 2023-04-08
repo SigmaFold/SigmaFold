@@ -7,6 +7,7 @@ import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from library.db_helper import SupabaseDB
 from library.shape_helper import *
+from library.shape_helper import deserialize_shape
 import pandas as pd
 
 # Getting things out of the database
@@ -52,7 +53,7 @@ def get_random_shape(target_n=10):
 
     # deserialize the shape
     random_shape = deserialize_shape(shape_id)
-    
+
     
 
     return random_shape, shape_id

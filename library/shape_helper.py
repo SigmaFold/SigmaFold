@@ -10,6 +10,7 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from library.db_query_templates import get_all_sequences_for_shape
 
+
 # Saving shapes based on their center of mass
 
 

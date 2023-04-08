@@ -11,7 +11,7 @@ def test_saw():
     print("Observation space:", env.observation_space)
     assert env.action_space.n == 4
     assert env.observation_space["target"].shape == (25, 25)
-    assert env.observation_space["folding_onehot"].shape == (5, 4) # new shape
+    assert env.observation_space["folding_onehot"].shape == (4, 4) # new shape
     test_reset()
 
 def test_reset():
@@ -19,7 +19,7 @@ def test_reset():
     obs = env.reset()
     print("Observation:", obs)
     assert obs["target"].shape == (25, 25)
-    assert obs["folding_onehot"].shape == (5,9) # new shape
+    assert obs["folding_onehot"].shape == (4,9) # new shape
     assert obs["folding_onehot"].sum() == 9 # now max length is 9 not 10 for length 10
 
 def test_step():
