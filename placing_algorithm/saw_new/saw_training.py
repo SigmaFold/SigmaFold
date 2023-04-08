@@ -25,7 +25,6 @@ def saw_training(name='auto'):
         "sde_sample_freq": -1,
         "target_kl": None,
         "verbose": 1,
-        
         # Add other stuff, idk
     }
     env = gym.make("SAW-v0", length=16, render_mode=None)

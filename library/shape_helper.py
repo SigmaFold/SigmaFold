@@ -188,7 +188,12 @@ def deserialize_path(string):
         path.append(tuple(map(int, coord.split(","))))
     return path
 
-
+def deserialize_point(point):
+    """
+    Takes a point on the db and deserialize it into a tuple
+    """
+    return tuple(map(int, point.split(",")))
+    
 if __name__ == "__main__":
     path2 = [(0, 0), (-1, 0), (-1, -1), (-1, -2), (0, -2), (0, -1), (1, -1)]
     print("OG path", path2)

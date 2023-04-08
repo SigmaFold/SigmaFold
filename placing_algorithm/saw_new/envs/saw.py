@@ -7,8 +7,8 @@ import os, sys
 import pygame
 import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-from library.db_query_templates import get_random_shape, get_all_sequences_for_shape
-from library.shape_helper import path_to_shape_numbered, deserialize_path
+from library.db_query_templates import get_random_shape, get_all_sequences_for_shape, get_all_random_shapes
+from library.shape_helper import path_to_shape_numbered, deserialize_path, deserialize_shape, deserialize_point
 
 
 class SAW(gym.Env):
@@ -19,10 +19,13 @@ class SAW(gym.Env):
     Left 2 
     +---------+
     """
-    def __init__(self, length, render_mode=None, max_attempts=1) -> None:
+    def __init__(self, length, render_mode=None, max_attempts=1©) -> None:
         super().__init__()
         
+        self.shapes = get_all_random_shapes(length)
+        # add two columns to the datafram
 
+        # print(self.shapes)
         # Static attributes
         self.length = length
         self.render_mode = render_mode # activates or deativates the UI. Activated if set to "human"
@@ -37,26 +40,34 @@ class SAW(gym.Env):
         self.folding_matrix = np.ndarray(shape=(25, 25)) # as a visual matrix
         self.last_action = np.ndarray(shape=(3,))
         self.cleared = False
-        
-        # Initialise the target shape
-        self.target_shape, shape_id = get_random_shape(self.length)
-        self.starting_pos, self.starting_dir = self.get_best_starting_point(shape_id)
         self.attempts = 0
+        # Initialise the target shape
+        # sample a random shape. in the dataframe there now is a column for starting position and direction
+        sample = self.shapes.sample(1)
+        shape_id = sample.shape_id.iloc[0]
+        self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
+        self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
+        self.target_shape = deserialize_shape(shape_id)
+
+        # print("Starting position:", self.starting_pos)
+        # print("Starting direction:", self.starting_dir)
+
         
         # One hot encoded observation space
         self.action_space = spaces.MultiBinary(3)
-     
         self.observation_space = spaces.MultiBinary(11)
-    
+        
     def reset(self, options=None, seed=None):
         if self.attempts >= self.max_attempts or self.cleared:
-            self.target_shape, shape_id = get_random_shape(self.length)
-            self.starting_pos, self.starting_dir = self.get_best_starting_point(shape_id)
+            sample = self.shapes.sample(1)
+            shape_id = sample.shape_id.iloc[0]
+            self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
+            self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
+            self.target_shape = deserialize_shape(shape_id)
             self.attempts = 0
             self.cleared = False
         else:
             self.attempts += 1
-            
         
         self.folding_matrix = np.zeros((25, 25))
         self.last_action = np.zeros((3, 1))
@@ -64,8 +75,8 @@ class SAW(gym.Env):
         self.curr_length = 0
         self.current_pos = tuple(np.copy(self.starting_pos))
         self.current_direction = tuple(np.copy(self.starting_dir))
-    
-     
+
+
         if self.render_mode == "human":
             pygame.init()
             self.screen_size = (500, 500)

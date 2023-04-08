@@ -7,12 +7,11 @@ import matplotlib.pyplot as plt
 
 
 def test_saw():
-    env = SAW(length=5)
+    env = SAW(length=16)
     env = OneHotWrapper(env)
     print("Action space:", env.action_space)
     print("Observation space:", env.observation_space)
-    
-   
+
     
 
 def test_reset():
@@ -52,5 +51,5 @@ def test_step():
     
 if __name__ == "__main__":
     # test_reset()
-    test_step()
-    # test_saw()
+    # test_step()
+    test_saw()

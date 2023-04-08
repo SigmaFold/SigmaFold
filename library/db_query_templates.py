@@ -33,6 +33,26 @@ def get_perfect_shapes(target_n=10):
 
     return perfect_shapes # return as list of np.arrays
 
+def get_all_random_shapes(target_n=10):
+    """ Returns a random shape from the database
+    PREQUESITE: You must have a .env file in the root directory with the following variables:
+    URL: the url of the database
+    KEY: the secret key for the database
+
+    :params
+    :int: target_n: the length of the shape to be returned
+
+    :returns
+    :np.array: random_shape: a random shape from the database
+    """
+    db = SupabaseDB()
+    # select a random element from the database with min degen below 20
+    random_shape = db.supabase.table("random_shape").select("*").eq("length", target_n).lt("min_degeneracy", 10).execute()
+    
+    # store in a dataframe
+    df = pd.DataFrame(random_shape.data)
+
+    return df
 
 def get_random_shape(target_n=10):
     """ Returns a random shape from the database
