@@ -28,8 +28,8 @@ def saw_training(name='auto'):
         
         # Add other stuff, idk
     }
-    env = gym.make("SAW-v0", length=14, render_mode=None )
-    model = RecurrentPPO("MultiInputLstmPolicy", env, tensorboard_log=f'./logs/{name}', **params)
-    model.learn(10_000)
+    env = gym.make("SAW-v0", length=14, render_mode=None)
+    model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{name}', **params)
+    model.learn(1000_000_000_000)
 
-saw_training('second_test')
+saw_training('onehot_encoding') 

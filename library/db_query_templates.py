@@ -47,8 +47,8 @@ def get_random_shape(target_n=10):
     :np.array: random_shape: a random shape from the database
     """
     db = SupabaseDB()
-    # select a random element from the database
-    random_shape = db.supabase.table("random_shape").select("*").eq("length", target_n).limit(1).execute()
+    # select a random element from the database with min degen below 20
+    random_shape = db.supabase.table("random_shape").select("*").eq("length", target_n).lt("min_degeneracy", 10).limit(1).execute()
     shape_id = random_shape.data[0]["shape_id"]
 
     # deserialize the shape
