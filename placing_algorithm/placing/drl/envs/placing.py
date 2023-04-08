@@ -48,12 +48,9 @@ class Placing(gym.Env):
             'HPassignments': spaces.Box(0, 2, shape=(25, 25), dtype=np.uint8),
         }
 
-        action_dict = {
-            'select_position': spaces.Box(0, 25, shape=(2,)),
-            'assign': spaces.Discrete(2),
-        }
+        action_space = spaces.MultiDiscrete([625, 2])
 
-        self.action_space = spaces.Tuple([action_dict['select_position'], action_dict['assign']])
+        self.action_space = action_space
         self.observation_space = spaces.Dict(observation_dict)
 
     def generate_path(self, shape_id):
@@ -104,15 +101,17 @@ class Placing(gym.Env):
         self.num_actions += 1
         pos_action, assign_action = action
         print(pos_action, assign_action)
-        pos_action = math.floor(pos_action[0]), math.floor(pos_action[1])
-        self.HPassignments[pos_action[0], pos_action[1]] = assign_action + 1
+        pos_action_row = pos_action // 25
+        pos_action_col = pos_action % 25
+        print(pos_action_row, pos_action_col)
+        self.HPassignments[pos_action_row, pos_action_col] = assign_action + 1
         obs = self._get_obs()
         if self.render_mode == "human":
-            self.render(pos_action, assign_action)
-        reward, done = self.compute_reward(pos_action)
+            self.render(pos_action_row, pos_action_col, assign_action)
+        reward, done = self.compute_reward(pos_action_row, pos_action_col)
         return obs, reward, done, {}
 
-    def render(self, pos_action, assign_action):
+    def render(self, pos_action_row, pos_action_col, assign_action):
         """
         Render the environment to the screen.
         """
@@ -125,10 +124,10 @@ class Placing(gym.Env):
         # render the current pos as a green square overwriting the target shape
         if assign_action == 0:
             pygame.draw.circle(self.shape_surface, (0, 255, 0), (
-                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/3)
+                pos_action_col*self.cell_size, pos_action_row*self.cell_size), radius=self.cell_size/3)
         else:
             pygame.draw.circle(self.shape_surface, (0, 0, 255), (
-                pos_action[0]*self.cell_size, pos_action[1]*self.cell_size), radius=self.cell_size/3)
+                pos_action_col*self.cell_size, pos_action_row*self.cell_size), radius=self.cell_size/3)
 
         self.screen.blit(self.shape_surface, (0, 0))
         time.sleep(2)
@@ -148,7 +147,7 @@ class Placing(gym.Env):
         }
         return obs
 
-    def compute_reward(self, pos_action):
+    def compute_reward(self, pos_action_row, pos_action_col):
         """
         If the folding matrix is the same as the target shape, then reward is 1.
         Else, reward is 0.
@@ -157,7 +156,7 @@ class Placing(gym.Env):
         done = False
 
         # fail immediately if out of bounds
-        if self.target_shape[pos_action[0], pos_action[1]] == 0:
+        if self.target_shape[pos_action_row, pos_action_col] == 0:
             reward = -1
             done = True
 
