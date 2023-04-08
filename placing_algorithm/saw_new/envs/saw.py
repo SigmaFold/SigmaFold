@@ -19,11 +19,11 @@ class SAW(gym.Env):
     Left 2 
     +---------+
     """
-    def __init__(self, length, render_mode=None, max_attempts=1©) -> None:
+    def __init__(self, length, render_mode=None, max_attempts=1) -> None:
         super().__init__()
         
         self.shapes = get_all_random_shapes(length)
-        # add two columns to the datafram
+            # add two columns to the datafram
 
         # print(self.shapes)
         # Static attributes
@@ -236,9 +236,8 @@ class SAW(gym.Env):
             neighbour = self.current_pos + direction
             # check if the neighbour is in the shape
             x, y = neighbour
-            boundary_vector[i] = self.folding_matrix[y, x] or self.target_shape[y, x]
-
-     
+            boundary_vector[i] = (self.target_shape[y, x] == 0) or (self.folding_matrix[y, x] > 0)
+            boundary_vector[i] = int(boundary_vector[i])
 
         
         return boundary_vector

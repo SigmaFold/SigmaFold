@@ -8,75 +8,76 @@ import time
 import math
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
-from library.shape_helper import path_to_shape_numbered, deserialize_path
-from library.db_query_templates import get_random_shape, get_all_sequences_for_shape, find_HP_assignments
+from library.shape_helper import path_to_shape_numbered, deserialize_path, deserialize_point, deserialize_shape
+from library.db_query_templates import get_random_shape, get_all_sequences_for_shape, find_HP_assignments, get_all_random_shapes
 
 class Placing(gym.Env):
     """
     Placing environment for the Folding@AmongUs project.
     """
 
-    def __init__(self, length, using_prev_agent = False, target_shape=None, path_shape=None, render_mode=None) -> None:
+    def __init__(self, length, using_prev_agent = False, max_attempts=1, target_shape=None, path_shape=None, render_mode=None) -> None:
         super().__init__()
+
+        # get the initial shape
+        self.shapes = get_all_random_shapes(length)
+        sample = self.shapes.sample(1)
+        shape_id = sample.shape_id.iloc[0]
+        self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
+        self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
+        self.target_shape = deserialize_shape(shape_id)
+        self.correct_sequence = sample.best_sequence.iloc[0]
+        self.path = sample.optimal_path.iloc[0]
+        self.curr_sequence = []
+
 
         # Static attributes
         self.length = length
-        self.correct_sequences = []
-        self.correctHPassignments = []
         self.using_prev_agent = using_prev_agent
-        
-        # if inputs not received from previous RL agent
-        if target_shape is not None:
-            self.target_shape = target_shape
-        else:
-            self.target_shape = np.array((25, 25))
-        if path_shape is not None:
-            self.path_shape = path_shape
-        else:   
-            self.path_shape = np.array((25, 25))
-        
+        self.max_attempts = max_attempts
         self.render_mode = render_mode  # activates or deativates the UI. Activated if set to "human"
-
-        # Dynamic attributes
-        self.HPassignments = np.ndarray(shape=(25, 25))
         self.num_actions = 0
+        self.attempts = 0
 
-        # Spaces
-        observation_dict = {
-            'target': spaces.Box(0, 1, shape=(25, 25), dtype=np.uint8),
-            'path': spaces.Box(0, self.length, shape=(25, 25), dtype=np.uint8),
-            'HPassignments': spaces.Box(0, 2, shape=(25, 25), dtype=np.uint8),
-        }
+        #TODO: limit position to be following the path
+        #TODO: add one hot encoding for observation
 
-        action_space = spaces.MultiDiscrete([625, 2])
+        self.action_space = spaces.MultiBinary(2)
+        self.observation_space = spaces.MultiBinary(6) # 4 neighbours + 2 HP assignments
 
-        self.action_space = action_space
-        self.observation_space = spaces.Dict(observation_dict)
-
-    def generate_path(self, shape_id):
-        # get all sequences for the target shape
-        sequences = get_all_sequences_for_shape(shape_id)
-        # sort sequences by degeneracy in an ascending order and save the first one's sequence and path
-        sequences = sequences.sort_values(by=["degeneracy"], ascending=True)
-        best_sequence = sequences.iloc[0]
-        sequence = best_sequence["sequence"]
-        path = best_sequence["path"]
-        # convert path string into list of tuples
-        path = deserialize_path(path)
-        path_mat, HP_mat, _ = path_to_shape_numbered(
-            path, sequence)    # convert path into a numbered matrix
-        return path_mat, HP_mat, sequence
+    # def generate_path(self, shape_id):
+    #     #TODO: make it so this doesnt call db at every reset
+    #     # get all sequences for the target shape
+    #     sequences = get_all_sequences_for_shape(shape_id)
+    #     # sort sequences by degeneracy in an ascending order and save the first one's sequence and path
+    #     sequences = sequences.sort_values(by=["degeneracy"], ascending=True)
+    #     best_sequence = sequences.iloc[0]
+    #     sequence = best_sequence["sequence"]
+    #     path = best_sequence["path"]
+    #     # convert path string into list of tuples
+    #     path = deserialize_path(path)
+    #     path_mat, HP_mat, _ = path_to_shape_numbered(
+    #         path, sequence)    # convert path into a numbered matrix
+    #     return path_mat, HP_mat, sequence
 
     def reset(self, options=None, seed=None):
-        if not self.using_prev_agent:
-            self.target_shape, shape_id = get_random_shape(self.length)
-            self.path_shape, correctHP, sequence = self.generate_path(shape_id)
-            self.correctHPassignments.append(correctHP)
-            self.correct_sequences.append(sequence)
+        # get the initial shape
+        if self.attempts >= self.max_attempts:
+            self.shapes = get_all_random_shapes(self.length)
+            sample = self.shapes.sample(1)
+            shape_id = sample.shape_id.iloc[0]
+            self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
+            self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
+            self.target_shape = deserialize_shape(shape_id)
+            self.correct_sequence = sample.best_sequence.iloc[0]
+            self.path = sample.optimal_path.iloc[0]
+            self.curr_sequence = []
+            self.attempts = 0
         else:
-            self.correct_sequences, self.correctHPassignments = find_HP_assignments(self.length, self.target_shape, self.path_shape)
-
-        self.HPassignments = np.zeros((25, 25))
+            self.attempts += 1
+        
+        self.correct_sequences, self.correctHPassignments = find_HP_assignments(self.length, self.target_shape, self.path_shape)
+        self.curr_sequence = []
 
         if self.render_mode == "human":
             pygame.init()
@@ -98,14 +99,17 @@ class Placing(gym.Env):
         return self._get_obs()
 
     def step(self, action):
-        self.num_actions += 1
-        pos_action, assign_action = action
-        print(pos_action, assign_action)
-        pos_action -= 1
-        pos_action_row = pos_action // 25
-        pos_action_col = pos_action % 25
-        print(pos_action_row, pos_action_col)
-        self.HPassignments[pos_action_row, pos_action_col] = assign_action + 1
+        #TODO: Make it so that it iterates through the path instead of the whole grid
+        actions_dict = {0: "H", 1: "P"}
+        action = np.argmax(action)
+        action = actions_dict[action]
+        self.curr_sequence.append(action)
+        idx  = len(self.curr_sequence) - 1
+        
+        pos_action_row = self.path[idx][1]
+        pos_action_col = self.path[idx][0]
+        assign_action = self.curr_sequence[idx]
+        
         obs = self._get_obs()
         if self.render_mode == "human":
             self.render(pos_action_row, pos_action_col, assign_action)
@@ -123,7 +127,7 @@ class Placing(gym.Env):
                 sys.exit()
 
         # render the current pos as a green square overwriting the target shape
-        if assign_action == 0:
+        if assign_action == "H":
             pygame.draw.circle(self.shape_surface, (0, 255, 0), (
                 pos_action_col*self.cell_size, pos_action_row*self.cell_size), radius=self.cell_size/3)
         else:
@@ -131,21 +135,16 @@ class Placing(gym.Env):
                 pos_action_col*self.cell_size, pos_action_row*self.cell_size), radius=self.cell_size/3)
 
         self.screen.blit(self.shape_surface, (0, 0))
-        time.sleep(2)
         pygame.display.flip()
 
     def _get_obs(self):
         """
         Get the observation of the environment.
         """
-        # IMPORTANT, SET THE DATATYPE TO BE CORRECT HERE !
-        obs = {
-            'target': self.target_shape.astype(np.uint8),
-            'path': self.path_shape.astype(np.uint8),
-            'HPassignments': self.HPassignments.astype(np.uint8),
-            # TODO temporarily removed the starting pos from the observation in case its not relevant. add and compare results
-            # TODO: Shoild we add the folding matrix to the observation?
-        }
+        # IMPORTANT, SET THE DATATYPE TO BE CORRECT HERE
+        obs = np.zeros(6, dtype=np.int8)
+        # get the neighbours of the current position
+
         return obs
 
     def compute_reward(self, pos_action_row, pos_action_col):
@@ -173,3 +172,31 @@ class Placing(gym.Env):
             done = True
 
         return reward, done
+
+
+    def find_neighbours(self):
+        """
+        Look at neighbours of the current position.
+        00 - not connectable (either on the chain or a boundary)
+        01 - conenctable and empty
+        10 - H
+        11  - P
+        """
+        neighbour_vector = np.zeros((16,1), dtype=int)
+   
+         # top left to bottom right dirs in cartesian coordinates
+        dirs = np.array([[1,-1], [0,1], [1,1], [1,0], [0,-1], [-1,-1], [-1,0], [-1,1]])
+            
+        for i, direction in enumerate(dirs):
+            # get the neighbour in the given direction
+            neighbour = self.current_pos + direction
+            # check if the neighbour is in the shape
+            x, y = neighbour
+            
+            #TODO: make neighbour vector of length 16 depending on what each position is
+        
+        return neighbour_vector
+    
+
+if __name__ == "__main__":
+    env  = Placing(16)
