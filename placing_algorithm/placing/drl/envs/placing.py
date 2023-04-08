@@ -101,6 +101,7 @@ class Placing(gym.Env):
         self.num_actions += 1
         pos_action, assign_action = action
         print(pos_action, assign_action)
+        pos_action -= 1
         pos_action_row = pos_action // 25
         pos_action_col = pos_action % 25
         print(pos_action_row, pos_action_col)
