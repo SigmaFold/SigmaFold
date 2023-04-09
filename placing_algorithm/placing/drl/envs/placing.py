@@ -4,6 +4,7 @@ from gym import spaces
 import os
 import sys
 import pygame
+import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
 from library.db_query_templates import get_all_random_shapes
@@ -22,13 +23,8 @@ class Placing(gym.Env):
         self.shapes = get_all_random_shapes(length)
         sample = self.shapes.sample(1)
         self.shape_id = sample.shape_id.iloc[0]
-        # currently 0s and 1s, but adding H or P will correspond to 2 or 3 respectively
-        self.HP_matrix = deserialize_shape(self.shape_id)
-        # the correct sequence for the target shape as a string
         self.correct_sequence = sample.best_sequence.iloc[0]
-        # path as list of tuples coordinates
         self.path = deserialize_path(sample.optimal_path.iloc[0])
-        # position in the target shape matrix as tuple
         self.curr_pos = self.path[0]
 
         self.curr_sequence = []  # where we will be storing hp assingments
@@ -39,31 +35,35 @@ class Placing(gym.Env):
         # activates or deativates the UI. Activated if set to "human"
         self.render_mode = render_mode
         self.num_actions = 0
+        
+        # Dynamic attributes
         self.attempts = 0
+        self.cleared = False
+        self.HP_matrix = deserialize_shape(self.shape_id)
 
         self.action_space = spaces.MultiBinary(2)
         self.observation_space = spaces.MultiBinary(10)  # 4 neighbours + 2 HP assignments
 
     def reset(self, options=None, seed=None):
-        # get the initial shape
-        if self.attempts >= self.max_attempts:
+        if self.shapes.empty:
+            self.reset = self.dummy_reset
+            self.step = self.dummy_step
+        elif self.attempts >= self.max_attempts or self.cleared:
             sample = self.shapes.sample(1)
             self.shape_id = sample.shape_id.iloc[0]
-            # currently 0s and 1s, but adding H or P will correspond to 2 or 3 respectively
-            self.HP_matrix = deserialize_shape(self.shape_id)
-            # the correct sequence for the target shape as a string
             self.correct_sequence = sample.best_sequence.iloc[0]
-            # path as list of tuples coordinates
             self.path = deserialize_path(sample.optimal_path.iloc[0])
-            # position in the target shape matrix as tuple
-            self.curr_pos = self.path[0]
-            self.curr_sequence = []
             self.attempts = 0
+            self.cleared = False
         else:
             self.attempts += 1
-            # currently 0s and 1s, but adding H or P will correspond to 2 or 3 respectively
-            self.HP_matrix = deserialize_shape(self.shape_id)
-            self.curr_sequence = []
+        
+        self.HP_matrix = deserialize_shape(self.shape_id)
+        self.curr_pos = self.path[0]
+        self.curr_sequence = []
+        self.num_actions = 0
+        self.last_action = np.zeros((2, 1))
+        
 
         if self.render_mode == "human":
             pygame.init()
@@ -76,7 +76,7 @@ class Placing(gym.Env):
             self.shape_surface.fill((0, 0, 0))
             for i in range(25):
                 for j in range(25):
-                    if self.target_shape[i, j] == 1:
+                    if self.HP_matrix[i, j] == 1 or self.HP_matrix[i, j] == 2 or self.HP_matrix[i, j] == 3:
                         pygame.draw.rect(self.shape_surface, (255, 0, 0), (
                             j*self.cell_size, i*self.cell_size, self.cell_size, self.cell_size))
 
@@ -88,7 +88,7 @@ class Placing(gym.Env):
         # updating the current sequence with the action
         actions_dict = {0: "H", 1: "P"}
         action = np.argmax(action)
-        self.last_action = np.zeros((2, 1), dtype=np.int)
+        self.last_action = np.zeros((2, 1), dtype=int)
         self.last_action[action] = 1    # H is 10, P is 01
         residue = actions_dict[action]
         self.curr_sequence.append(residue)
@@ -107,7 +107,7 @@ class Placing(gym.Env):
             self.render(pos_action_row, pos_action_col, residue)
 
         # check reward
-        reward, done = self.compute_reward(pos_action_row, pos_action_col)
+        reward, done = self.compute_reward()
         # get observation space
         obs = self._get_obs()
         return obs, reward, done, {}
@@ -132,6 +132,7 @@ class Placing(gym.Env):
 
         self.screen.blit(self.shape_surface, (0, 0))
         pygame.display.flip()
+        time.sleep(2)
 
     def _get_obs(self):
         """
@@ -163,6 +164,7 @@ class Placing(gym.Env):
         if self.num_actions >= self.length:
             if "".join(self.curr_sequence) == self.correct_sequence:
                 reward = 10
+                self.cleared = True
                 done = True
             else:
                 done = True
