@@ -28,6 +28,12 @@ class CustomCallback(BaseCallback):
 
         # Stop training if shapes list is empty
         if self.model.get_env().envs[0].cleared_all:
+            print("Cleared all shapes")
+            print("Number of timesteps:", self.num_timesteps)
+            # save nulber of timestep to file
+            with open(f'./logs/{folder}/{run_name}/timesteps.txt', 'w') as f:
+                f.write(str(self.num_timesteps))
+        
             return False
 
         return True
@@ -35,7 +41,7 @@ class CustomCallback(BaseCallback):
 
 def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
     params = {
-        "learning_rate": 1e-4,
+        "learning_rate": 1e-3,
         "n_steps": 128,
         "batch_size": 128,
         "n_epochs": 10,
