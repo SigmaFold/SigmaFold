@@ -41,8 +41,9 @@ class Placing(gym.Env):
         self.cleared = False
         self.HP_matrix = deserialize_shape(self.shape_id)
 
-        self.action_space = spaces.MultiBinary(2)
+        self.action_space = spaces.MultiBinary(1)
         self.observation_space = spaces.MultiBinary(10)  # 4 neighbours + 2 HP assignments
+
 
     def reset(self, options=None, seed=None):
         if self.shapes.empty:
@@ -84,10 +85,11 @@ class Placing(gym.Env):
             self.screen.blit(self.shape_surface, (0, 0))
         return self._get_obs()
 
+
     def step(self, action):
         # updating the current sequence with the action
         actions_dict = {0: "H", 1: "P"}
-        action = np.argmax(action)
+        action = action[0]
         self.last_action = np.zeros((2, 1), dtype=int)
         self.last_action[action] = 1    # H is 10, P is 01
         residue = actions_dict[action]
@@ -112,6 +114,7 @@ class Placing(gym.Env):
         obs = self._get_obs()
         return obs, reward, done, {}
 
+
     def render(self, pos_action_row, pos_action_col, residue):
         """
         Render the environment to the screen.
@@ -132,7 +135,7 @@ class Placing(gym.Env):
 
         self.screen.blit(self.shape_surface, (0, 0))
         pygame.display.flip()
-        time.sleep(2)
+
 
     def _get_obs(self):
         """
@@ -142,6 +145,7 @@ class Placing(gym.Env):
         obs = np.vstack([self.last_action, neighbour_vector])
 
         return obs.flatten()
+
 
     def compute_reward(self):
         """
@@ -170,6 +174,7 @@ class Placing(gym.Env):
                 done = True
 
         return reward, done
+
 
     def find_neighbours(self):
         """

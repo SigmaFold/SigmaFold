@@ -9,7 +9,7 @@ from placing_algorithm.placing.drl.envs.baseline import RANDHP, Placing
 
 def test_render():
     env = Placing(length=16, render_mode="human")
-    actions = [np.array([0,0], dtype =np.int8), np.array([0,1], dtype =np.int8), np.array([1,0], dtype =np.int8), np.array([1,1], dtype =np.int8)]
+    actions = [np.array([0], dtype =np.int8), np.array([1], dtype =np.int8), np.array([0], dtype =np.int8), np.array([1], dtype =np.int8)]
     obs = env.reset()
 
     done = False
