@@ -44,26 +44,28 @@ class SAW(gym.Env):
         # Initialise the target shape
         # sample a random shape. in the dataframe there now is a column for starting position and direction
         sample = self.shapes.sample(1)
-        shape_id = sample.shape_id.iloc[0]
+        self.shape_id = sample.shape_id.iloc[0]
         self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
         self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
-        self.target_shape = deserialize_shape(shape_id)
+        self.target_shape = deserialize_shape(self.shape_id)
 
         # print("Starting position:", self.starting_pos)
         # print("Starting direction:", self.starting_dir)
 
-        
         # One hot encoded observation space
         self.action_space = spaces.MultiBinary(3)
         self.observation_space = spaces.MultiBinary(11)
         
     def reset(self, options=None, seed=None):
-        if self.attempts >= self.max_attempts or self.cleared:
+        if self.shapes.empty:
+            self.reset = self.dummy_reset
+            self.step = self.dummy_step
+        elif self.attempts >= self.max_attempts or self.cleared:
             sample = self.shapes.sample(1)
-            shape_id = sample.shape_id.iloc[0]
+            self.shape_id = sample.shape_id.iloc[0]
             self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
             self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
-            self.target_shape = deserialize_shape(shape_id)
+            self.target_shape = deserialize_shape(self.shape_id)
             self.attempts = 0
             self.cleared = False
         else:
@@ -75,7 +77,6 @@ class SAW(gym.Env):
         self.curr_length = 0
         self.current_pos = tuple(np.copy(self.starting_pos))
         self.current_direction = tuple(np.copy(self.starting_dir))
-
 
         if self.render_mode == "human":
             pygame.init()
@@ -166,19 +167,19 @@ class SAW(gym.Env):
 
         if self.curr_length == self.length -1:
             done = True
-        
-        # if any element is equal to -1 then something was placed out of bounds 
-        if np.any(diff_matrix < 0):
+         
+        if np.any(diff_matrix < 0): # out of bounds
             reward = -2
             done = True
         
-        elif np.all(diff_matrix == 0):
+        elif np.all(diff_matrix == 0): # correct final shape
             reward = 10
             done = True
             self.cleared = True
+            self.shapes.drop(index=self.shape_id) # remove shape from df when its cleared
             print("Cleared shape!")
         
-        elif np.any(self.folding_matrix > 1):
+        elif np.any(self.folding_matrix > 1): # self-crossing
             reward = -2
             done = True
 
@@ -243,7 +244,6 @@ class SAW(gym.Env):
         
         return boundary_vector
     
-
     
             
            

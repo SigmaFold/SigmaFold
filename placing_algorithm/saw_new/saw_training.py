@@ -8,7 +8,7 @@ from envs.one_hot_space import OneHotWrapper
 from sb3_contrib import RecurrentPPO
 from gym import envs
 
-def saw_training(name='auto'):
+def saw_training(env, name='auto'):
     params = {
         "learning_rate": 1e-4,
         "n_steps": 128,
@@ -28,8 +28,10 @@ def saw_training(name='auto'):
         "verbose": 1,
         # Add other stuff, idk
     }
-    env = gym.make("SAW-v0", length=16, render_mode=None)
+    env = gym.make(env, length=16, render_mode=None)
     model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{name}', **params)
-    model.learn(1000_000_000_000)
+    model.learn(1_000_000_000_000)
 
-saw_training('onehot_encoding') 
+if __name__=='__main__':
+    name = str(input("How to do you want to name the test? "))
+    saw_training('SAW-v0', name) 

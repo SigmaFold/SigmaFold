@@ -7,3 +7,8 @@ gym.register(
     entry_point="placing_algorithm.saw_new.envs.saw:SAW",
 )
 
+gym.register(
+    id="RAND-v0",
+    entry_point="placing_algorithm.saw_new.envs.baseline:RANDSAW",
+)
+
