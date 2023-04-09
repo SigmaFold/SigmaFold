@@ -16,18 +16,17 @@ class Placing(gym.Env):
     Placing environment for the Folding@AmongUs project.
     """
 
-    def __init__(self, length, using_prev_agent = False, max_attempts=1, target_shape=None, path_shape=None, render_mode=None) -> None:
+    def __init__(self, length, max_attempts=1, render_mode=None) -> None:
         super().__init__()
 
         # get the initial shape
         self.shapes = get_all_random_shapes(length)
         sample = self.shapes.sample(1)
-        shape_id = sample.shape_id.iloc[0]
-        self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
-        self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
-        self.target_shape = deserialize_shape(shape_id)
-        self.correct_sequence = sample.best_sequence.iloc[0]
-        self.path = sample.optimal_path.iloc[0]
+        self.shape_id = sample.shape_id.iloc[0]
+        self.HP_matrix = deserialize_shape(self.shape_id)    # currently 0s and 1s, but adding H or P will correspond to 2 or 3 respectively
+        self.correct_sequence = sample.best_sequence.iloc[0]    # the correct sequence for the target shape as a string
+        self.path = deserialize_path(sample.optimal_path.iloc[0])   # path as list of tuples coordinates        
+        self.curr_pos = self.path[0]  # position in the target shape matrix as tuple
 
 
         self.curr_sequence = [] # where we will be storing hp assingments
@@ -65,19 +64,18 @@ class Placing(gym.Env):
         # get the initial shape
         if self.attempts >= self.max_attempts:
             sample = self.shapes.sample(1)
-            shape_id = sample.shape_id.iloc[0]
-            self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
-            self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
-            self.target_shape = deserialize_shape(shape_id)
-            self.correct_sequence = sample.best_sequence.iloc[0]
-            self.path = sample.optimal_path.iloc[0]
+            self.shape_id = sample.shape_id.iloc[0]
+            self.HP_matrix = deserialize_shape(self.shape_id)    # currently 0s and 1s, but adding H or P will correspond to 2 or 3 respectively
+            self.correct_sequence = sample.best_sequence.iloc[0]    # the correct sequence for the target shape as a string
+            self.path = deserialize_path(sample.optimal_path.iloc[0])   # path as list of tuples coordinates            
+            self.curr_pos = self.path[0]  # position in the target shape matrix as tuple
             self.curr_sequence = []
             self.attempts = 0
         else:
             self.attempts += 1
+            self.HP_matrix = deserialize_shape(self.shape_id)    # currently 0s and 1s, but adding H or P will correspond to 2 or 3 respectively
+            self.curr_sequence = []
         
-        self.correct_sequences, self.correctHPassignments = find_HP_assignments(self.length, self.target_shape, self.path_shape)
-        self.curr_sequence = []
 
         if self.render_mode == "human":
             pygame.init()
@@ -100,20 +98,30 @@ class Placing(gym.Env):
 
     def step(self, action):
         #TODO: Make it so that it iterates through the path instead of the whole grid
+        # updating the current sequence with the action
         actions_dict = {0: "H", 1: "P"}
         action = np.argmax(action)
         action = actions_dict[action]
         self.curr_sequence.append(action)
-        idx  = len(self.curr_sequence) - 1
 
-        pos_action_row = self.path[idx][1]
-        pos_action_col = self.path[idx][0]
-        assign_action = self.curr_sequence[idx]
+        # updating the HP matrix according to action
+        pos_action_col, pos_action_row = self.curr_pos
+        assign_action = action
+        assign_dict = {"H": 2, "P": 3}
+        self.HP_matrix[pos_action_row, pos_action_col] = assign_dict[assign_action]
+
+        # updating the current position
+        self.num_actions += 1
+        self.curr_pos = self.path[self.num_actions]
         
-        obs = self._get_obs()
+        # render
         if self.render_mode == "human":
             self.render(pos_action_row, pos_action_col, assign_action)
+        
+        # check reward
         reward, done = self.compute_reward(pos_action_row, pos_action_col)
+        # get observation space
+        obs = self._get_obs()
         return obs, reward, done, {}
 
     def render(self, pos_action_row, pos_action_col, assign_action):
@@ -182,18 +190,64 @@ class Placing(gym.Env):
         10 - H
         11  - P
         """
-        neighbour_vector = np.zeros((16,1), dtype=int)
+        neighbour_vector = np.zeros((8,1), dtype=int)
    
-         # top left to bottom right dirs in cartesian coordinates
-        dirs = np.array([[1,-1], [0,1], [1,1], [1,0], [0,-1], [-1,-1], [-1,0], [-1,1]])
+        # up, right, down and left dirs in matrix [m, n]
+        dirs = np.array([[0, -1], [1, 0], [0, 1], [-1, 0]])
             
-        for i, direction in enumerate(dirs):
+        curr_pos_list = list(self.curr_pos) # convert it to a list
+        
+        # fill the neighbour_vector appropriately
+        for i, dir in enumerate(dirs):
             # get the neighbour in the given direction
-            neighbour = self.current_pos + direction
-            # check if the neighbour is in the shape
-            x, y = neighbour
-            
-            #TODO: make neighbour vector of length 16 depending on what each position is
+            neighbour_pos = [x + y for x, y in zip(curr_pos_list, dir)]
+            # check neighbour characteristic in shape
+            neighbour_char = self.HP_matrix[neighbour_pos[1], neighbour_pos[0]]
+            if neighbour_char == 0: # if outside boundary, assign 00
+                neighbour_vector[2*i] = 0
+                neighbour_vector[2*i+1] = 0
+            elif neighbour_char == 1: # in boundary but unassigned
+                # if in chain, assign 00
+                if self.num_actions == 0 and self.path[self.num_actions + 1] == tuple(neighbour_pos):
+                    neighbour_vector[2*i] = 0
+                    neighbour_vector[2*i+1] = 0
+                elif self.num_actions == self.length and self.path[self.num_actions - 1] == tuple(neighbour_pos):
+                    neighbour_vector[2*i] = 0
+                    neighbour_vector[2*i+1] = 0
+                elif self.path[self.num_actions - 1] == tuple(neighbour_pos) or self.path[self.num_actions + 1] == tuple(neighbour_pos):
+                    neighbour_vector[2*i] = 0
+                    neighbour_vector[2*i+1] = 0
+                else:   # if not in chain, assign 01
+                    neighbour_vector[2*i] = 0
+                    neighbour_vector[2*i+1] = 1
+            elif neighbour_char == 2: # H
+                # if in chain, assign 00
+                if self.num_actions == 0 and self.path[self.num_actions + 1] == tuple(neighbour_pos):
+                    neighbour_vector[2*i] = 0
+                    neighbour_vector[2*i+1] = 0
+                elif self.num_actions == self.length and self.path[self.num_actions - 1] == tuple(neighbour_pos):
+                    neighbour_vector[2*i] = 0
+                    neighbour_vector[2*i+1] = 0
+                elif self.path[self.num_actions - 1] == tuple(neighbour_pos) or self.path[self.num_actions + 1] == tuple(neighbour_pos):
+                    neighbour_vector[2*i] = 0
+                    neighbour_vector[2*i+1] = 0
+                else:   # if not in chain, assign 10
+                    neighbour_vector[2*i] = 1
+                    neighbour_vector[2*i+1] = 0
+            elif neighbour_char == 3: # P
+                # if in chain, assign 00
+                if self.num_actions == 0 and self.path[self.num_actions + 1] == tuple(neighbour_pos):
+                    neighbour_vector[2*i] = 0
+                    neighbour_vector[2*i+1] = 0
+                elif self.num_actions == self.length and self.path[self.num_actions - 1] == tuple(neighbour_pos):
+                    neighbour_vector[2*i] = 0
+                    neighbour_vector[2*i+1] = 0
+                elif self.path[self.num_actions - 1] == tuple(neighbour_pos) or self.path[self.num_actions + 1] == tuple(neighbour_pos):
+                    neighbour_vector[2*i] = 0
+                    neighbour_vector[2*i+1] = 0
+                else:   # if not in chain, assign 11
+                    neighbour_vector[2*i] = 1
+                    neighbour_vector[2*i+1] = 1
         
         return neighbour_vector
     
