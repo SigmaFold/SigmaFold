@@ -1,6 +1,7 @@
 import time
 import os
 import sys
+import numpy as np
 import pygame
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from placing_algorithm.placing.drl.envs.baseline import RANDHP, Placing
@@ -8,7 +9,7 @@ from placing_algorithm.placing.drl.envs.baseline import RANDHP, Placing
 
 def test_render():
     env = Placing(length=10, render_mode="human")
-    actions = [[338, 1], [337, 0], [312, 1], [313, 0]]
+    actions = [np.array([0,1], dtype =np.int8), np.array([1,1], dtype =np.int8), np.array([1,1], dtype =np.int8)]
     obs = env.reset()
 
     done = False

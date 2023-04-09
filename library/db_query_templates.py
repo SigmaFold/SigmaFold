@@ -256,27 +256,18 @@ def find_HP_assignments(length, target_grid, path_grid):
     return sequence_list, HPassignment_list
 
 if __name__ == "__main__":
-    sequences = get_all_sequences_for_shape("Ɛ011n041l041l041Ł0")
-
-    # sort sequences by degenracy in an ascending order and save the first one in a variable
-    sequences = sequences.sort_values(by=["degeneracy"], ascending=True)
-    best_sequence = sequences.iloc[0]
-    sequence = best_sequence["sequence"]
-    path = best_sequence["path"]
+    shapes = get_all_random_shapes(14)
+    sample = shapes.sample(1)
+    print(sample)
+    shape_id = sample.shape_id.iloc[0]
+    print(shape_id)
+    starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
+    print(starting_pos)
+    starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
+    print(starting_dir)
+    target_shape = deserialize_shape(shape_id)
+    print(target_shape)
+    correct_sequence = sample.best_sequence.iloc[0]
+    print(correct_sequence)
+    path = deserialize_path(sample.optimal_path.iloc[0])
     print(path)
-    # separate the path into a list of nodes
-    path = path.split(" ")
-    path.remove("")
-    print(path)
-    path = [tuple(map(int, node.split(","))) for node in path]
-    print(path)
-
-
-
-    # import matplotlib.pyplot as plt
-
-
-    # seqs = get_perfect_shapes(16)
-    # print(len(seqs))
-    # plt.matshow(seqs[0])
-    # plt.show()
