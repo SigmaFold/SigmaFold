@@ -8,8 +8,8 @@ import pygame
 import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 from library.db_query_templates import get_random_shape, get_all_sequences_for_shape, get_all_random_shapes
-from library.shape_helper import path_to_shape_numbered, deserialize_path, deserialize_shape, deserialize_point
-
+from library.shape_helper import path_to_shape_numbered, deserialize_path, deserialize_shape, deserialize_point, serialize_point
+from tabulate import tabulate
 
 class SAW(gym.Env):
     """
@@ -19,13 +19,37 @@ class SAW(gym.Env):
     Left 2 
     +---------+
     """
-    def __init__(self, length, render_mode=None, max_attempts=1) -> None:
+    def __init__(self, length, render_mode=None, max_attempts=1, depth_field=1, shapes=None) -> None:
         super().__init__()
-        
-        self.shapes = get_all_random_shapes(length)
-            # add two columns to the datafram
+        if not shapes:
+            self.shapes = get_all_random_shapes(length)
+        else:
+            self.shapes = shapes
+        # duplicate every row in the dataframe, replace the starting_point field with the last element in the optimal_path field
+        # and replace the starting_dir field with the last element in the optimal_path field for the DUPLICATES
+        # this way we have a starting point and direction for every shape
+        # self.shapes = pd.concat([self.shapes, self.shapes], ignore_index=True)
+        for _, row in self.shapes.iterrows():
+            # duplicate the row inside the dataframe
+            # get the last element of the optimal_path field
+            row = row.to_dict()
+            path = deserialize_path(row["optimal_path"])
+            # substract with second to last point to get the direction
+            starting_dir = np.array(path[-2]) - np.array(path[-1])
+            starting_pos = np.array(path[-1])
 
-        # print(self.shapes)
+            # create a  duplicate row with the new starting point and direction
+            new_row = row.copy()
+            new_row["starting_point"] = serialize_point(starting_pos)
+            new_row["starting_dir"] = serialize_point(starting_dir)
+            # add using concat
+            self.shapes = pd.concat([self.shapes, pd.DataFrame([new_row])], ignore_index=True)
+        
+        # shuffle the dataframe
+        self.shapes = self.shapes.sample(frac=1).reset_index(drop=True)  
+
+        
+
         # Static attributes
         self.length = length
         self.render_mode = render_mode # activates or deativates the UI. Activated if set to "human"
@@ -41,6 +65,9 @@ class SAW(gym.Env):
         self.last_action = np.ndarray(shape=(3,))
         self.cleared = False
         self.attempts = 0
+        self.cleared_all = False # True if all shapes have been cleared
+
+
         # Initialise the target shape
         # sample a random shape. in the dataframe there now is a column for starting position and direction
         sample = self.shapes.sample(1)
@@ -48,19 +75,41 @@ class SAW(gym.Env):
         self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
         self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
         self.target_shape = deserialize_shape(self.shape_id)
+        self.shape_index  = sample.index[0]
+        
 
-        # print("Starting position:", self.starting_pos)
-        # print("Starting direction:", self.starting_dir)
+     
+
+        
+
+
 
         # One hot encoded observation space
         self.action_space = spaces.MultiBinary(3)
         self.observation_space = spaces.MultiBinary(11)
         
-    def reset(self, options=None, seed=None):
-        if self.shapes.empty:
-            self.reset = self.dummy_reset
-            self.step = self.dummy_step
-        elif self.attempts >= self.max_attempts or self.cleared:
+    def reset(self, options=None, seed=None):  
+        if self.cleared:
+            # drop and reset indexing
+            self.shapes = self.shapes.drop(self.shape_index)
+            self.shapes = self.shapes.reset_index(drop=True)
+            if self.shapes.empty:
+                # let it run on the previous shape to avoid errors but set the flag to true
+                self.attempts = 0
+                self.cleared = False
+                self.cleared_all = True
+
+            else:
+                # resample a new shape
+                sample = self.shapes.sample(1)
+                self.shape_id = sample.shape_id.iloc[0]
+                self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
+                self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
+                self.target_shape = deserialize_shape(self.shape_id)
+                self.attempts = 0
+                self.cleared = False
+
+        elif self.attempts >= self.max_attempts:
             sample = self.shapes.sample(1)
             self.shape_id = sample.shape_id.iloc[0]
             self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
@@ -176,7 +225,6 @@ class SAW(gym.Env):
             reward = 10
             done = True
             self.cleared = True
-            self.shapes.drop(index=self.shape_id) # remove shape from df when its cleared
             print("Cleared shape!")
         
         elif np.any(self.folding_matrix > 1): # self-crossing
@@ -243,11 +291,8 @@ class SAW(gym.Env):
 
         
         return boundary_vector
-    
-    
-            
-           
 
-        
-        
-        
+
+if __name__ == "__main__":
+    SAW(16)
+    

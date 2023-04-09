@@ -188,6 +188,12 @@ def deserialize_path(string):
         path.append(tuple(map(int, coord.split(","))))
     return path
 
+def serialize_point(point):
+    """
+    Store a point (tuple) as a string in a way that can be easily decoded.
+    """
+    return str(point[0]) + "," + str(point[1])
+
 def deserialize_point(point):
     """
     Takes a point on the db and deserialize it into a tuple
