@@ -97,7 +97,6 @@ class Placing(gym.Env):
         return self._get_obs()
 
     def step(self, action):
-        #TODO: Make it so that it iterates through the path instead of the whole grid
         # updating the current sequence with the action
         actions_dict = {0: "H", 1: "P"}
         action = np.argmax(action)
