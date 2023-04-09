@@ -27,23 +27,22 @@ class Placing(gym.Env):
         self.path = deserialize_path(sample.optimal_path.iloc[0])
         self.curr_pos = self.path[0]
 
-        self.curr_sequence = []  # where we will be storing hp assingments
+        self.curr_sequence = []  # where we will be storing hp assignments
 
         # Static attributes
         self.length = length
         self.max_attempts = max_attempts
-        # activates or deativates the UI. Activated if set to "human"
+        # activates or deactivates the UI. Activated if set to "human"
         self.render_mode = render_mode
         self.num_actions = 0
-        
+
         # Dynamic attributes
         self.attempts = 0
         self.cleared = False
         self.HP_matrix = deserialize_shape(self.shape_id)
 
-        self.action_space = spaces.MultiBinary(1)
+        self.action_space = spaces.MultiBinary(1)  # 2 HP assignments
         self.observation_space = spaces.MultiBinary(10)  # 4 neighbours + 2 HP assignments
-
 
     def reset(self, options=None, seed=None):
         if self.shapes.empty:
@@ -58,13 +57,12 @@ class Placing(gym.Env):
             self.cleared = False
         else:
             self.attempts += 1
-        
+
         self.HP_matrix = deserialize_shape(self.shape_id)
         self.curr_pos = self.path[0]
         self.curr_sequence = []
         self.num_actions = 0
         self.last_action = np.zeros((2, 1))
-        
 
         if self.render_mode == "human":
             pygame.init()
@@ -77,19 +75,18 @@ class Placing(gym.Env):
             self.shape_surface.fill((0, 0, 0))
             for i in range(25):
                 for j in range(25):
-                    if self.HP_matrix[i, j] == 1 or self.HP_matrix[i, j] == 2 or self.HP_matrix[i, j] == 3:
+                    if self.HP_matrix[i, j] in [1, 2, 3]:
                         pygame.draw.rect(self.shape_surface, (255, 0, 0), (
-                            j*self.cell_size, i*self.cell_size, self.cell_size, self.cell_size))
+                            j * self.cell_size, i * self.cell_size, self.cell_size, self.cell_size))
 
             pygame.display.flip()
             self.screen.blit(self.shape_surface, (0, 0))
         return self._get_obs()
 
-
     def step(self, action):
-        # updating the current sequence with the action
-        actions_dict = {0: "H", 1: "P"}
+        # updating the current sequence with the action`
         action = action[0]
+        actions_dict = {0: "H", 1: "P"}
         self.last_action = np.zeros((2, 1), dtype=int)
         self.last_action[action] = 1    # H is 10, P is 01
         residue = actions_dict[action]
@@ -124,7 +121,7 @@ class Placing(gym.Env):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
+        
         # render the current pos as a green square overwriting the target shape
         if residue == "H":
             pygame.draw.circle(self.shape_surface, (0, 255, 0), (
@@ -132,7 +129,7 @@ class Placing(gym.Env):
         else:
             pygame.draw.circle(self.shape_surface, (0, 0, 255), (
                 pos_action_col*self.cell_size, pos_action_row*self.cell_size), radius=self.cell_size/3)
-
+        time.sleep(3)
         self.screen.blit(self.shape_surface, (0, 0))
         pygame.display.flip()
 
@@ -165,7 +162,7 @@ class Placing(gym.Env):
         if self.curr_sequence[self.num_actions - 1] != self.correct_sequence[self.num_actions - 1]:
             reward = -2
 
-        if self.num_actions >= self.length:
+        if self.num_actions >= self.length - 1:
             if "".join(self.curr_sequence) == self.correct_sequence:
                 reward = 10
                 self.cleared = True
@@ -186,68 +183,53 @@ class Placing(gym.Env):
         """
         neighbour_vector = np.zeros((8, 1), dtype=int)
 
+        
         # up, right, down and left dirs in matrix [m, n]. Diagonals do not matter.
-        dirs = np.array([[0, -1], [1, 0], [0, 1], [-1, 0]])
+        dirs = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+        x, y = self.curr_pos
+        neighbours = [(y+a, x+b) for a, b in dirs]
+        print(neighbours)
+        print(self.HP_matrix)
+        for idx, neighbour in enumerate(neighbours):
+            # check HP matrix for residues
+            H_or_P = self.HP_matrix[neighbour[0], neighbour[1]]
+            if H_or_P == 2:
+                print(f"My neighbour {neighbour} is H")
+                neighbour_vector[2*idx] = 1
+                neighbour_vector[2*idx + 1] = 0
+            elif H_or_P == 3:
+                print(f"My neighbour {neighbour} is P")
+                neighbour_vector[2*idx] = 1
+                neighbour_vector[2*idx + 1] = 1
+            elif H_or_P == 0:
+                print(f"My neighbour {neighbour} is a boundary")
+                neighbour_vector[2*idx] = 0
+                neighbour_vector[2*idx + 1] = 0
+            elif H_or_P == 1:
+                print(f"My neighbour {neighbour} is empty")
+                neighbour_vector[2*idx] = 0
+                neighbour_vector[2*idx + 1] = 1
+            else:
+                raise ValueError("Something went wrong lol cos this cant happen my guy")
+            
+        # get a window of 2 of the self.path around the self.num_actions
+        lower  = max(0, self.num_actions - 1)
+        upper = min(self.length - 1, self.num_actions + 1)
+        window = self.path[lower:upper]
 
-        curr_pos_list = list(self.curr_pos)  # convert it to a list
+        for idx, neighbour in enumerate(neighbours):
+            if neighbour in window:
+                neighbour_vector[2*idx] = 0
+                neighbour_vector[2*idx + 1] = 0 
 
-        # fill the neighbour_vector appropriately
-        for i, dir in enumerate(dirs):
-            # get the neighbour in the given direction
-            neighbour_pos = [x + y for x, y in zip(curr_pos_list, dir)]
-            # check neighbour characteristic in shape
-            neighbour_char = self.HP_matrix[neighbour_pos[1], neighbour_pos[0]]
-            if neighbour_char == 0:  # if outside boundary, assign 00
-                neighbour_vector[2*i] = 0
-                neighbour_vector[2*i+1] = 0
-            elif neighbour_char == 1:  # in boundary but unassigned
-                # if in chain, assign 00
-                if self.num_actions == 0 and self.path[self.num_actions + 1] == tuple(neighbour_pos):
-                    neighbour_vector[2*i] = 0
-                    neighbour_vector[2*i+1] = 0
-                elif self.num_actions == self.length and self.path[self.num_actions - 1] == tuple(neighbour_pos):
-                    neighbour_vector[2*i] = 0
-                    neighbour_vector[2*i+1] = 0
-                elif self.path[self.num_actions - 1] == tuple(neighbour_pos) or self.path[self.num_actions + 1] == tuple(neighbour_pos):
-                    neighbour_vector[2*i] = 0
-                    neighbour_vector[2*i+1] = 0
-                else:   # if not in chain, assign 01
-                    neighbour_vector[2*i] = 0
-                    neighbour_vector[2*i+1] = 1
-            elif neighbour_char == 2:  # H
-                # if in chain, assign 00
-                if self.num_actions == 0 and self.path[self.num_actions + 1] == tuple(neighbour_pos):
-                    neighbour_vector[2*i] = 0
-                    neighbour_vector[2*i+1] = 0
-                elif self.num_actions == self.length and self.path[self.num_actions - 1] == tuple(neighbour_pos):
-                    neighbour_vector[2*i] = 0
-                    neighbour_vector[2*i+1] = 0
-                elif self.path[self.num_actions - 1] == tuple(neighbour_pos) or self.path[self.num_actions + 1] == tuple(neighbour_pos):
-                    neighbour_vector[2*i] = 0
-                    neighbour_vector[2*i+1] = 0
-                else:   # if not in chain, assign 10
-                    neighbour_vector[2*i] = 1
-                    neighbour_vector[2*i+1] = 0
-            elif neighbour_char == 3:  # P
-                # if in chain, assign 00
-                if self.num_actions == 0 and self.path[self.num_actions + 1] == tuple(neighbour_pos):
-                    neighbour_vector[2*i] = 0
-                    neighbour_vector[2*i+1] = 0
-                elif self.num_actions == self.length and self.path[self.num_actions - 1] == tuple(neighbour_pos):
-                    neighbour_vector[2*i] = 0
-                    neighbour_vector[2*i+1] = 0
-                elif self.path[self.num_actions - 1] == tuple(neighbour_pos) or self.path[self.num_actions + 1] == tuple(neighbour_pos):
-                    neighbour_vector[2*i] = 0
-                    neighbour_vector[2*i+1] = 0
-                else:   # if not in chain, assign 11
-                    neighbour_vector[2*i] = 1
-                    neighbour_vector[2*i+1] = 1
+                print(f"Neighbour {neighbour} is not connectable") 
+
+        print(neighbour_vector)
 
         return neighbour_vector
 
 
 if __name__ == "__main__":
     env = Placing(16)
-    print(env.path)
-    print(env.starting_pos)
-    print(env.starting_dir)
+    env.reset()
+

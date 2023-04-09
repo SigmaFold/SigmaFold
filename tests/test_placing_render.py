@@ -9,7 +9,9 @@ from placing_algorithm.placing.drl.envs.baseline import RANDHP, Placing
 
 def test_render():
     env = Placing(length=16, render_mode="human")
-    actions = [np.array([0], dtype =np.int8), np.array([1], dtype =np.int8), np.array([0], dtype =np.int8), np.array([1], dtype =np.int8)]
+    # generate 16 random actions as numpy array containing a 1 or 0
+    actions = np.random.randint(2, size=(16, 1))
+
     obs = env.reset()
 
     done = False
