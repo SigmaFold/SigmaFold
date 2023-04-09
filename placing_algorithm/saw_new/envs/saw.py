@@ -91,6 +91,7 @@ class SAW(gym.Env):
     def reset(self, options=None, seed=None):  
         if self.cleared:
             # drop and reset indexing
+            print("Remaining shapes: ", len(self.shapes))
             self.shapes = self.shapes.drop(self.shape_index)
             self.shapes = self.shapes.reset_index(drop=True)
             if self.shapes.empty:
@@ -106,6 +107,7 @@ class SAW(gym.Env):
                 self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
                 self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
                 self.target_shape = deserialize_shape(self.shape_id)
+                self.shape_index  = sample.index[0]
                 self.attempts = 0
                 self.cleared = False
 
@@ -115,6 +117,7 @@ class SAW(gym.Env):
             self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
             self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
             self.target_shape = deserialize_shape(self.shape_id)
+            self.shape_index  = sample.index[0]
             self.attempts = 0
             self.cleared = False
         else:
