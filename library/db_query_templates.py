@@ -54,7 +54,7 @@ def get_all_random_shapes(target_n=10):
 
     return df
 
-def get_random_shape(target_n=10):
+def get_random_shape(target_n=10, min_degeneracy=10):
     """ Returns a random shape from the database
     PREQUESITE: You must have a .env file in the root directory with the following variables:
     URL: the url of the database
@@ -68,7 +68,7 @@ def get_random_shape(target_n=10):
     """
     db = SupabaseDB()
     # select a random element from the database with min degen below 20
-    random_shape = db.supabase.table("random_shape").select("*").eq("length", target_n).lt("min_degeneracy", 10).limit(1).execute()
+    random_shape = db.supabase.table("random_shape").select("*").eq("length", target_n).lt("min_degeneracy", min_degeneracy).limit(1).execute()
     shape_id = random_shape.data[0]["shape_id"]
 
     # deserialize the shape
