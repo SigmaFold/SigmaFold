@@ -4,6 +4,7 @@ import gym
 import gym_registration
 import envs
 from envs.saw import SAW
+from envs.one_hot_space import OneHotWrapper
 from sb3_contrib import RecurrentPPO
 from gym import envs
 

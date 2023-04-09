@@ -47,7 +47,7 @@ def get_all_random_shapes(target_n=10):
     """
     db = SupabaseDB()
     # select a random element from the database with min degen below 20
-    random_shape = db.supabase.table("random_shape").select("*").eq("length", target_n).lt("min_degeneracy", 10).execute()
+    random_shape = db.supabase.table("random_shape").select("*").eq("length", target_n).lt("min_degeneracy", 15).execute()
     
     # store in a dataframe
     df = pd.DataFrame(random_shape.data)

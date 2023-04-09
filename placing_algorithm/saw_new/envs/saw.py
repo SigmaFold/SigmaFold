@@ -238,6 +238,7 @@ class SAW(gym.Env):
             x, y = neighbour
             boundary_vector[i] = (self.target_shape[y, x] == 0) or (self.folding_matrix[y, x] > 0)
             boundary_vector[i] = int(boundary_vector[i])
+          
 
         
         return boundary_vector

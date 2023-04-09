@@ -15,16 +15,16 @@ def test_saw():
     
 
 def test_reset():
-    env = SAW(length=10)
+    env = SAW(length=16)
     obs = env.reset()
     print("shape", obs.shape)
-    assert obs.shape == (11,1)
+    assert obs.shape == (11,)
     # assert obs["target"].shape == (25, 25)
     # assert obs["folding_onehot"].shape == (4,9) # new shape
     # assert obs["folding_onehot"].sum() == 9 # now max length is 9 not 10 for length 10
 
 def test_step():
-    env = SAW(length=9, render_mode="human")
+    env = SAW(length=16, render_mode="human")
     env.reset()
     actions = [0,1,0,0,0]  # go down, go left, go straight, go straight, go straight
     actions_dict = {
@@ -50,6 +50,6 @@ def test_step():
     assert env.curr_length == 5
     
 if __name__ == "__main__":
-    # test_reset()
-    # test_step()
+    test_reset()
+    test_step()
     test_saw()
