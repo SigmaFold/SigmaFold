@@ -7,7 +7,7 @@ import matplotlib
 # from gym import envs
 # print(envs.registry.keys())
 
-def benchmark(model, baseline='sigma_env/RAND', episodes_nb=100_000, metrics='default'):
+def benchmark(model, baseline='RAND', episodes_nb=100_000, metrics='default'):
     """
     Function that plots the learning curve of a tested model against a baseline
     model (by default, the RAND model). 
