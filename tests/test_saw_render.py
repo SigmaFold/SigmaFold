@@ -3,7 +3,7 @@ import os
 import sys
 import pygame
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from placing_algorithm.saw_new.envs.baseline import RANDSAW, SAW
+from placing_algorithm.saw_agent.envs.baseline import RANDSAW, SAW
 
 
 def test_render():

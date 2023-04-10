@@ -4,7 +4,7 @@ import sys
 import numpy as np
 import pygame
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from placing_algorithm.placing.drl.envs.baseline import RANDHP, Placing
+from placing_algorithm.placing_agent.drl.envs.baseline import RANDHP, Placing
 
 
 def test_render():
