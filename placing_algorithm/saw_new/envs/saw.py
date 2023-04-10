@@ -63,7 +63,9 @@ class SAW(gym.Env):
         self.cleared = False
         self.attempts = 0
         self.cleared_all = False # True if all shapes have been cleared
-        self.dirs = self.generate_fov_vector(depth=depth_field)
+        self.fov_area = (2*depth_field+1)**2
+        self.dirs = self.generate_fov_vector(depth=depth_field, fov_area=self.fov_area)
+        self.fov_area = (2*depth_field+1)**2
 
         # Initialise the target shape
         # sample a random shape. in the dataframe there now is a column for starting position and direction
@@ -190,8 +192,6 @@ class SAW(gym.Env):
         boundary_vector = self.find_boundaries()
 
         obs = np.vstack([self.last_action, boundary_vector])
-
-
             
         return obs.flatten()
 
@@ -231,7 +231,7 @@ class SAW(gym.Env):
         Look at neighbours of the current position. If top left is 1, then the current position is a boundary.
         """
 
-        boundary_vector = np.zeros((8,1), dtype=int)
+        boundary_vector = np.zeros((self.depth,1), dtype=int)
    
          # top left to bottom right dirs in cartesian coordinates
         # dirs = np.array([[1,-1], [0,1], [1,1], [1,0], [0,-1], [-1,-1], [-1,0], [-1,1]])
@@ -252,10 +252,10 @@ class SAW(gym.Env):
         return boundary_vector
     
     @staticmethod
-    def generate_fov_vector(depth):
+    def generate_fov_vector(depth, fov_area):
         """Method that generates the vector with all the relevant vision 
         directions depending on the depth_field attribute"""
-        size = (2*depth+1)**2
+        size = fov_area
         dirs = np.zeros((size, 2), dtype=int)
         counter = 0
         dirs_list = []
