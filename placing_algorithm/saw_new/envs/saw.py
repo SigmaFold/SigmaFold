@@ -189,7 +189,6 @@ class SAW(gym.Env):
             reward = 100*reward
             done = True
             self.cleared = True
-            print("Cleared shape {} with {} attempts".format(self.shape_id, self.attempts))
             info["termination_info"] = self.min_degen # degen of shape cleared
         
         elif np.any(self.folding_matrix > 1): # self-crossing

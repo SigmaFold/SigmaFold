@@ -39,9 +39,20 @@ class CustomCallback(BaseCallback):
 
     def _on_training_end(self) -> None:
         with open(f'./logs/{folder}/{run_name}/degen_histo.json', 'w') as outfile: # made it save to the same folder as the tensorboard for that run
+            # make all keys strings
+            degen = self.model.get_env().envs[0].degen_counter
+            degen = {str(k): v for k, v in degen.items()}
+            # make value string
+            degen = {k: str(v) for k, v in degen.items()}
             json.dump(self.model.get_env().envs[0].degen_counter, outfile)
 
+
         with open(f'./logs/{folder}/{run_name}/failure_modes.json', 'w') as outfile:
+            # make all keys strings
+            failure_modes = self.model.get_env().envs[0].failure_modes
+            failure_modes = {str(k): str(v) for k, v in failure_modes.items()}
+        
+
             json.dump(self.model.get_env().envs[0].failure_modes, outfile)
 
         print("Successfully saved additional info")
