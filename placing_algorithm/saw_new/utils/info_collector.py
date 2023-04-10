@@ -1,4 +1,5 @@
 import gym
+from collections import defaultdict
 
 class InfoCollectorWrapper(gym.Wrapper):
 
@@ -8,7 +9,7 @@ class InfoCollectorWrapper(gym.Wrapper):
             'out_of_bound': 0,
             'self_cross': 0,
         }
-        self.degen_counter = dict()
+        self.degen_counter = defaultdict(0)
 
     def step(self, action):
         obs, reward, terminated, info = self.env.step(action)
@@ -18,11 +19,7 @@ class InfoCollectorWrapper(gym.Wrapper):
             elif info["termination_info"] == "out_of_bound": # failed
                 self.failure_modes["out_of_bound"] += 1
             else: # success
-                try:
-                    self.degen_counter[info["termination_info"]] += 1
-                except KeyError:
-                    self.degen_counter[info["termination_info"]] = 1 
+                self.degen_counter[info["termination_info"]] += 1
         
-        print(self.degen_counter)
         return obs, reward, terminated, info
 
