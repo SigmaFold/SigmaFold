@@ -41,8 +41,13 @@ class Placing(gym.Env):
         self.cleared = False
         self.HP_matrix = deserialize_shape(self.shape_id)
 
+        # observation_dict = {
+        #     "onehot_encoding": spaces.MultiBinary(34),
+        #     "HP_matrix": spaces.Box(low=0, high=3, shape=(25, 25), dtype=np.int8)
+        #     }
+        
         self.action_space = spaces.MultiBinary(1)  # 2 HP assignments
-        self.observation_space = spaces.MultiBinary(10)  # 4 neighbours + 2 HP assignments
+        self.observation_space = spaces.MultiBinary(18)  # 4 neighbours + 2 HP assignments
 
     def reset(self, options=None, seed=None):
         if self.shapes.empty:
@@ -85,7 +90,7 @@ class Placing(gym.Env):
 
     def step(self, action):
         # updating the current sequence with the action`
-        action = action[0]
+        action = int(action[0])
         actions_dict = {0: "H", 1: "P"}
         self.last_action = np.zeros((2, 1), dtype=int)
         self.last_action[action] = 1    # H is 10, P is 01
@@ -98,8 +103,7 @@ class Placing(gym.Env):
         self.HP_matrix[pos_action_row, pos_action_col] = assign_dict[residue]
 
         # updating the current position
-        self.num_actions += 1
-        self.curr_pos = self.path[self.num_actions]
+        
 
         # render
         if self.render_mode == "human":
@@ -107,6 +111,10 @@ class Placing(gym.Env):
 
         # check reward
         reward, done = self.compute_reward()
+
+        if not done:
+            self.num_actions += 1
+            self.curr_pos = self.path[self.num_actions]
         # get observation space
         obs = self._get_obs()
         return obs, reward, done, {}
@@ -129,7 +137,6 @@ class Placing(gym.Env):
         else:
             pygame.draw.circle(self.shape_surface, (0, 0, 255), (
                 pos_action_col*self.cell_size, pos_action_row*self.cell_size), radius=self.cell_size/3)
-        time.sleep(3)
         self.screen.blit(self.shape_surface, (0, 0))
         pygame.display.flip()
 
@@ -154,17 +161,18 @@ class Placing(gym.Env):
         Else, reward is 0.
         """
 
-        reward = 0.1
+        reward = 1/self.length
         done = False
 
         # agent is allowed to assign all residues before ending. No premature end for wrong assignment
         # penalise at every step
         if self.curr_sequence[self.num_actions - 1] != self.correct_sequence[self.num_actions - 1]:
-            reward = -2
+            reward = -1/self.length
 
-        if self.num_actions >= self.length - 1:
+        if len(self.curr_sequence) == self.length:
             if "".join(self.curr_sequence) == self.correct_sequence:
-                reward = 10
+                reward = 10 * reward * self.length
+                print("Correct sequence found: ", self.curr_sequence)
                 self.cleared = True
                 done = True
             else:
@@ -181,32 +189,31 @@ class Placing(gym.Env):
         10 - H
         11  - P
         """
-        neighbour_vector = np.zeros((8, 1), dtype=int)
+       
 
         
         # up, right, down and left dirs in matrix [m, n]. Diagonals do not matter.
-        dirs = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+        dirs = [(-1, 0), (0, 1), (1, 0), (0, -1), (-1, -1), (-1, 1), (1, 1), (1, -1)]
+        neighbour_vector = np.zeros((len(dirs)*2, 1))
         x, y = self.curr_pos
         neighbours = [(y+a, x+b) for a, b in dirs]
-        print(neighbours)
-        print(self.HP_matrix)
         for idx, neighbour in enumerate(neighbours):
             # check HP matrix for residues
             H_or_P = self.HP_matrix[neighbour[0], neighbour[1]]
             if H_or_P == 2:
-                print(f"My neighbour {neighbour} is H")
+                #print(f"My neighbour {neighbour} is H")
                 neighbour_vector[2*idx] = 1
                 neighbour_vector[2*idx + 1] = 0
             elif H_or_P == 3:
-                print(f"My neighbour {neighbour} is P")
+                #print(f"My neighbour {neighbour} is P")
                 neighbour_vector[2*idx] = 1
                 neighbour_vector[2*idx + 1] = 1
             elif H_or_P == 0:
-                print(f"My neighbour {neighbour} is a boundary")
+                #print(f"My neighbour {neighbour} is a boundary")
                 neighbour_vector[2*idx] = 0
                 neighbour_vector[2*idx + 1] = 0
             elif H_or_P == 1:
-                print(f"My neighbour {neighbour} is empty")
+                #print(f"My neighbour {neighbour} is empty")
                 neighbour_vector[2*idx] = 0
                 neighbour_vector[2*idx + 1] = 1
             else:
@@ -222,9 +229,9 @@ class Placing(gym.Env):
                 neighbour_vector[2*idx] = 0
                 neighbour_vector[2*idx + 1] = 0 
 
-                print(f"Neighbour {neighbour} is not connectable") 
+                #print(f"Neighbour {neighbour} is not connectable") 
 
-        print(neighbour_vector)
+        #print(neighbour_vector)
 
         return neighbour_vector
 
