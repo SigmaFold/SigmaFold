@@ -7,7 +7,7 @@ import pygame
 import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
-from library.db_query_templates import get_all_random_shapes
+from library.db_query_templates import get_training_dataset
 from library.shape_helper import deserialize_path, deserialize_shape
 
 
@@ -20,7 +20,7 @@ class Placing(gym.Env):
         super().__init__()
 
         # get the initial shape
-        self.shapes = get_all_random_shapes(length)
+        self.shapes = get_training_dataset(length) # new function that excludes validation shapes
         sample = self.shapes.sample(1)
         self.shape_id = sample.shape_id.iloc[0]
         self.correct_sequence = sample.best_sequence.iloc[0]
@@ -171,7 +171,7 @@ class Placing(gym.Env):
 
         if len(self.curr_sequence) == self.length:
             if "".join(self.curr_sequence) == self.correct_sequence:
-                reward = 10 * reward * self.length
+                reward = reward * 5
                 print("Correct sequence found: ", self.curr_sequence)
                 self.cleared = True
                 done = True

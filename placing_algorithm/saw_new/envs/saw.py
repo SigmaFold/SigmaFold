@@ -7,7 +7,7 @@ import os, sys
 import pygame
 import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-from library.db_query_templates import get_random_shape, get_all_sequences_for_shape, get_all_random_shapes
+from library.db_query_templates import get_training_dataset
 from library.shape_helper import path_to_shape_numbered, deserialize_path, deserialize_shape, deserialize_point, serialize_point
 from tabulate import tabulate
 
@@ -22,7 +22,7 @@ class SAW(gym.Env):
     def __init__(self, length, render_mode=None, max_attempts=1, depth_field=1, shapes=None) -> None:
         super().__init__()
         if not shapes:
-            self.shapes = get_all_random_shapes(length)
+            self.shapes = get_training_dataset(length)
         else:
             self.shapes = shapes
         # duplicate every row in the dataframe, replace the starting_point field with the last element in the optimal_path field
@@ -235,40 +235,7 @@ class SAW(gym.Env):
             done = True
 
         return reward, done
-    
-    def get_best_starting_point(self, shape_id):
-        sequences = get_all_sequences_for_shape(shape_id)
-        # sort df by degeneracy
-        sequences = sequences.sort_values(by=['degeneracy'], ascending=True)
-        # get the first row
-        best_sequence = sequences.iloc[0]    
-        # get the sequence of the first row 
-        sequence = best_sequence['sequence']
-        # get the path of the first row 
-        path = best_sequence['path']
-        # convert path to list of tuples
-        path = deserialize_path(path)
-        shape, _ , path = path_to_shape_numbered(path, sequence)
-        # get the starting point of the path
-        # convert to ndarray
-        # get the position of the first 1 in the shape matrix
-        starting_point = np.argwhere(shape == 1)[0]
-        # flip to be cartesian coordinates
-        starting_point = np.flip(starting_point)
-
-        # check if the starting point is the position of a 1 in the "shape" matrix
-        if not shape[starting_point[1], starting_point[0]] == 1:
-            raise Exception("The starting point is not a 1 in the shape matrix")
-        
-        # find location of the first 2 
-        next_point = np.argwhere(shape == 2)[0]
-        # flip to be cartesian coordinates
-        next_point = np.flip(next_point)
-        # get the direction of the path
-        direction = next_point - starting_point
-        return starting_point, direction
-    
-    
+      
     def find_boundaries(self):
         """
         Look at neighbours of the current position. If top left is 1, then the current position is a boundary.
