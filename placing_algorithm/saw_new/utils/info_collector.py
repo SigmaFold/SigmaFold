@@ -9,7 +9,7 @@ class InfoCollectorWrapper(gym.Wrapper):
             'out_of_bound': 0,
             'self_cross': 0,
         }
-        self.degen_counter = defaultdict(0)
+        self.degen_counter = defaultdict(int)
 
     def step(self, action):
         obs, reward, terminated, info = self.env.step(action)

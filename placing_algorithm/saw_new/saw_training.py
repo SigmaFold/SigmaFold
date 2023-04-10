@@ -69,12 +69,12 @@ def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
     }
     
     model_save_path = f'./models/{folder}/{run_name}'
-    env = gym.make(env, length=16, render_mode=None, depth_field=2)
+    env = gym.make(env, length=16, render_mode=None, depth_field=1)
     env  = InfoCollectorWrapper(env)
     model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{folder}/{run_name}', **params)
     custom_callback = CustomCallback(save_interval=save_interval, save_path=model_save_path)
     model.learn(
-        total_timesteps=1_000_000_000,
+        total_timesteps=600_000,
         callback=custom_callback,
     )
     
