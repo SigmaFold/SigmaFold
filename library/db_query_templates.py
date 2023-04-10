@@ -282,7 +282,7 @@ def get_validation_dataset(target_n=10):
 
 
 
-def get_training_dataset(target_n=10):
+def get_training_dataset(target_n=None):
     """ Returns a random shape from the database
     PREQUESITE: You must have a .env file in the root directory with the following variables:
     URL: the url of the database
@@ -294,15 +294,17 @@ def get_training_dataset(target_n=10):
     :returns
     :np.array: random_shape: a random shape from the database
     """
-
-    if target_n not in range(14,17):
-        raise ValueError("Target n must be between 14 and 16 for the training dataset")
-        return None
-    
     db = SupabaseDB()
-    # select a random element from the database with min degen below 20
-    random_shape = db.supabase.table("training_dataset").select("*").eq("length", target_n).execute()
+
+    if not target_n:
+        random_shape = db.supabase.table("training_dataset").select("*").execute()
+    elif target_n not in range(14,17):
+        raise ValueError("Target n must be between 14 and 16 for the training dataset")
     
+    else:
+        # select a random element from the database with min degen below 20
+        random_shape = db.supabase.table("training_dataset").select("*").eq("length", target_n).execute()
+        
     # convert to dataframe 
     random_shape = pd.DataFrame(random_shape.data)
     return random_shape

@@ -9,7 +9,8 @@ from sb3_contrib import RecurrentPPO
 from gym import envs
 import os 
 from stable_baselines3.common.callbacks import BaseCallback
-
+import json
+from utils.info_collector import InfoCollectorWrapper
 
 class CustomCallback(BaseCallback):
     def __init__(self, save_interval, save_path, verbose=0):
@@ -20,14 +21,6 @@ class CustomCallback(BaseCallback):
 
     def _on_step(self) -> bool:
         self.timesteps_since_save += 1
-        # Get the current action from the model
-        action, _ = self.model.predict(self.model.get_env().envs[0].get_attr("observation")[0])
-
-        # Execute the chosen action in the environment
-        _, _, _, info = self.model.get_env().envs[0].step(action)
-
-        # Access the 'info' variable
-        print("Info:", info)
 
         # Save the model
         if self.timesteps_since_save >= self.save_interval:
@@ -41,10 +34,18 @@ class CustomCallback(BaseCallback):
             # save nulber of timestep to file
             with open(f'./logs/{folder}/{run_name}/timesteps.txt', 'w') as f:
                 f.write(str(self.num_timesteps))
-        
             return False
-
         return True
+
+    def _on_training_end(self) -> None:
+        with open(f'./logs/{folder}/{run_name}/degen_histo.json', 'w') as outfile: # made it save to the same folder as the tensorboard for that run
+            json.dump(self.model.get_env().envs[0].degen_counter, outfile)
+
+        with open(f'./logs/{folder}/{run_name}/failure_modes.json', 'w') as outfile:
+            json.dump(self.model.get_env().envs[0].failure_modes, outfile)
+
+        print("Successfully saved additional info")
+        return super()._on_training_end()
 
 def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
     params = {
@@ -69,6 +70,7 @@ def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
     
     model_save_path = f'./models/{folder}/{run_name}'
     env = gym.make(env, length=16, render_mode=None, depth_field=2)
+    env  = InfoCollectorWrapper(env)
     model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{folder}/{run_name}', **params)
     custom_callback = CustomCallback(save_interval=save_interval, save_path=model_save_path)
     model.learn(
