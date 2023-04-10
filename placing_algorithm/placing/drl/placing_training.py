@@ -11,7 +11,7 @@ from gym import envs
 
 def placing_training(name='auto'):
     params = {
-        "learning_rate": 1e-5,
+        "learning_rate": 1e-4,
         "n_steps": 128,
         "batch_size": 128,
         "n_epochs": 10,
@@ -30,10 +30,10 @@ def placing_training(name='auto'):
 
         # Add other stuff, idk
     }
-    env = gym.make("Placing-v0", length=14, render_mode="human")
-    model = RecurrentPPO("MultiInputLstmPolicy", env,
+    env = gym.make("Placing-v0", length=16, render_mode=None)
+    model = RecurrentPPO("MlpLstmPolicy", env,
                          tensorboard_log=f'./placing_algorithm/placing/drl/logs/{name}', **params)
-    model.learn(100_000)
+    model.learn(1_000_000_000) 
 
 
 placing_training('first_test')

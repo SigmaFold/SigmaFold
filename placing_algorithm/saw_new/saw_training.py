@@ -7,10 +7,41 @@ from envs.saw import SAW
 from envs.one_hot_space import OneHotWrapper
 from sb3_contrib import RecurrentPPO
 from gym import envs
+import os 
+from stable_baselines3.common.callbacks import BaseCallback
 
-def saw_training(env, name='auto'):
+
+class CustomCallback(BaseCallback):
+    def __init__(self, save_interval, save_path, verbose=0):
+        super(CustomCallback, self).__init__(verbose)
+        self.save_interval = save_interval
+        self.save_path = save_path
+        self.timesteps_since_save = 0
+
+    def _on_step(self) -> bool:
+        self.timesteps_since_save += 1
+
+        # Save the model
+        if self.timesteps_since_save >= self.save_interval:
+            self.model.save(self.save_path)
+            self.timesteps_since_save = 0
+
+        # Stop training if shapes list is empty
+        if self.model.get_env().envs[0].cleared_all:
+            print("Cleared all shapes")
+            print("Number of timesteps:", self.num_timesteps)
+            # save nulber of timestep to file
+            with open(f'./logs/{folder}/{run_name}/timesteps.txt', 'w') as f:
+                f.write(str(self.num_timesteps))
+        
+            return False
+
+        return True
+    
+
+def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
     params = {
-        "learning_rate": 1e-4,
+        "learning_rate": 1e-3,
         "n_steps": 128,
         "batch_size": 128,
         "n_epochs": 10,
@@ -28,10 +59,18 @@ def saw_training(env, name='auto'):
         "verbose": 1,
         # Add other stuff, idk
     }
+    model_save_path = f'./models/{folder}/{run_name}'
     env = gym.make(env, length=16, render_mode=None)
-    model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{name}', **params)
-    model.learn(1_000_000_000_000)
+    model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{folder}/{run_name}', **params)
+    custom_callback = CustomCallback(save_interval=save_interval, save_path=model_save_path)
+    model.learn(
+        total_timesteps=1_000_000_000,
+        callback=custom_callback,
+    )
+    
+    model.save(model_save_path)  
 
 if __name__=='__main__':
-    name = str(input("How to do you want to name the test? "))
-    saw_training('SAW-v0', name) 
+    folder = str(input("What is the type of the test? "))
+    run_name = str(input("What is the name of the run? "))
+    saw_training('SAW-v0', folder, run_name) 

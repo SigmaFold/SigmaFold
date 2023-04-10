@@ -5,79 +5,69 @@ import os
 import sys
 import pygame
 import time
-import math
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
-from library.shape_helper import path_to_shape_numbered, deserialize_path, deserialize_point, deserialize_shape
-from library.db_query_templates import get_random_shape, get_all_sequences_for_shape, find_HP_assignments, get_all_random_shapes
+from library.db_query_templates import get_training_dataset
+from library.shape_helper import deserialize_path, deserialize_shape
+
 
 class Placing(gym.Env):
     """
     Placing environment for the Folding@AmongUs project.
     """
 
-    def __init__(self, length, using_prev_agent = False, max_attempts=1, target_shape=None, path_shape=None, render_mode=None) -> None:
+    def __init__(self, length, max_attempts=1, render_mode=None) -> None:
         super().__init__()
 
         # get the initial shape
-        self.shapes = get_all_random_shapes(length)
+        self.shapes = get_training_dataset(length) # new function that excludes validation shapes
         sample = self.shapes.sample(1)
-        shape_id = sample.shape_id.iloc[0]
-        self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
-        self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
-        self.target_shape = deserialize_shape(shape_id)
+        self.shape_id = sample.shape_id.iloc[0]
         self.correct_sequence = sample.best_sequence.iloc[0]
-        self.path = sample.optimal_path.iloc[0]
+        self.path = deserialize_path(sample.optimal_path.iloc[0])
+        self.curr_pos = self.path[0]
 
-
-        self.curr_sequence = [] # where we will be storing hp assingments
-
+        self.curr_sequence = []  # where we will be storing hp assignments
 
         # Static attributes
         self.length = length
         self.max_attempts = max_attempts
-        self.render_mode = render_mode  # activates or deativates the UI. Activated if set to "human"
+        # activates or deactivates the UI. Activated if set to "human"
+        self.render_mode = render_mode
         self.num_actions = 0
+
+        # Dynamic attributes
         self.attempts = 0
+        self.cleared = False
+        self.HP_matrix = deserialize_shape(self.shape_id)
 
-        #TODO: limit position to be following the path
-        #TODO: add one hot encoding for observation
-
-        self.action_space = spaces.MultiBinary(2)
-        self.observation_space = spaces.MultiBinary(10) # 4 neighbours + 2 HP assignments
-
-    # def generate_path(self, shape_id):
-    #     #TODO: make it so this doesnt call db at every reset
-    #     # get all sequences for the target shape
-    #     sequences = get_all_sequences_for_shape(shape_id)
-    #     # sort sequences by degeneracy in an ascending order and save the first one's sequence and path
-    #     sequences = sequences.sort_values(by=["degeneracy"], ascending=True)
-    #     best_sequence = sequences.iloc[0]
-    #     sequence = best_sequence["sequence"]
-    #     path = best_sequence["path"]
-    #     # convert path string into list of tuples
-    #     path = deserialize_path(path)
-    #     path_mat, HP_mat, _ = path_to_shape_numbered(
-    #         path, sequence)    # convert path into a numbered matrix
-    #     return path_mat, HP_mat, sequence
+        # observation_dict = {
+        #     "onehot_encoding": spaces.MultiBinary(34),
+        #     "HP_matrix": spaces.Box(low=0, high=3, shape=(25, 25), dtype=np.int8)
+        #     }
+        
+        self.action_space = spaces.MultiBinary(1)  # 2 HP assignments
+        self.observation_space = spaces.MultiBinary(18)  # 4 neighbours + 2 HP assignments
 
     def reset(self, options=None, seed=None):
-        # get the initial shape
-        if self.attempts >= self.max_attempts:
+        if self.shapes.empty:
+            self.reset = self.dummy_reset
+            self.step = self.dummy_step
+        elif self.attempts >= self.max_attempts or self.cleared:
             sample = self.shapes.sample(1)
-            shape_id = sample.shape_id.iloc[0]
-            self.starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
-            self.starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
-            self.target_shape = deserialize_shape(shape_id)
+            self.shape_id = sample.shape_id.iloc[0]
             self.correct_sequence = sample.best_sequence.iloc[0]
-            self.path = sample.optimal_path.iloc[0]
-            self.curr_sequence = []
+            self.path = deserialize_path(sample.optimal_path.iloc[0])
             self.attempts = 0
+            self.cleared = False
         else:
             self.attempts += 1
-        
-        self.correct_sequences, self.correctHPassignments = find_HP_assignments(self.length, self.target_shape, self.path_shape)
+
+        self.HP_matrix = deserialize_shape(self.shape_id)
+        self.curr_pos = self.path[0]
         self.curr_sequence = []
+        self.num_actions = 0
+        self.last_action = np.zeros((2, 1))
 
         if self.render_mode == "human":
             pygame.init()
@@ -90,33 +80,47 @@ class Placing(gym.Env):
             self.shape_surface.fill((0, 0, 0))
             for i in range(25):
                 for j in range(25):
-                    if self.target_shape[i, j] == 1:
+                    if self.HP_matrix[i, j] in [1, 2, 3]:
                         pygame.draw.rect(self.shape_surface, (255, 0, 0), (
-                            j*self.cell_size, i*self.cell_size, self.cell_size, self.cell_size))
+                            j * self.cell_size, i * self.cell_size, self.cell_size, self.cell_size))
 
             pygame.display.flip()
             self.screen.blit(self.shape_surface, (0, 0))
         return self._get_obs()
 
     def step(self, action):
-        #TODO: Make it so that it iterates through the path instead of the whole grid
+        # updating the current sequence with the action`
+        action = int(action[0])
         actions_dict = {0: "H", 1: "P"}
-        action = np.argmax(action)
-        action = actions_dict[action]
-        self.curr_sequence.append(action)
-        idx  = len(self.curr_sequence) - 1
+        self.last_action = np.zeros((2, 1), dtype=int)
+        self.last_action[action] = 1    # H is 10, P is 01
+        residue = actions_dict[action]
+        self.curr_sequence.append(residue)
 
-        pos_action_row = self.path[idx][1]
-        pos_action_col = self.path[idx][0]
-        assign_action = self.curr_sequence[idx]
+        # updating the HP matrix according to action
+        pos_action_col, pos_action_row = self.curr_pos
+        assign_dict = {"H": 2, "P": 3}
+        self.HP_matrix[pos_action_row, pos_action_col] = assign_dict[residue]
+
+        # updating the current position
         
-        obs = self._get_obs()
+
+        # render
         if self.render_mode == "human":
-            self.render(pos_action_row, pos_action_col, assign_action)
-        reward, done = self.compute_reward(pos_action_row, pos_action_col)
+            self.render(pos_action_row, pos_action_col, residue)
+
+        # check reward
+        reward, done = self.compute_reward()
+
+        if not done:
+            self.num_actions += 1
+            self.curr_pos = self.path[self.num_actions]
+        # get observation space
+        obs = self._get_obs()
         return obs, reward, done, {}
 
-    def render(self, pos_action_row, pos_action_col, assign_action):
+
+    def render(self, pos_action_row, pos_action_col, residue):
         """
         Render the environment to the screen.
         """
@@ -125,51 +129,54 @@ class Placing(gym.Env):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
+        
         # render the current pos as a green square overwriting the target shape
-        if assign_action == "H":
+        if residue == "H":
             pygame.draw.circle(self.shape_surface, (0, 255, 0), (
                 pos_action_col*self.cell_size, pos_action_row*self.cell_size), radius=self.cell_size/3)
         else:
             pygame.draw.circle(self.shape_surface, (0, 0, 255), (
                 pos_action_col*self.cell_size, pos_action_row*self.cell_size), radius=self.cell_size/3)
-
         self.screen.blit(self.shape_surface, (0, 0))
         pygame.display.flip()
+
 
     def _get_obs(self):
         """
         Get the observation of the environment.
         """
-        # IMPORTANT, SET THE DATATYPE TO BE CORRECT HERE
-        obs = np.zeros(6, dtype=np.int8)
-        # get the neighbours of the current position
+        neighbour_vector = self.find_neighbours()
+        obs = np.vstack([self.last_action, neighbour_vector])
 
-        return obs
+        return obs.flatten()
+
 
     def compute_reward(self):
         """
-        If the folding matrix is the same as the target shape, then reward is 1.
+        If the current sequence is the same as the correct sequence then maximum reward.
+        For every wrong residue, it is penalised -2.
+        For every correct residue it is rewarded 0.1.
+        For entirely correct sequence, it is rewardede 10
+        olding matrix is the same as the target shape, then reward is 1.
         Else, reward is 0.
         """
-        reward = 0
-        done = False
-        # TODO: Compare the last element of the current sequence with the correct sequence
-        # # fail immediately if out of bounds
-        # if self.target_shape[pos_action_row, pos_action_col] == 0:
-        #     reward = -1
-        #     done = True
 
-        # # if any element is equal to -1 then something was placed out of bounds
-        # if self.num_actions == self.length:
-        #     reward_list = []
-        #     for correct_mat in self.correctHPassignments:
-        #         diff_matrix = correct_mat - self.HPassignments
-        #         # sum absolute values of all the elements in diff_matrix and normalise it
-        #         sum = np.sum(abs(diff_matrix)) / self.length
-        #         reward_list.append(((1-sum)-0.5)*2)
-        #     reward = max(reward_list)
-        #     done = True
+        reward = 1/self.length
+        done = False
+
+        # agent is allowed to assign all residues before ending. No premature end for wrong assignment
+        # penalise at every step
+        if self.curr_sequence[self.num_actions - 1] != self.correct_sequence[self.num_actions - 1]:
+            reward = -1/self.length
+
+        if len(self.curr_sequence) == self.length:
+            if "".join(self.curr_sequence) == self.correct_sequence:
+                reward = reward * 5
+                print("Correct sequence found: ", self.curr_sequence)
+                self.cleared = True
+                done = True
+            else:
+                done = True
 
         return reward, done
 
@@ -182,24 +189,54 @@ class Placing(gym.Env):
         10 - H
         11  - P
         """
-        neighbour_vector = np.zeros((16,1), dtype=int)
-   
-         # top left to bottom right dirs in cartesian coordinates
-        dirs = np.array([[1,-1], [0,1], [1,1], [1,0], [0,-1], [-1,-1], [-1,0], [-1,1]])
-            
-        for i, direction in enumerate(dirs):
-            # get the neighbour in the given direction
-            neighbour = self.current_pos + direction
-            # check if the neighbour is in the shape
-            x, y = neighbour
-            
-            #TODO: make neighbour vector of length 16 depending on what each position is
+       
+
         
+        # up, right, down and left dirs in matrix [m, n]. Diagonals do not matter.
+        dirs = [(-1, 0), (0, 1), (1, 0), (0, -1), (-1, -1), (-1, 1), (1, 1), (1, -1)]
+        neighbour_vector = np.zeros((len(dirs)*2, 1))
+        x, y = self.curr_pos
+        neighbours = [(y+a, x+b) for a, b in dirs]
+        for idx, neighbour in enumerate(neighbours):
+            # check HP matrix for residues
+            H_or_P = self.HP_matrix[neighbour[0], neighbour[1]]
+            if H_or_P == 2:
+                #print(f"My neighbour {neighbour} is H")
+                neighbour_vector[2*idx] = 1
+                neighbour_vector[2*idx + 1] = 0
+            elif H_or_P == 3:
+                #print(f"My neighbour {neighbour} is P")
+                neighbour_vector[2*idx] = 1
+                neighbour_vector[2*idx + 1] = 1
+            elif H_or_P == 0:
+                #print(f"My neighbour {neighbour} is a boundary")
+                neighbour_vector[2*idx] = 0
+                neighbour_vector[2*idx + 1] = 0
+            elif H_or_P == 1:
+                #print(f"My neighbour {neighbour} is empty")
+                neighbour_vector[2*idx] = 0
+                neighbour_vector[2*idx + 1] = 1
+            else:
+                raise ValueError("Something went wrong lol cos this cant happen my guy")
+            
+        # get a window of 2 of the self.path around the self.num_actions
+        lower  = max(0, self.num_actions - 1)
+        upper = min(self.length - 1, self.num_actions + 1)
+        window = self.path[lower:upper]
+
+        for idx, neighbour in enumerate(neighbours):
+            if neighbour in window:
+                neighbour_vector[2*idx] = 0
+                neighbour_vector[2*idx + 1] = 0 
+
+                #print(f"Neighbour {neighbour} is not connectable") 
+
+        #print(neighbour_vector)
+
         return neighbour_vector
-    
+
 
 if __name__ == "__main__":
-    env  = Placing(16)
-    print(env.path)
-    print(env.starting_pos)
-    print(env.starting_dir)
+    env = Placing(16)
+    env.reset()
+

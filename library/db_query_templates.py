@@ -255,28 +255,59 @@ def find_HP_assignments(length, target_grid, path_grid):
     
     return sequence_list, HPassignment_list
 
+def get_validation_dataset(target_n=10):
+    """ Returns a random shape from the database
+    PREQUESITE: You must have a .env file in the root directory with the following variables:
+    URL: the url of the database
+    KEY: the secret key for the database
+
+    :params
+    :int: target_n: the length of the shape to be returned
+
+    :returns
+    :np.array: random_shape: a random shape from the database
+    """
+
+    if target_n not in range(14,17):
+        raise ValueError("Target n must be between 14 and 16 for the validation dataset")
+        return None
+    
+    db = SupabaseDB()
+    # select a random element from the database with min degen below 20
+    dataset = db.supabase.table("validation_dataset").select("*").eq("length", target_n).execute()
+
+    # convert to dataframe
+    dataset = pd.DataFrame(dataset.data)
+    return dataset
+
+
+
+def get_training_dataset(target_n=10):
+    """ Returns a random shape from the database
+    PREQUESITE: You must have a .env file in the root directory with the following variables:
+    URL: the url of the database
+    KEY: the secret key for the database
+
+    :params
+    :int: target_n: the length of the shape to be returned
+
+    :returns
+    :np.array: random_shape: a random shape from the database
+    """
+
+    if target_n not in range(14,17):
+        raise ValueError("Target n must be between 14 and 16 for the training dataset")
+        return None
+    
+    db = SupabaseDB()
+    # select a random element from the database with min degen below 20
+    random_shape = db.supabase.table("training_dataset").select("*").eq("length", target_n).execute()
+    
+    # convert to dataframe 
+    random_shape = pd.DataFrame(random_shape.data)
+    return random_shape
+
+
 if __name__ == "__main__":
-    sequences = get_all_sequences_for_shape("Ɛ011n041l041l041Ł0")
-
-    # sort sequences by degenracy in an ascending order and save the first one in a variable
-    sequences = sequences.sort_values(by=["degeneracy"], ascending=True)
-    best_sequence = sequences.iloc[0]
-    sequence = best_sequence["sequence"]
-    path = best_sequence["path"]
-    print(path)
-    # separate the path into a list of nodes
-    path = path.split(" ")
-    path.remove("")
-    print(path)
-    path = [tuple(map(int, node.split(","))) for node in path]
-    print(path)
-
-
-
-    # import matplotlib.pyplot as plt
-
-
-    # seqs = get_perfect_shapes(16)
-    # print(len(seqs))
-    # plt.matshow(seqs[0])
-    # plt.show()
+    shapes = get_validation_dataset(14)
+    print(shapes)
