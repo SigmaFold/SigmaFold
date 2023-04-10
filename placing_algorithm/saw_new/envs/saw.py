@@ -47,9 +47,6 @@ class SAW(gym.Env):
         
         # shuffle the dataframe
         self.shapes = self.shapes.sample(frac=1).reset_index(drop=True)  
-
-        
-
         # Static attributes
         self.length = length
         self.render_mode = render_mode # activates or deativates the UI. Activated if set to "human"
@@ -66,7 +63,7 @@ class SAW(gym.Env):
         self.cleared = False
         self.attempts = 0
         self.cleared_all = False # True if all shapes have been cleared
-
+        self.dirs = self.generate_fov_vector(depth=depth_field)
 
         # Initialise the target shape
         # sample a random shape. in the dataframe there now is a column for starting position and direction
@@ -77,13 +74,6 @@ class SAW(gym.Env):
         self.target_shape = deserialize_shape(self.shape_id)
         self.shape_index  = sample.index[0]
         
-
-     
-
-        
-
-
-
         # One hot encoded observation space
         self.action_space = spaces.MultiBinary(3)
         self.observation_space = spaces.MultiBinary(11)
@@ -150,8 +140,7 @@ class SAW(gym.Env):
             self.screen.blit(self.shape_surface, (0,0))
 
             
-        return self._get_obs()
-        
+        return self._get_obs()    
 
     def step(self, action):        
         action = np.argmax(action)
@@ -223,6 +212,7 @@ class SAW(gym.Env):
         if np.any(diff_matrix < 0): # out of bounds
             reward = -2
             done = True
+            info = {'mode of failure': 'out of bound'}
         
         elif np.all(diff_matrix == 0): # correct final shape
             reward = 10
@@ -244,25 +234,47 @@ class SAW(gym.Env):
         boundary_vector = np.zeros((8,1), dtype=int)
    
          # top left to bottom right dirs in cartesian coordinates
-        dirs = np.array([[1,-1], [0,1], [1,1], [1,0], [0,-1], [-1,-1], [-1,0], [-1,1]])
+        # dirs = np.array([[1,-1], [0,1], [1,1], [1,0], [0,-1], [-1,-1], [-1,0], [-1,1]])
 
         # Rotate dirs array based on the agent's current direction
-        current_dir_idx = np.where((dirs == self.current_direction).all(axis=1))[0][0]
-        dirs = np.roll(dirs, -current_dir_idx, axis=0)
+        current_dir_idx = np.where((self.dirs == self.current_direction).all(axis=1))[0][0]
+        dirs = np.roll(self.dirs, -current_dir_idx, axis=0)
             
         for i, direction in enumerate(dirs):
             # get the neighbour in the given direction
             neighbour = self.current_pos + direction
+
             # check if the neighbour is in the shape
             x, y = neighbour
             boundary_vector[i] = (self.target_shape[y, x] == 0) or (self.folding_matrix[y, x] > 0)
             boundary_vector[i] = int(boundary_vector[i])
           
-
-        
         return boundary_vector
+    
+    @staticmethod
+    def generate_fov_vector(depth):
+        """Method that generates the vector with all the relevant vision 
+        directions depending on the depth_field attribute"""
+        size = (2*depth+1)**2
+        dirs = np.zeros((size, 2), dtype=int)
+        counter = 0
+        dirs_list = []
 
+        for i in range(-depth, depth+1):
+            for j in range(-depth, depth+1):
+                dirs_list.append((i,j))
+        
+        dirs_list.remove((0,0))
+        dirs = np.array(dirs_list)
+        print(dirs)
+        return dirs
+    
 
 if __name__ == "__main__":
-    SAW(16)
+    env = SAW(16)
+    env.reset()
+    env.step([0,0,1])
+
+
+    
     

@@ -20,6 +20,14 @@ class CustomCallback(BaseCallback):
 
     def _on_step(self) -> bool:
         self.timesteps_since_save += 1
+        # Get the current action from the model
+        action, _ = self.model.predict(self.model.get_env().envs[0].get_attr("observation")[0])
+
+        # Execute the chosen action in the environment
+        _, _, _, info = self.model.get_env().envs[0].step(action)
+
+        # Access the 'info' variable
+        print("Info:", info)
 
         # Save the model
         if self.timesteps_since_save >= self.save_interval:
@@ -37,7 +45,6 @@ class CustomCallback(BaseCallback):
             return False
 
         return True
-    
 
 def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
     params = {
@@ -59,8 +66,9 @@ def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
         "verbose": 1,
         # Add other stuff, idk
     }
+    
     model_save_path = f'./models/{folder}/{run_name}'
-    env = gym.make(env, length=16, render_mode=None)
+    env = gym.make(env, length=16, render_mode=None, depth_field=2)
     model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{folder}/{run_name}', **params)
     custom_callback = CustomCallback(save_interval=save_interval, save_path=model_save_path)
     model.learn(
@@ -73,4 +81,5 @@ def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
 if __name__=='__main__':
     folder = str(input("What is the type of the test? "))
     run_name = str(input("What is the name of the run? "))
-    saw_training('SAW-v0', folder, run_name) 
+    saw_training('SAW-v0', folder, run_name)
+     
