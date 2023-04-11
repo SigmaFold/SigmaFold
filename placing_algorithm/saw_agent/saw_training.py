@@ -50,9 +50,11 @@ class CustomCallback(BaseCallback):
             # make all keys strings
             failure_modes = self.model.get_env().envs[0].failure_modes
             failure_modes = {str(k): str(v) for k, v in failure_modes.items()}
-        
-
             json.dump(self.model.get_env().envs[0].failure_modes, outfile)
+
+        with open(f'.logs/{folder}/{run_name}/nb_not_cleared', 'w') as outfile:
+            nb_not_cleared = self.model.get_env().envs[0].shapes # TODO: size?
+            json.dump(nb_not_cleared, outfile)
 
         print("Successfully saved additional info")
         return super()._on_training_end()
