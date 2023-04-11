@@ -44,13 +44,13 @@ class CustomCallback(BaseCallback):
             degen = {str(k): v for k, v in degen.items()}
             # make value string
             degen = {k: str(v) for k, v in degen.items()}
-            json.dump(self.model.get_env().envs[0].degen_counter, outfile)
+            json.dump(degen, outfile)
 
         with open(f'./logs/{folder}/{run_name}/failure_modes.json', 'w') as outfile:
             # make all keys strings
             failure_modes = self.model.get_env().envs[0].failure_modes
             failure_modes = {str(k): str(v) for k, v in failure_modes.items()}
-            json.dump(self.model.get_env().envs[0].failure_modes, outfile)
+            json.dump(failure_modes, outfile)
 
         with open(f'./logs/{folder}/{run_name}/nb_not_cleared', 'w') as outfile:
             remaining_df = self.model.get_env().envs[0].shapes # TODO: size?
