@@ -67,7 +67,7 @@ class CustomCallback(BaseCallback):
         print("Successfully saved additional info")
         return super()._on_training_end()
 
-def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
+def saw_training(env, folder='auto', run_name='default', save_interval=100_000, depth_field=1, length=14, render_mode=None, total_timesteps=1_000_000, max_attemps=1, **kwargs):
     params = {
         "learning_rate": 1e-3,
         "n_steps": 128,
@@ -89,12 +89,12 @@ def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
     }
     
     model_save_path = f'./models/{folder}/{run_name}'
-    env = gym.make(env, render_mode=None, depth_field=1, length=14)
+    env = gym.make(env, render_mode=render_mode, depth_field=depth_field, length=length, max_attemps=max_attemps)
     env  = InfoCollectorWrapper(env)
     model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{folder}/{run_name}', **params)
     custom_callback = CustomCallback(save_interval=save_interval, save_path=model_save_path)
     model.learn(
-        total_timesteps=1_000_000,
+        total_timesteps=total_timesteps,
         callback=custom_callback,
     )
     
@@ -105,8 +105,8 @@ if __name__=='__main__':
     #run_name = str(input("What is the name of the run? "))
     #saw_training('SAW-v0', folder, run_name)
 
-    folder = "extrapolation_test"
-    run_name = "extrapolation_fov_1_n_14"
+    folder = "test"
+    run_name = "test"
     saw_training('SAW-v0', folder, run_name)
 
      
