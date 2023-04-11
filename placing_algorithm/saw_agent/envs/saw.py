@@ -168,15 +168,8 @@ class SAW(gym.Env):
         """
         reward = 1/self.length
         done = False
-        # TODO : Final path similarity reward
         diff_matrix  = self.target_shape - self.folding_matrix
 
-        # if self.curr_length == self.length -1:
-        #     done = True
-        #     info = {
-        #        "cleared_degen": self.min_degen 
-        #     }
-        
         info = {}
         info["remaining_shapes"] = len(self.shapes)
         
@@ -184,17 +177,20 @@ class SAW(gym.Env):
             reward = -20*reward
             done = True
             info["termination_info"] =  "out_of_bound"
+            info["is_cleared"] = False
         
         elif np.all(diff_matrix == 0): # correct final shape
             reward = 100*reward
             done = True
             self.cleared = True
             info["termination_info"] = self.min_degen # degen of shape cleared
+            info["is_cleared"] = True
         
         elif np.any(self.folding_matrix > 1): # self-crossing
             reward = -20*reward
             done = True
             info["termination_info"] = "self_crossing"
+            info["is_cleared"] = False
 
         return reward, done, info
     
