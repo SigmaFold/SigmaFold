@@ -89,19 +89,24 @@ def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
     }
     
     model_save_path = f'./models/{folder}/{run_name}'
-    env = gym.make(env, render_mode=None, depth_field=2)
+    env = gym.make(env, render_mode=None, depth_field=1, length=14)
     env  = InfoCollectorWrapper(env)
     model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{folder}/{run_name}', **params)
     custom_callback = CustomCallback(save_interval=save_interval, save_path=model_save_path)
     model.learn(
-        total_timesteps=1000,
+        total_timesteps=1_000_000,
         callback=custom_callback,
     )
     
     model.save(model_save_path)  
 
 if __name__=='__main__':
-    folder = str(input("What is the type of the test? "))
-    run_name = str(input("What is the name of the run? "))
+    #folder = str(input("What is the type of the test? "))
+    #run_name = str(input("What is the name of the run? "))
+    #saw_training('SAW-v0', folder, run_name)
+
+    folder = "extrapolation_test"
+    run_name = "extrapolation_fov_1_n_14"
     saw_training('SAW-v0', folder, run_name)
+
      
