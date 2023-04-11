@@ -79,12 +79,12 @@ def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
     }
     
     model_save_path = f'./models/{folder}/{run_name}'
-    env = gym.make(env, render_mode=None, depth_field=1)
+    env = gym.make(env, render_mode=None, depth_field=2)
     env  = InfoCollectorWrapper(env)
     model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{folder}/{run_name}', **params)
     custom_callback = CustomCallback(save_interval=save_interval, save_path=model_save_path)
     model.learn(
-        total_timesteps=1_000_000_000,
+        total_timesteps=6_000_000,
         callback=custom_callback,
     )
     
@@ -93,5 +93,5 @@ def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
 if __name__=='__main__':
     folder = str(input("What is the type of the test? "))
     run_name = str(input("What is the name of the run? "))
-    saw_training('RAND-v0', folder, run_name)
+    saw_training('SAW-v0', folder, run_name)
      
