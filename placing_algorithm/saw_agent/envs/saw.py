@@ -71,9 +71,7 @@ class SAW(gym.Env):
         # One hot encoded observation space
         self.action_space = spaces.MultiBinary(3)
         self.observation_space = spaces.MultiBinary(self.fov_area+3)
-    
-    
-    
+
     def reset(self, options=None, seed=None):  
         if self.cleared: # shape was cleared entirely correctly, remove it frol the training dataset.
             # drop and reset indexing
