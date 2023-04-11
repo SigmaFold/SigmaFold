@@ -10,6 +10,7 @@ import os
 from stable_baselines3.common.callbacks import BaseCallback
 import json
 from utils.info_collector_wrapper import InfoCollectorWrapper
+from collections import defaultdict
 
 class CustomCallback(BaseCallback):
     def __init__(self, save_interval, save_path, verbose=0):
@@ -45,16 +46,23 @@ class CustomCallback(BaseCallback):
             degen = {k: str(v) for k, v in degen.items()}
             json.dump(self.model.get_env().envs[0].degen_counter, outfile)
 
-
         with open(f'./logs/{folder}/{run_name}/failure_modes.json', 'w') as outfile:
             # make all keys strings
             failure_modes = self.model.get_env().envs[0].failure_modes
             failure_modes = {str(k): str(v) for k, v in failure_modes.items()}
             json.dump(self.model.get_env().envs[0].failure_modes, outfile)
 
-        with open(f'.logs/{folder}/{run_name}/nb_not_cleared', 'w') as outfile:
-            nb_not_cleared = self.model.get_env().envs[0].shapes # TODO: size?
-            json.dump(nb_not_cleared, outfile)
+        with open(f'./logs/{folder}/{run_name}/nb_not_cleared', 'w') as outfile:
+            remaining_df = self.model.get_env().envs[0].shapes # TODO: size?
+            uncleared_shapes = defaultdict(int)
+            # extract min_degeneracy for each row, store in dict
+            for i, row in remaining_df.iterrows():
+                uncleared_shapes[row['min_degeneracy']] += 1
+                # make all keys strings
+            uncleared_shapes = {str(k): str(v) for k, v in uncleared_shapes.items()}    
+            json.dump(uncleared_shapes, outfile)
+            # save dataframe
+            remaining_df.to_csv(f'./logs/{folder}/{run_name}/remaining_shapes.csv')
 
         print("Successfully saved additional info")
         return super()._on_training_end()
@@ -81,12 +89,12 @@ def saw_training(env, folder='auto', run_name='default', save_interval=100_000):
     }
     
     model_save_path = f'./models/{folder}/{run_name}'
-    env = gym.make(env, render_mode="human", depth_field=2)
+    env = gym.make(env, render_mode=None, depth_field=2)
     env  = InfoCollectorWrapper(env)
     model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{folder}/{run_name}', **params)
     custom_callback = CustomCallback(save_interval=save_interval, save_path=model_save_path)
     model.learn(
-        total_timesteps=6_000_000,
+        total_timesteps=1000,
         callback=custom_callback,
     )
     

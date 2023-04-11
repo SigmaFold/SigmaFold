@@ -21,7 +21,7 @@ class SAW(gym.Env):
     """
     def __init__(self, length=None, render_mode=None, max_attempts=1, depth_field=1, shapes=None) -> None:            
         super().__init__()
-        if not shapes:
+        if shapes is None:
             self.shapes = get_training_dataset(length) # if length is None, the dataset will be of variable lengths
         else:
             self.shapes = shapes
@@ -66,7 +66,6 @@ class SAW(gym.Env):
         self.cleared_all = False # True if all shapes have been cleared
         self.fov_area = (2*depth_field+1)**2
         self.dirs = self.generate_fov_vector(depth=depth_field, fov_area=self.fov_area)
-
 
         # One hot encoded observation space
         self.action_space = spaces.MultiBinary(3)

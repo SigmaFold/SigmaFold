@@ -1,0 +1,37 @@
+Folders:
+
+1 - extrapolation_test 
+    fov = 1, max_attempts = 1
+    1M timesteps 
+    trained only on 14
+        => gives a model (use for validation)
+    validated with 15 and 16
+        => gives json files (to do histograms of uncleared shapes)
+
+2 - gigamodel 
+    6M timesteps
+    fov = 1, 2, 5, 10 
+    trained on everything
+        => one json per fov (for histograms)
+        => one graph per fov (to find optimal fov)
+        => one model per fov (?)
+
+3 - max_attempt_test
+    fov = 1
+    max_attemps = 1, 100, 10000
+    1M timesteps
+
+4 - random_agent_test 
+    1 random agent.
+    Benchmark against max_attempt_test fov=1
+    
+
+Target graphs:
+1 - Extrapolation capacity 
+2 - nb of attempts vs complexity 
+3 - Learning vs random
+4 - fovTest (learning curve)
+5 - Effect of max_attempts (?)
+
+
+
