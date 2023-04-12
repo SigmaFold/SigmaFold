@@ -7,7 +7,70 @@ from envs.placing import Placing
 from stable_baselines3.common.env_checker import check_env
 from sb3_contrib import RecurrentPPO
 from gym import envs
+from stable_baselines3.common.callbacks import BaseCallback
+import json
+from collections import defaultdict
 
+
+class CustomCallback(BaseCallback):
+    def __init__(self, save_interval, save_path, folder, run_name,  verbose=0):
+        super(CustomCallback, self).__init__(verbose)
+        self.save_interval = save_interval
+        self.save_path = save_path
+        self.timesteps_since_save = 0
+        self.folder = folder
+        self.run_name = run_name
+
+    def _on_step(self) -> bool:
+        self.timesteps_since_save += 1
+
+        # Save the model
+        if self.timesteps_since_save >= self.save_interval:
+            self.model.save(self.save_path)
+            self.timesteps_since_save = 0
+
+        # Stop training if shapes list is empty
+        if self.model.get_env().envs[0].cleared_all:
+            print("Cleared all shapes")
+            print("Number of timesteps:", self.num_timesteps)
+            # save nulber of timestep to file
+            with open(f'./logs/{self.folder}/{self.run_name}/timesteps.txt', 'w') as f:
+                f.write(str(self.num_timesteps))
+            return False
+        return True
+
+    def _on_training_end(self) -> None:
+        #Failure modes dont matter for placing. Commenting out for now.
+
+        # with open(f'./logs/{self.folder}/{self.run_name}/degen_histo.json', 'w') as outfile: # made it save to the same folder as the tensorboard for that run
+        #     # make all keys strings
+        #     degen = self.model.get_env().envs[0].degen_counter
+        #     degen = {str(k): v for k, v in degen.items()}
+        #     # make value string
+        #     degen = {k: str(v) for k, v in degen.items()}
+        #     json.dump(degen, outfile)
+
+        # with open(f'./logs/{self.folder}/{self.run_name}/failure_modes.json', 'w') as outfile:
+        #     # make all keys strings
+        #     failure_modes = self.model.get_env().envs[0].failure_modes
+        #     failure_modes = {str(k): str(v) for k, v in failure_modes.items()}
+        #     json.dump(failure_modes, outfile)
+
+        with open(f'./logs/{self.folder}/{self.run_name}/nb_not_cleared.json', 'w') as outfile:
+            remaining_df = self.model.get_env().envs[0].shapes # TODO: size?
+            uncleared_shapes = defaultdict(int)
+            # extract min_degeneracy for each row, store in dict
+            for i, row in remaining_df.iterrows():
+                uncleared_shapes[row['min_degeneracy']] += 1
+                # make all keys strings
+            uncleared_shapes = {str(k): str(v) for k, v in uncleared_shapes.items()}    
+            json.dump(uncleared_shapes, outfile)
+            # save dataframe
+            remaining_df.to_csv(f'./logs/{self.folder}/{self.run_name}/remaining_shapes.csv')
+
+        print("Successfully saved additional info")
+        return super()._on_training_end()
+    
 
 def placing_training(name='auto'):
     params = {

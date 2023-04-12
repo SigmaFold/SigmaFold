@@ -4,11 +4,11 @@ import sys
 import numpy as np
 import pygame
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from placing_algorithm.placing_agent.drl.envs.baseline import RANDHP, Placing
+from placing_algorithm.placing_agent.envs.baseline import Placing, RANDHP
 
 
 def test_render():
-    env = Placing(length=16, render_mode="human")
+    env = Placing(length=16, render_mode="human", depth_field=1)
     # generate 16 random actions as numpy array containing a 1 or 0
     actions = np.random.randint(2, size=(16, 1))
 

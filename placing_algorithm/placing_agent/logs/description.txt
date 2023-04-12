@@ -1,12 +1,21 @@
 1 - neighbour_test (slightly different from saw, refers to number of neighbours)
     vision = 0.5, (4 neighbours), 1 (8 neighbours), 2, 5 idk how many neighbours that is.
-    6M steps
+    1M steps each MAX
+
 
 2 - Validation test as in  placing
+    ?? 
+    do it on fov_1 
 
-3 - Random agent test  
+3 - random_agent_test
+    1M steps
+
+
+4 - extrapolation_test
+    fov 1, trained on 14, 1M steps. test on 16
 
 
 
+We will not be doing the shapes cleared at the end thing
 
 Target plots
