@@ -5,6 +5,8 @@ Saves info to the log. c'est le caca de l'enfers
 import gym
 from typing import Tuple, Dict
 from collections import defaultdict
+
+
 class ValidationMonitor(gym.Wrapper):
 
     def __init__(self, env: gym.Env) -> None:
