@@ -1,5 +1,5 @@
 """Harry Plotter goes to school"""
-import json # et la toison d'or
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -31,10 +31,37 @@ bottom = np.zeros((max_entry+1,))
 for i in range(max_entry):
     bottom[i] = uncleared[i] # here select which one is below
 
-width = 1.3
-plt.bar(list(uncleared.keys()), uncleared.values(), color=[0.85, 0.13, 0.13], width=width)
-plt.bar(list(cleared.keys()), cleared.values(), bottom=bottom, color=[0.133, 0.612, 0.114], width=width)
-plt.xlabel("Degeneracy")
+width = 1.2
+
+# GREEN/RED bar plot
+# plt.bar(list(uncleared.keys()), uncleared.values(), color=[0.85, 0.13, 0.13], width=width)
+# plt.bar(list(cleared.keys()), cleared.values(), bottom=bottom, color=[0.133, 0.612, 0.114], width=width)
+# plt.xlabel("Degeneracy")
+# plt.ylabel("Number of shapes")
+# plt.legend(['Not cleared', 'Cleared'])
+
+# # RATIO bar chart
+# ratio = dict()
+# for i in range(max_entry+1):
+#     try:
+#         ratio[i] = uncleared[i]/(uncleared[i] + cleared[i])*100
+#     except ZeroDivisionError:
+#         ratio[i] = 0
+# # [0.8500, 0.3250, 0.0980] # ORANGE
+# plt.bar(list(ratio.keys()), ratio.values(), color=[0, 0.4470, 0.7410], width=width)
+# plt.xlabel("Degenracy")
+# plt.ylabel("Percentage of shapes not cleared")
+
+# Compelxity distribution bar chart
+ratio = dict()
+for i in range(max_entry+1):
+    try:
+        ratio[i] = uncleared[i] + cleared[i]
+    except ZeroDivisionError:
+        ratio[i] = 0
+# [0.8500, 0.3250, 0.0980] # ORANGE
+plt.bar(list(ratio.keys()), ratio.values(), color=[0, 0.4470, 0.7410], width=width)
+plt.xlabel("Minimum Degeneracy")
 plt.ylabel("Number of shapes")
-plt.legend(['Not cleared', 'Cleared'])
+
 plt.show()

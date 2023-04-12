@@ -283,7 +283,7 @@ class SAWValidation(gym.Env):
     
 
 if __name__ == "__main__":
-    env = SAW(16, render_mode="human")
+    env = SAWValidation(16, render_mode="human")
     env.reset()
   
 
