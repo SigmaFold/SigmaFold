@@ -7,7 +7,7 @@ import os, sys
 import pygame
 import time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-from library.db_query_templates import get_training_dataset
+from library.db_query_templates import get_training_dataset, get_validation_dataset
 from library.shape_helper import path_to_shape_numbered, deserialize_path, deserialize_shape, deserialize_point, serialize_point
 from tabulate import tabulate
 
@@ -22,7 +22,7 @@ class SAWValidation(gym.Env):
     def __init__(self, length=None, render_mode=None, max_attempts=1, depth_field=1, shapes=None) -> None:            
         super().__init__()
         if shapes is None:
-            self.shapes = get_training_dataset(length) # if length is None, the dataset will be of variable lengths
+            self.shapes = get_validation_dataset(length) # if length is None, the dataset will be of variable lengths
         else:
             self.shapes = shapes
         # duplicate every row in the dataframe, replace the starting_point field with the last element in the optimal_path field

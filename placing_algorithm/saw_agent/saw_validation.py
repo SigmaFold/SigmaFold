@@ -27,7 +27,7 @@ def validation_testing(path, env):
     episode_starts = np.zeros((1,), dtype=np.bool)
     while not model.get_env().envs[0].cleared_all:
         # run the model
-        action, states = model.predict(obs, state=states, deterministic=True)
+        action, states = model.predict(obs, state=states, deterministic=False, episode_start=episode_starts)
         obs, reward, done, info = model.get_env().envs[0].step(action)
         # set episode_starts
         episode_starts = np.zeros((1,), dtype=np.bool)
@@ -37,7 +37,7 @@ def validation_testing(path, env):
             states = None
         
     
-    with open('data/validation_data.json', 'w') as outfile:
+    with open('./data/validation_data.json', 'w') as outfile:
         data = model.get_env().envs[0].required_timesteps_dict
         data = {str(k): str(v) for k, v in data.items()}
         json.dump(data, outfile)
