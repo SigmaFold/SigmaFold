@@ -31,7 +31,7 @@ class Placing(gym.Env):
         self.curr_pos = self.path[0]
         self.curr_sequence = []  # where we will be storing hp assignments
         self.length = len(self.path) # path is now dynamic
-
+        self.shape_index = sample.index[0]
 
         self.max_attempts = max_attempts
         # activates or deactivates the UI. Activated if set to "human"
@@ -246,6 +246,7 @@ class Placing(gym.Env):
         self.correct_sequence = sample.best_sequence.iloc[0]
         self.path = deserialize_path(sample.optimal_path.iloc[0])
         self.length = len(self.path)
+        self.shape_index = sample.index[0]
 
     def reset_properties(self):
         """
