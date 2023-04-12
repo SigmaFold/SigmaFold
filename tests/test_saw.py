@@ -1,7 +1,7 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from placing_algorithm.saw_new.envs.saw import SAW
-from placing_algorithm.saw_new.envs.one_hot_space import OneHotWrapper
+from placing_algorithm.saw_agent.envs.saw import SAW
+from placing_algorithm.saw_agent.envs.one_hot_space import OneHotWrapper
 import numpy as np
 import matplotlib.pyplot as plt
 

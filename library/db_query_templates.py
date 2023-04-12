@@ -255,19 +255,64 @@ def find_HP_assignments(length, target_grid, path_grid):
     
     return sequence_list, HPassignment_list
 
+def get_validation_dataset(target_n=None):
+    """ Returns a random shape from the database
+    PREQUESITE: You must have a .env file in the root directory with the following variables:
+    URL: the url of the database
+    KEY: the secret key for the database
+
+    :params
+    :int: target_n: the length of the shape to be returned
+
+    :returns
+    :np.array: random_shape: a random shape from the database
+    """
+
+    db = SupabaseDB()
+
+    if not target_n:
+        dataset = db.supabase.table("validation_dataset").select("*").execute()
+    elif target_n not in range(14,17):
+        raise ValueError("Target n must be between 14 and 16 for the training dataset")
+    
+    else:
+        # select a random element from the database with min degen below 20
+        dataset = db.supabase.table("validation_dataset").select("*").eq("length", target_n).execute()
+
+    # convert to dataframe
+    dataset = pd.DataFrame(dataset.data)
+    return dataset
+
+
+
+def get_training_dataset(target_n=None):
+    """ Returns a random shape from the database
+    PREQUESITE: You must have a .env file in the root directory with the following variables:
+    URL: the url of the database
+    KEY: the secret key for the database
+
+    :params
+    :int: target_n: the length of the shape to be returned
+
+    :returns
+    :np.array: random_shape: a random shape from the database
+    """
+    db = SupabaseDB()
+
+    if not target_n:
+        random_shape = db.supabase.table("training_dataset").select("*").execute()
+    elif target_n not in range(14,17):
+        raise ValueError("Target n must be between 14 and 16 for the training dataset")
+    
+    else:
+        # select a random element from the database with min degen below 20
+        random_shape = db.supabase.table("training_dataset").select("*").eq("length", target_n).execute()
+        
+    # convert to dataframe 
+    random_shape = pd.DataFrame(random_shape.data)
+    return random_shape
+
+
 if __name__ == "__main__":
-    shapes = get_all_random_shapes(14)
-    sample = shapes.sample(1)
-    print(sample)
-    shape_id = sample.shape_id.iloc[0]
-    print(shape_id)
-    starting_pos = np.array(deserialize_point(sample.starting_point.iloc[0]))
-    print(starting_pos)
-    starting_dir = np.array(deserialize_point(sample.starting_dir.iloc[0]))
-    print(starting_dir)
-    target_shape = deserialize_shape(shape_id)
-    print(target_shape)
-    correct_sequence = sample.best_sequence.iloc[0]
-    print(correct_sequence)
-    path = deserialize_path(sample.optimal_path.iloc[0])
-    print(path)
+    shapes = get_validation_dataset(14)
+    print(shapes)
