@@ -32,6 +32,7 @@ class PlacingValidation(gym.Env):
         self.curr_sequence = []  # where we will be storing hp assignments
         self.length = len(self.path) # path is now dynamic
         self.shape_index = sample.index[0]
+        self.min_degen = sample.min_degeneracy.iloc[0]
 
         self.max_attempts = max_attempts
         # activates or deactivates the UI. Activated if set to "human"
@@ -104,7 +105,7 @@ class PlacingValidation(gym.Env):
         
 
         # check reward
-        reward, done = self.compute_reward()
+        reward, done, info = self.compute_reward()
 
         # render
         if self.render_mode == "human":
@@ -117,7 +118,7 @@ class PlacingValidation(gym.Env):
             self.curr_pos = self.path[self.num_actions]
         # get observation space
         obs = self._get_obs()
-        return obs, reward, done, {}
+        return obs, reward, done, info
 
 
     def render(self, pos_action_row, pos_action_col, residue):
@@ -170,7 +171,8 @@ class PlacingValidation(gym.Env):
 
         reward = 1/self.length
         done = False
-
+        info = {}
+        info["remaining_shapes"] = len(self.shapes)
         # agent is allowed to assign all residues before ending. No premature end for wrong assignment
         # penalise at every step
         if self.curr_sequence[self.num_actions - 1] != self.correct_sequence[self.num_actions - 1]:
@@ -179,14 +181,15 @@ class PlacingValidation(gym.Env):
         if len(self.curr_sequence) == self.length:
             if "".join(self.curr_sequence) == self.correct_sequence:
                 # reward = reward * 5
-           
+                info["is_cleared"] = True
                 print("Correct sequence found: ", self.curr_sequence)
                 self.cleared = True
                 done = True
             else:
+                info["is_cleared"] = False
                 done = True
 
-        return reward, done
+        return reward, done, info
 
 
     def find_neighbours(self):
@@ -250,6 +253,7 @@ class PlacingValidation(gym.Env):
         self.path = deserialize_path(sample.optimal_path.iloc[0])
         self.length = len(self.path)
         self.shape_index = sample.index[0]
+        self.min_degen = sample.min_degeneracy.iloc[0]
 
     def reset_properties(self):
         """
