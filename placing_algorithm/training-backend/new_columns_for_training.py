@@ -64,5 +64,5 @@ def upload_best_starting_points(n=16):
         db.supabase.table("Shapes").insert(data, upsert=True).execute()
 
 if __name__ == "__main__":
-    for n in range(14, 17):
+    for n in range(10, 13):
         upload_best_starting_points(n)
