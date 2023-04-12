@@ -15,7 +15,7 @@ class Placing(gym.Env):
     Placing environment for the Folding@AmongUs project.
     """
 
-    def __init__(self, length=None, render_mode=None, max_attempts=1, depth_field=1, shapes=None) -> None:
+    def __init__(self, length=None, render_mode=None, max_attempts=1, depth_field=1, shapes=None, count_diagonals=True) -> None:
         super().__init__()
         if shapes is None:
             self.shapes = get_training_dataset(length) # if length is None, the dataset will be of variable lengths
@@ -31,13 +31,13 @@ class Placing(gym.Env):
         self.curr_pos = self.path[0]
         self.curr_sequence = []  # where we will be storing hp assignments
         self.length = len(self.path) # path is now dynamic
-
+        self.shape_index = sample.index[0]
 
         self.max_attempts = max_attempts
         # activates or deactivates the UI. Activated if set to "human"
         self.render_mode = render_mode
         self.num_actions = 0
-
+        
         # Dynamic attributes
         self.attempts = 0
         self.cleared = False
@@ -46,7 +46,7 @@ class Placing(gym.Env):
         # this is to update the "field of view" of the agent - the number of neighbours it can see
         self.fov_area = (2*depth_field+1)**2
         print(f"FOV area: {self.fov_area}")
-        self.dirs = self.generate_fov_vector(depth=depth_field, fov_area=self.fov_area) 
+        self.dirs = self.generate_fov_vector(count_diagonals, depth=depth_field, fov_area=self.fov_area, ) 
         
         # update actions pace size and observation space size
         self.action_space = spaces.MultiBinary(1)  # 2 HP assignments
@@ -246,6 +246,7 @@ class Placing(gym.Env):
         self.correct_sequence = sample.best_sequence.iloc[0]
         self.path = deserialize_path(sample.optimal_path.iloc[0])
         self.length = len(self.path)
+        self.shape_index = sample.index[0]
 
     def reset_properties(self):
         """
@@ -275,20 +276,18 @@ class Placing(gym.Env):
         self.screen.blit(self.shape_surface, (0, 0))
 
     @staticmethod
-    def generate_fov_vector(depth, fov_area):
+    def generate_fov_vector(depth, fov_area, count_diagonal=True):
         """Method that generates the vector with all the relevant vision 
         directions depending on the depth_field attribute"""
         size = fov_area
-        dirs = np.zeros((size, 2), dtype=int)
+        dirs = np.zeros((int(size), 2), dtype=int)
         counter = 0
         dirs_list = []
-        if depth < 1:
-            dirs  = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-            return dirs
         
         for i in range(-depth, depth+1):
             for j in range(-depth, depth+1):
-                dirs_list.append((i,j))
+                if i*j == 1 or count_diagonal:
+                    dirs_list.append((i,j))
         
         dirs_list.remove((0,0))
         dirs = np.array(dirs_list)
