@@ -12,23 +12,15 @@ class ValidationMonitor(gym.Wrapper):
     def __init__(self, env: gym.Env) -> None:
         super().__init__(env)
         self.required_timesteps_dict = defaultdict(tuple)
-        self.temp_counter = 0
 
     def step(self, action): # Still old step API, no truncation yet
         obs, reward, terminated, info = self.env.step(action)
-        self.temp_counter += 1
-        if terminated:
-            if info["is_cleared"]:
-                if self.env.min_degen not in self.required_timesteps_dict:
-                    self.required_timesteps_dict[self.env.min_degen] = tuple([self.temp_counter])
+        # get the attempt number
+        if terminated and info["is_cleared"]:
+            attempt_number = self.env.attempts
+            # get the shape degeneracy
+            shape_degeneracy = self.env.min_degen
 
-                else:
-                    # get current tuple
-                    current_tuple = self.required_timesteps_dict[self.env.min_degen]
-                    # add new value to tuple
-                    new_tuple = tuple(list(current_tuple) + [self.temp_counter])
-                    # update dict
-                    self.required_timesteps_dict[self.env.min_degen] = new_tuple
-            self.temp_counter = 0
-            print("A shape was cleared (message from ValidationMonitor)")
+            self.required_timesteps_dict[shape_degeneracy] = tuple(list(self.required_timesteps_dict[shape_degeneracy]) + [attempt_number])
+
         return obs, reward, terminated, info

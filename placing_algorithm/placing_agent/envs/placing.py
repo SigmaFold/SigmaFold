@@ -282,7 +282,10 @@ class Placing(gym.Env):
         dirs = np.zeros((size, 2), dtype=int)
         counter = 0
         dirs_list = []
-
+        if depth < 1:
+            dirs  = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+            return dirs
+        
         for i in range(-depth, depth+1):
             for j in range(-depth, depth+1):
                 dirs_list.append((i,j))
