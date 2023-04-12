@@ -12,6 +12,7 @@ class ValidationMonitor(gym.Wrapper):
     def __init__(self, env: gym.Env) -> None:
         super().__init__(env)
         self.required_timesteps_dict = defaultdict(tuple)
+        self.unfinished_shapes_dict = defaultdict(tuple)
 
     def step(self, action): # Still old step API, no truncation yet
         obs, reward, terminated, info = self.env.step(action)
@@ -20,7 +21,14 @@ class ValidationMonitor(gym.Wrapper):
             attempt_number = self.env.attempts
             # get the shape degeneracy
             shape_degeneracy = self.env.min_degen
-
+            
             self.required_timesteps_dict[shape_degeneracy] = tuple(list(self.required_timesteps_dict[shape_degeneracy]) + [attempt_number])
+        
+        elif self.env.attempts >= 1000:
+            attempt_number = 1000
+            # get the shape degeneracy
+            shape_degeneracy = self.env.min_degen
+
+            self.unfinished_shapes_dict[shape_degeneracy] = tuple(list(self.unfinished_shapes_dict[shape_degeneracy]) + [attempt_number])
 
         return obs, reward, terminated, info

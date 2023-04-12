@@ -13,3 +13,7 @@ gym.register(
 )
 
 
+gym.register(
+    id="PlacingValidation-v0",
+    entry_point="placing_algorithm.placing_agent.envs.placing_validation_env:PlacingValidation",
+)
