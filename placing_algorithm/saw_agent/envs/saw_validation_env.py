@@ -66,6 +66,8 @@ class SAWValidation(gym.Env):
         self.cleared_all = False # True if all shapes have been cleared
         self.fov_area = (2*depth_field+1)**2
         self.dirs = self.generate_fov_vector(depth=depth_field, fov_area=self.fov_area)
+        
+        self.sample_shape()
 
         # One hot encoded observation space
         self.action_space = spaces.MultiBinary(3)

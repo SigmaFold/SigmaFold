@@ -257,6 +257,7 @@ class Placing(gym.Env):
         self.curr_sequence = []
         self.num_actions = 0
         self.last_action = np.zeros((2, 1))
+        self.cleared = False
 
     def render_init(self):
         pygame.init()
