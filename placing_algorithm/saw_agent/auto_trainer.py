@@ -8,7 +8,7 @@ import saw_gym_registration
 # Test 1 : done
 
 # # Test 2: gigamodel. 
-total_timesteps = 100
+total_timesteps = 6_000_000
 save_interval = 100_000
 folder = 'gigamodel'
 fov = [1, 2, 5, 10]
