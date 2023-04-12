@@ -72,7 +72,7 @@ class CustomCallback(BaseCallback):
         return super()._on_training_end()
     
 
-def placing_training(name='auto'):
+def placing_training(env, folder='auto', run_name='default', save_interval=100_000, depth_field=1, length=14, render_mode=None, total_timesteps=1_000_000, max_attempts=1, **kwargs):
     params = {
         "learning_rate": 1e-4,
         "n_steps": 128,
@@ -90,13 +90,27 @@ def placing_training(name='auto'):
         "sde_sample_freq": -1,
         "target_kl": None,
         "verbose": 1,
-
         # Add other stuff, idk
     }
-    env = gym.make("Placing-v0", length=16, render_mode=None)
-    model = RecurrentPPO("MlpLstmPolicy", env,
-                         tensorboard_log=f'./placing_algorithm/placing/drl/logs/{name}', **params)
-    model.learn(1_000_000_000) 
+    
+    model_save_path = f'./models/{folder}/{run_name}'
+    env = gym.make(env, render_mode=render_mode, depth_field=depth_field, length=length, max_attempts=max_attempts)
+    model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{folder}/{run_name}', **params)
+    custom_callback = CustomCallback(save_interval=save_interval, save_path=model_save_path, folder=folder, run_name=run_name)
+    model.learn(
+        total_timesteps=total_timesteps,
+        callback=custom_callback,
+    )
+    
+    model.save(model_save_path)  
 
+if __name__=='__main__':
+    #folder = str(input("What is the type of the test? "))
+    #run_name = str(input("What is the name of the run? "))
+    #saw_training('SAW-v0', folder, run_name)
+    total_timesteps = 1000
+    folder = "test"
+    run_name = "test"
+    placing_training('Placing-v0', folder, run_name, total_timesteps=total_timesteps)
 
-placing_training('first_test')
+     

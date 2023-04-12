@@ -5,8 +5,7 @@ import os
 import sys
 import pygame
 import time
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 from library.db_query_templates import get_training_dataset
 from library.shape_helper import deserialize_path, deserialize_shape
 
@@ -46,13 +45,14 @@ class Placing(gym.Env):
 
         # this is to update the "field of view" of the agent - the number of neighbours it can see
         self.fov_area = (2*depth_field+1)**2
+        print(f"FOV area: {self.fov_area}")
         self.dirs = self.generate_fov_vector(depth=depth_field, fov_area=self.fov_area) 
         
         # update actions pace size and observation space size
         self.action_space = spaces.MultiBinary(1)  # 2 HP assignments
-        self.observation_space = spaces.MultiBinary(self.fov_area*2+2)  # fov_area neighbours with 2 HP assignment positions per neighbour + 2 positions for action space
+        self.observation_space = spaces.MultiBinary((self.fov_area- 1)*2+2)  # fov_area neighbours with 2 HP assignment positions per neighbour + 2 positions for action space
         self.cleared_all = False
-        
+
     def reset(self, options=None, seed=None):
         if self.cleared: # shape was cleared entirely correctly, remove it frol the training dataset.
             # drop and reset indexing
