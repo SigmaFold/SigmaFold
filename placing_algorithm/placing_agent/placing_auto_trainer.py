@@ -19,21 +19,21 @@ import gym_registration
 
 # test 2 - validation: use neighbour test at fov 1
 # Test 3: random baseline
-print("Starting random agent test")
-total_timesteps = 1_000_000
-save_interval = 100_000
-folder = 'random_agent_test'
-fov = 1
-length = None
-run_name = f'random_agent'
-placing_training("RANDHP-v0", folder=folder, run_name=run_name, save_interval=save_interval, depth_field=fov, length=length, total_timesteps=total_timesteps)
+# print("Starting random agent test")
+# total_timesteps = 1_000_000
+# save_interval = 100_000
+# folder = 'random_agent_test'
+# fov = 1
+# length = None
+# run_name = f'random_agent'
+# placing_training("RANDHP-v0", folder=folder, run_name=run_name, save_interval=save_interval, depth_field=fov, length=length, total_timesteps=total_timesteps)
 
 
 # # test 4, extrapolation test
-# total_timesteps = 1_000_000
-# save_interval = 100_000
-# folder = 'extrapolation_test'
-# fov = 1
-# length = 14
-# run_name = f'extrapolation_fov_{fov}_n_{length}'
-# placing_training("Placing-v0", folder=folder, run_name=run_name, save_interval=save_interval, depth_field=fov, length=length, total_timesteps=total_timesteps)
+total_timesteps = 1_000_000
+save_interval = 100_000
+folder = 'extrapolation_test'
+fov = 1
+length = 14
+run_name = f'extrapolation_fov_{fov}_n_{length}'
+placing_training("Placing-v0", folder=folder, run_name=run_name, save_interval=save_interval, depth_field=fov, length=length, total_timesteps=total_timesteps)
