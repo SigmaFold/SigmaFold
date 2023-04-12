@@ -13,7 +13,7 @@ from utils.info_collector_wrapper import InfoCollectorWrapper
 from collections import defaultdict
 
 class CustomCallback(BaseCallback):
-    def __init__(self, save_interval, save_path, verbose=0):
+    def __init__(self, save_interval, save_path,  verbose=0):
         super(CustomCallback, self).__init__(verbose)
         self.save_interval = save_interval
         self.save_path = save_path
@@ -67,7 +67,7 @@ class CustomCallback(BaseCallback):
         print("Successfully saved additional info")
         return super()._on_training_end()
 
-def saw_training(env, folder='auto', run_name='default', save_interval=100_000, depth_field=1, length=14, render_mode=None, total_timesteps=1_000_000, max_attemps=1, **kwargs):
+def saw_training(env, folder='auto', run_name='default', save_interval=100_000, depth_field=1, length=14, render_mode=None, total_timesteps=1_000_000, max_attempts=1, **kwargs):
     params = {
         "learning_rate": 1e-3,
         "n_steps": 128,
@@ -89,7 +89,7 @@ def saw_training(env, folder='auto', run_name='default', save_interval=100_000, 
     }
     
     model_save_path = f'./models/{folder}/{run_name}'
-    env = gym.make(env, render_mode=render_mode, depth_field=depth_field, length=length, max_attemps=max_attemps)
+    env = gym.make(env, render_mode=render_mode, depth_field=depth_field, length=length, max_attempts=max_attempts)
     env  = InfoCollectorWrapper(env)
     model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{folder}/{run_name}', **params)
     custom_callback = CustomCallback(save_interval=save_interval, save_path=model_save_path)
