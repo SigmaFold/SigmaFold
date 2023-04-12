@@ -73,7 +73,7 @@ class SAW(gym.Env):
     def reset(self, options=None, seed=None):  
         if self.cleared: # shape was cleared entirely correctly, remove it frol the training dataset.
             # drop and reset indexing
-            print(f"Shape cleared, shapes remaining: {len(self.shapes)}")
+            
             self.shapes = self.shapes.drop(self.shape_index)
             self.shapes = self.shapes.reset_index(drop=True)  
             if self.shapes.empty:
@@ -81,6 +81,7 @@ class SAW(gym.Env):
                 self.cleared_all = True
                 self.attempts = 0
             else:
+                print(f"Shape cleared (in {self.attempts} step), shapes remaining: {len(self.shapes)}")
                 # resample a new shape
                 self.sample_shape()
                 self.attempts = 0
