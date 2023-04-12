@@ -30,10 +30,10 @@ placing_training("Placing-v0", folder=folder, run_name=run_name, save_interval=s
 
 
 # # test 4, extrapolation test
-# total_timesteps = 1_000_000
-# save_interval = 100_000
-# folder = 'extrapolation_test'
-# fov = 1
-# length = 14
-# run_name = f'extrapolation_fov_{fov}_n_{length}'
-# placing_training("Placing-v0", folder=folder, run_name=run_name, save_interval=save_interval, depth_field=fov, length=length, total_timesteps=total_timesteps)
+total_timesteps = 1_000_000
+save_interval = 100_000
+folder = 'extrapolation_test'
+fov = 1
+length = 14
+run_name = f'extrapolation_fov_{fov}_n_{length}'
+placing_training("Placing-v0", folder=folder, run_name=run_name, save_interval=save_interval, depth_field=fov, length=length, total_timesteps=total_timesteps)
