@@ -42,4 +42,4 @@ def validation_testing(path, env):
         json.dump(data, outfile)
 
 if __name__=='__main__':
-    validation_testing('./models/fovTest/fovTest_depth_1', 'SAWValidation-v0') # replace with model
+    validation_testing('./models/extrapolation_test/extrapolation_fov_1_n_14', 'SAWValidation-v0') # replace with model
