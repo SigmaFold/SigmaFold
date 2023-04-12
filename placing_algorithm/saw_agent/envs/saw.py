@@ -25,10 +25,7 @@ class SAW(gym.Env):
             self.shapes = get_training_dataset(length) # if length is None, the dataset will be of variable lengths
         else:
             self.shapes = shapes
-        # duplicate every row in the dataframe, replace the starting_point field with the last element in the optimal_path field
-        # and replace the starting_dir field with the last element in the optimal_path field for the DUPLICATES
-        # this way we have a starting point and direction for every shape
-        # self.shapes = pd.concat([self.shapes, self.shapes], ignore_index=True)
+        # the end point of the path is also a valid start point
         for _, row in self.shapes.iterrows():
             # duplicate the row inside the dataframe
             # get the last element of the optimal_path field
@@ -64,6 +61,8 @@ class SAW(gym.Env):
         self.cleared = False
         self.attempts = self.max_attempts + 1
         self.cleared_all = False # True if all shapes have been cleared
+
+        # this is to update the "field of view" of the agent
         self.fov_area = (2*depth_field+1)**2
         self.dirs = self.generate_fov_vector(depth=depth_field, fov_area=self.fov_area)
 

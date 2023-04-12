@@ -3,7 +3,7 @@ import numpy as np
 from gym import spaces
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
-from placing_algorithm.placing_agent.drl.envs.placing import Placing
+from placing_algorithm.placing_agent.envs.placing import Placing
 # Add your imports and paths here as needed
 
 class RANDHP(Placing):

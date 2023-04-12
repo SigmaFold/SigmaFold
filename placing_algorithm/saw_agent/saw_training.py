@@ -13,11 +13,13 @@ from utils.info_collector_wrapper import InfoCollectorWrapper
 from collections import defaultdict
 
 class CustomCallback(BaseCallback):
-    def __init__(self, save_interval, save_path,  verbose=0):
+    def __init__(self, save_interval, save_path, folder, run_name,  verbose=0):
         super(CustomCallback, self).__init__(verbose)
         self.save_interval = save_interval
         self.save_path = save_path
         self.timesteps_since_save = 0
+        self.folder = folder
+        self.run_name = run_name
 
     def _on_step(self) -> bool:
         self.timesteps_since_save += 1
@@ -32,13 +34,13 @@ class CustomCallback(BaseCallback):
             print("Cleared all shapes")
             print("Number of timesteps:", self.num_timesteps)
             # save nulber of timestep to file
-            with open(f'./logs/{folder}/{run_name}/timesteps.txt', 'w') as f:
+            with open(f'./logs/{self.folder}/{self.run_name}/timesteps.txt', 'w') as f:
                 f.write(str(self.num_timesteps))
             return False
         return True
 
     def _on_training_end(self) -> None:
-        with open(f'./logs/{folder}/{run_name}/degen_histo.json', 'w') as outfile: # made it save to the same folder as the tensorboard for that run
+        with open(f'./logs/{self.folder}/{self.run_name}/degen_histo.json', 'w') as outfile: # made it save to the same folder as the tensorboard for that run
             # make all keys strings
             degen = self.model.get_env().envs[0].degen_counter
             degen = {str(k): v for k, v in degen.items()}
@@ -46,13 +48,13 @@ class CustomCallback(BaseCallback):
             degen = {k: str(v) for k, v in degen.items()}
             json.dump(degen, outfile)
 
-        with open(f'./logs/{folder}/{run_name}/failure_modes.json', 'w') as outfile:
+        with open(f'./logs/{self.folder}/{self.run_name}/failure_modes.json', 'w') as outfile:
             # make all keys strings
             failure_modes = self.model.get_env().envs[0].failure_modes
             failure_modes = {str(k): str(v) for k, v in failure_modes.items()}
             json.dump(failure_modes, outfile)
 
-        with open(f'./logs/{folder}/{run_name}/nb_not_cleared', 'w') as outfile:
+        with open(f'./logs/{self.folder}/{self.run_name}/nb_not_cleared.json', 'w') as outfile:
             remaining_df = self.model.get_env().envs[0].shapes # TODO: size?
             uncleared_shapes = defaultdict(int)
             # extract min_degeneracy for each row, store in dict
@@ -62,7 +64,7 @@ class CustomCallback(BaseCallback):
             uncleared_shapes = {str(k): str(v) for k, v in uncleared_shapes.items()}    
             json.dump(uncleared_shapes, outfile)
             # save dataframe
-            remaining_df.to_csv(f'./logs/{folder}/{run_name}/remaining_shapes.csv')
+            remaining_df.to_csv(f'./logs/{self.folder}/{self.run_name}/remaining_shapes.csv')
 
         print("Successfully saved additional info")
         return super()._on_training_end()
@@ -92,7 +94,7 @@ def saw_training(env, folder='auto', run_name='default', save_interval=100_000, 
     env = gym.make(env, render_mode=render_mode, depth_field=depth_field, length=length, max_attempts=max_attempts)
     env  = InfoCollectorWrapper(env)
     model = RecurrentPPO("MlpLstmPolicy", env, tensorboard_log=f'./logs/{folder}/{run_name}', **params)
-    custom_callback = CustomCallback(save_interval=save_interval, save_path=model_save_path)
+    custom_callback = CustomCallback(save_interval=save_interval, save_path=model_save_path, folder=folder, run_name=run_name)
     model.learn(
         total_timesteps=total_timesteps,
         callback=custom_callback,
