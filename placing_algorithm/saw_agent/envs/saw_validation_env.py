@@ -76,14 +76,16 @@ class SAWValidation(gym.Env):
     def reset(self, options=None, seed=None):  
         if self.cleared: # shape was cleared entirely correctly, remove it frol the training dataset.
             # drop and reset indexing
-            print(f"Shape cleared, shapes remaining: {len(self.shapes)}")
+            # print(f"Shape cleared (in {self.attempts} steps), shapes remaining: {len(self.shapes)}")
             self.shapes = self.shapes.drop(self.shape_index)
             self.shapes = self.shapes.reset_index(drop=True)  
             if self.shapes.empty:
+                print("Reset because all cleared")
                 # let it run on the previous shape to avoid errors but set the flag to true so that the training can stop after this episode
                 self.cleared_all = True
                 self.attempts = 0
             else:
+                print("Reset because previous shape was cleared")
                 # resample a new shape
                 self.sample_shape()
                 self.attempts = 0
