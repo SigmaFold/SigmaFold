@@ -72,7 +72,7 @@ class CustomCallback(BaseCallback):
         return super()._on_training_end()
     
 
-def placing_training(env, folder='auto', run_name='default', save_interval=100_000, depth_field=1, length=14, render_mode=None, total_timesteps=1_000_000, max_attempts=1, **kwargs):
+def placing_training(env, folder='auto', run_name='default', save_interval=100_000, depth_field=1, length=14, render_mode="human", total_timesteps=1_000_000, max_attempts=1, **kwargs):
     params = {
         "learning_rate": 1e-4,
         "n_steps": 128,

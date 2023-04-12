@@ -127,22 +127,15 @@ class Placing(gym.Env):
                 pygame.quit()
                 sys.exit()
 
-        # Create a new surface with transparency for the depth visualization
-        depth_surface = pygame.Surface(self.shape_surface.get_size(), pygame.SRCALPHA)
-        depth_surface.fill((0, 0, 0, 0))
-        # Show the depth area around the agent in blue with 0.1 alpha
-        for i in range(len(self.dirs)):
-            pos_neighbour_col, pos_neighbour_row = self.curr_pos[0] + self.dirs[i][0], self.curr_pos[1] + self.dirs[i][1]
-            pygame.draw.rect(depth_surface, (0, 0, 255, 100), (pos_neighbour_col*self.cell_size, pos_neighbour_row*self.cell_size, self.cell_size, self.cell_size))
-
         # Render the current pos as a green square overwriting the target shape
         if residue == "H":
             pygame.draw.circle(self.shape_surface, (0, 255, 0), (pos_action_col*self.cell_size, pos_action_row*self.cell_size), radius=self.cell_size/3)
         else:
             pygame.draw.circle(self.shape_surface, (0, 0, 255), (pos_action_col*self.cell_size, pos_action_row*self.cell_size), radius=self.cell_size/3)
 
-        # Render the depth surface on top of the main surface
-        self.screen.blit(depth_surface, (0, 0))
+        # Render the target shape
+        # blit
+        self.screen.blit(self.shape_surface, (0, 0))
         pygame.display.flip()
 
     def _get_obs(self):
@@ -175,7 +168,7 @@ class Placing(gym.Env):
 
         if len(self.curr_sequence) == self.length:
             if "".join(self.curr_sequence) == self.correct_sequence:
-                # reward = reward * 5
+                reward = reward * 5
                 # TODO: should I add a reward at the end? it'll make the graph less nice.
                 print("Correct sequence found: ", self.curr_sequence)
                 self.cleared = True
