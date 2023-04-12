@@ -7,7 +7,7 @@ from placing_algorithm.placing_agent.envs.placing import Placing
 # Add your imports and paths here as needed
 
 class RANDHP(Placing):
-    def __init__(self, length, render_mode=None) -> None:
+    def __init__(self, length=None, render_mode=None, max_attempts=1, depth_field=1, shapes=None, count_diagonal=True) -> None:
         super().__init__(length, render_mode)
 
     def step(self, *args):

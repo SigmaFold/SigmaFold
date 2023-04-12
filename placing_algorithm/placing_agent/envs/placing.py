@@ -12,10 +12,10 @@ from library.shape_helper import deserialize_path, deserialize_shape
 
 class Placing(gym.Env):
     """
-    Placing environment for the Folding@AmongUs project.
+    Placing environment for the Folding project.
     """
 
-    def __init__(self, length=None, render_mode=None, max_attempts=1, depth_field=1, shapes=None, count_diagonals=True) -> None:
+    def __init__(self, length=None, render_mode=None, max_attempts=1, depth_field=1, shapes=None, count_diagonal=True) -> None:
         super().__init__()
         if shapes is None:
             self.shapes = get_training_dataset(length) # if length is None, the dataset will be of variable lengths
@@ -46,7 +46,7 @@ class Placing(gym.Env):
         # this is to update the "field of view" of the agent - the number of neighbours it can see
         self.fov_area = (2*depth_field+1)**2
         print(f"FOV area: {self.fov_area}")
-        self.dirs = self.generate_fov_vector(count_diagonals, depth=depth_field, fov_area=self.fov_area, ) 
+        self.dirs = self.generate_fov_vector(count_diagonal=count_diagonal, depth=depth_field, fov_area=self.fov_area, ) 
         
         # update actions pace size and observation space size
         self.action_space = spaces.MultiBinary(1)  # 2 HP assignments

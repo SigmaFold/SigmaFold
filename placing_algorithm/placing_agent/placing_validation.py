@@ -1,6 +1,6 @@
 import gym
 import sys, os
-import saw_gym_registration
+import gym_registration
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 import json
 import numpy as np
