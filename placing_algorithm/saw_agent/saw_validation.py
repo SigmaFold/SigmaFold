@@ -15,7 +15,7 @@ def validation_testing(path, env):
                    render_mode=None,
                    depth_field=1,
                    shapes=validation_set,
-                   max_attempts=100)
+                   max_attempts=1_000)
     
     monitored_env = ValidationMonitor(env)
     model = RecurrentPPO.load(path, monitored_env)
@@ -43,4 +43,4 @@ def validation_testing(path, env):
         json.dump(data, outfile)
 
 if __name__=='__main__':
-    validation_testing('./models/extrapolation_test/extrapolation_fov_1_n_14', 'SAW-v0') # replace with model
+    validation_testing('./models/extrapolation_test/extrapolation_fov_1_n_14', 'SAWValidation-v0') # replace with model
