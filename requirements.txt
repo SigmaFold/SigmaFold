@@ -17,7 +17,7 @@ Pillow
 #setuptools==65.5.0
 # DeepRL
 stable-baselines3
-#gym ==0.21.0
+gym
 #keras # really?
 sb3-contrib
 #tensorflow
