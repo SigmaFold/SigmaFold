@@ -1,7 +1,14 @@
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 from utils.validation_data_processor import process_inbound_validation_data, process_outbound_validation_data, process_cumulative_count
+
+font = {'family' : 'normal',
+        'weight' : 'bold',
+        'size'   : 10}
+
+matplotlib.rc('font', **font)
 
 fig, axs = plt.subplots(2, 2)
 
@@ -22,7 +29,7 @@ interpolation = process_cumulative_count("./data_saw/validation_data_gigamodel.j
 
 axs[1, 0].bar(list(interpolation.keys()), interpolation.values(), color=[0, 0.4470, 0.7410], width=2)
 # axs[1, 0].set_title('Number of unsolved shapes (Interpolation)')
-axs[1, 0].set(xlabel="Minimum Degeneracy", ylabel="Ratio of solved shapes over total (%)")
+axs[1, 0].set(xlabel="Minimum Degeneracy", ylabel="Ratio of solved shapes (%)")
 
 
 axs[1, 1].bar(list(extrapolation.keys()), extrapolation.values(), color=[0, 0.4470, 0.7410], width=2)
